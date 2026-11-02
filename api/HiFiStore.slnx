@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HiFiStore.Api/HiFiStore.Api.csproj" />
+    <Project Path="src/HiFiStore.Domain/HiFiStore.Domain.csproj" />
+    <Project Path="src/HiFiStore.Infrastructure/HiFiStore.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HiFiStore.Tests/HiFiStore.Tests.csproj" />
+  </Folder>
+</Solution>
