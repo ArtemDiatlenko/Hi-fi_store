@@ -147,7 +147,7 @@ public static class DemoCatalog
             product.Images.Add(new ProductImage
             {
                 Id = Guid.NewGuid(),
-                Url = $"https://placehold.co/800x600?text={Uri.EscapeDataString(name)}",
+                Url = $"https://placehold.co/800x600/png?text={Uri.EscapeDataString(name)}",
                 Alt = name,
                 SortOrder = 0,
             });
