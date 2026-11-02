@@ -115,13 +115,26 @@ public class ProductFilterParserTests
     [Theory]
     [InlineData("spec.Power-W", "1")]
     [InlineData("spec.power w", "1")]
-    [InlineData("spec.power_w", "")]
+    [InlineData("spec.power_w.min", "abc")]
     public void MalformedSpecParameters_AreRejected(string name, string value)
     {
         var ok = ProductFilterParser.TryParse(Query((name, value)), out _, out var errors);
 
         Assert.False(ok);
         Assert.Single(errors);
+    }
+
+    [Theory]
+    [InlineData("spec.power_w.min", "")]
+    [InlineData("spec.power_w.max", "  ")]
+    [InlineData("spec.bluetooth", "")]
+    [InlineData("spec.tube_type", ",")]
+    public void EmptySpecValues_MeanNoFilter(string name, string value)
+    {
+        var ok = ProductFilterParser.TryParse(Query((name, value)), out var filter, out var errors);
+
+        Assert.True(ok, string.Join("; ", errors.Keys));
+        Assert.Empty(filter.Specs);
     }
 
     [Fact]

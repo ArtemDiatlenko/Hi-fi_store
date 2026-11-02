@@ -108,9 +108,15 @@ public static class ProductFilterParser
                 .Where(v => v.Length > 0)
                 .ToList();
 
+            // Пустые значения (например, незаполненное поле формы) означают «без фильтра».
+            if (items.Count == 0)
+            {
+                continue;
+            }
+
             if (isRange)
             {
-                if (!decimal.TryParse(items.FirstOrDefault(), NumberStyles.Number, CultureInfo.InvariantCulture, out var bound))
+                if (!decimal.TryParse(items[0], NumberStyles.Number, CultureInfo.InvariantCulture, out var bound))
                 {
                     AddError(errors, name, "Ожидается число.");
                     continue;
@@ -120,12 +126,6 @@ public static class ProductFilterParser
                 numericRanges[key] = suffix == "min"
                     ? (bound, currentMax)
                     : (currentMin, bound);
-                continue;
-            }
-
-            if (items.Count == 0)
-            {
-                AddError(errors, name, "Укажите значение фильтра.");
                 continue;
             }
 
