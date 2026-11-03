@@ -56,6 +56,12 @@ export async function SiteHeader({ categories }: { categories: Promise<CategoryN
           </Suspense>
         </nav>
 
+        <div className="hidden lg:block">
+          <Link href={localeHref(locale, "/consultation")} className={catalogTriggerClass}>
+            {dict.header.consultation}
+          </Link>
+        </div>
+
         <SearchForm locale={locale} dict={dict} id="site-search" className="hidden min-w-0 flex-1 md:block lg:max-w-xl" />
 
         <nav aria-label={dict.header.menu} className="ml-auto hidden items-center gap-1 lg:flex">

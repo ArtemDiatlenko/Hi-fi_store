@@ -185,7 +185,7 @@ function ActiveAdminNav({ email }: { email: string | null }) {
   return <AdminNav activePath={stripLocalePrefix(pathname)} email={email} />;
 }
 
-type SectionKey = "dashboard" | "products" | "categories" | "brands" | "orders" | "customers";
+type SectionKey = "dashboard" | "products" | "categories" | "brands" | "orders" | "customers" | "inquiries";
 
 // Списки — во множественном числе, страницы записей — в единственном (/admin/product/{id}), см. admin/layout.tsx.
 const SECTIONS: { key: SectionKey; path: string; itemPath?: string }[] = [
@@ -194,6 +194,7 @@ const SECTIONS: { key: SectionKey; path: string; itemPath?: string }[] = [
   { key: "categories", path: "/admin/categories", itemPath: "/admin/category" },
   { key: "brands", path: "/admin/brands" },
   { key: "orders", path: "/admin/orders", itemPath: "/admin/order" },
+  { key: "inquiries", path: "/admin/inquiries", itemPath: "/admin/inquiry" },
   { key: "customers", path: "/admin/customers", itemPath: "/admin/customer" },
 ];
 
@@ -343,6 +344,7 @@ function AdminNav({ activePath, email }: { activePath: string | null; email: str
 
 function NavIcon({ section }: { section: SectionKey }) {
   const paths: Record<SectionKey, string> = {
+    inquiries: "M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z",
     dashboard: "M4 13h6V4H4v9zm0 7h6v-5H4v5zm10 0h6v-9h-6v9zm0-16v5h6V4h-6z",
     products: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
     categories: "M4 6h16M4 12h10M4 18h6",

@@ -86,6 +86,16 @@ export default async function HomePage() {
       </Suspense>
 
       <WhyUs />
+
+      <section aria-labelledby="home-consultation" className="flex flex-col items-start gap-5 rounded-3xl bg-amber-50 p-6 sm:p-10 dark:bg-amber-400/10">
+        <HeadsetIcon className="h-8 w-8 text-amber-700 dark:text-amber-300" />
+        <h2 id="home-consultation" className="text-2xl font-semibold tracking-tight sm:text-3xl">{dict.consultation.ctaTitle}</h2>
+        <p className="max-w-2xl text-zinc-600 dark:text-zinc-300">{dict.consultation.ctaText}</p>
+        <Link href={localeHref(locale, "/consultation")} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-zinc-900 px-6 font-semibold text-white hover:bg-zinc-700 dark:bg-amber-400 dark:text-zinc-950 dark:hover:bg-amber-300">
+          {dict.consultation.ctaButton}
+          <ArrowRightIcon className="h-5 w-5" />
+        </Link>
+      </section>
     </div>
   );
 }
@@ -394,7 +404,7 @@ async function WhyUs() {
     { icon: TruckIcon, title: dict.home.deliveryTitle, text: dict.home.deliveryText, href: "/info/delivery" },
     { icon: WalletIcon, title: dict.home.paymentTitle, text: dict.home.paymentText, href: "/info/delivery" },
     { icon: ShieldIcon, title: dict.home.warrantyTitle, text: dict.home.warrantyText, href: "/info/returns" },
-    { icon: HeadsetIcon, title: dict.home.consultTitle, text: dict.home.consultText, href: "/info/contacts" },
+    { icon: HeadsetIcon, title: dict.home.consultTitle, text: dict.home.consultText, href: "/consultation" },
   ];
 
   return (

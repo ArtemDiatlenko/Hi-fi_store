@@ -1,3 +1,4 @@
+using HiFiStore.Infrastructure.Inquiries;
 using HiFiStore.Infrastructure.Orders;
 
 namespace HiFiStore.Infrastructure.Email;
@@ -16,6 +17,20 @@ public sealed class OrderNotifier(IEmailOutbox outbox, StoreLinkOptions links)
         if (!string.IsNullOrWhiteSpace(links.OwnerEmail))
         {
             outbox.Enqueue(EmailTemplates.NewOrderForOwner(links.OwnerEmail, order, links.Link($"/admin/order/{order.Id}")));
+        }
+    }
+
+    /// <summary>Новая заявка на консультацию: владельцу (если задан Store:OwnerEmail) и подтверждение покупателю, если он оставил email.</summary>
+    public void InquiryReceived(AdminInquiryDetails inquiry)
+    {
+        if (!string.IsNullOrWhiteSpace(links.OwnerEmail))
+        {
+            outbox.Enqueue(EmailTemplates.InquiryForOwner(links.OwnerEmail, inquiry, links.Link($"/admin/inquiry/{inquiry.Id}")));
+        }
+
+        if (inquiry.Email is not null)
+        {
+            outbox.Enqueue(EmailTemplates.InquiryReceived(inquiry));
         }
     }
 

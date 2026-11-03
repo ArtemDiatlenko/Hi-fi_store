@@ -100,6 +100,11 @@ export function MobileMenu({ categories }: { categories: Promise<CategoryNode[]>
                     {dict.header.newArrivals}
                   </Link>
                 </li>
+                <li>
+                  <Link href={localeHref(locale, "/consultation")} onClick={close} className={itemClass}>
+                    {dict.header.consultation}
+                  </Link>
+                </li>
               </ul>
 
               <Suspense fallback={<p className="px-2 text-sm text-zinc-600 dark:text-zinc-400">{dict.common.loading}</p>}>
