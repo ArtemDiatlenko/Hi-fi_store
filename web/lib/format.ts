@@ -1,39 +1,52 @@
-import type { ProductCondition } from "@/lib/api";
+// Форматирование цен, чисел и дат по активной локали. Валюта задаётся в одном месте (CURRENCY),
+// чтобы сменить её позже можно было здесь, а не по всему интерфейсу.
 
-const priceFormatter = new Intl.NumberFormat("ru-RU", {
-  style: "currency",
-  currency: "RUB",
-  maximumFractionDigits: 0,
-});
+import { intlLocale, type Locale } from "@/lib/i18n/config";
 
-export function formatPrice(value: number): string {
-  return priceFormatter.format(value);
-}
+/** Валюта магазина. Единственное место, где она задаётся. */
+export const CURRENCY = "UAH";
 
-const conditionLabels: Record<ProductCondition, string> = {
-  New: "Новый",
-  Used: "Б/у",
-  Demo: "Демо",
-};
-
-export function conditionLabel(condition: ProductCondition): string {
-  return conditionLabels[condition];
-}
-
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value);
-}
-
-// Часовой пояс магазина (доставка — Новая почта). Фиксированный пояс даёт одинаковый текст
+// Часовой пояс магазина (доставка — Нова пошта). Фиксированный пояс даёт одинаковый текст
 // на сервере и в браузере, без расхождений при гидратации.
-const STORE_TIME_ZONE = "Europe/Kyiv";
+export const STORE_TIME_ZONE = "Europe/Kyiv";
 
-const dateTimeFormatter = new Intl.DateTimeFormat("ru-RU", {
-  dateStyle: "long",
-  timeStyle: "short",
-  timeZone: STORE_TIME_ZONE,
-});
+const priceFormatters: Partial<Record<Locale, Intl.NumberFormat>> = {};
+const numberFormatters: Partial<Record<Locale, Intl.NumberFormat>> = {};
+const dateTimeFormatters: Partial<Record<Locale, Intl.DateTimeFormat>> = {};
 
-export function formatDateTime(iso: string): string {
-  return dateTimeFormatter.format(new Date(iso));
+function priceFormatter(locale: Locale): Intl.NumberFormat {
+  return (priceFormatters[locale] ??= new Intl.NumberFormat(intlLocale[locale], {
+    style: "currency",
+    currency: CURRENCY,
+    // narrowSymbol показывает «₴» и в en-US (иначе там вывелось бы «UAH»); копеек нет.
+    currencyDisplay: "narrowSymbol",
+    maximumFractionDigits: 0,
+  }));
+}
+
+function numberFormatter(locale: Locale): Intl.NumberFormat {
+  return (numberFormatters[locale] ??= new Intl.NumberFormat(intlLocale[locale], {
+    maximumFractionDigits: 2,
+  }));
+}
+
+function dateTimeFormatter(locale: Locale): Intl.DateTimeFormat {
+  return (dateTimeFormatters[locale] ??= new Intl.DateTimeFormat(intlLocale[locale], {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: STORE_TIME_ZONE,
+  }));
+}
+
+/** Цена в гривнях (₴) по правилам локали, без копеек. */
+export function formatPrice(value: number, locale: Locale): string {
+  return priceFormatter(locale).format(value);
+}
+
+export function formatNumber(value: number, locale: Locale): string {
+  return numberFormatter(locale).format(value);
+}
+
+export function formatDateTime(iso: string, locale: Locale): string {
+  return dateTimeFormatter(locale).format(new Date(iso));
 }

@@ -15,8 +15,15 @@ export function toURLSearchParams(params: SearchParams): URLSearchParams {
   return result;
 }
 
-/** Строка адреса с теми же фильтрами, но с заменёнными параметрами (например, номер страницы). */
-export function hrefWith(params: SearchParams, overrides: Record<string, string | null>): string {
+/**
+ * Строка адреса с теми же фильтрами, но с заменёнными параметрами (например, номер страницы).
+ * <c>basePath</c> — локализованный путь каталога («/catalog» или «/en/catalog»).
+ */
+export function hrefWith(
+  basePath: string,
+  params: SearchParams,
+  overrides: Record<string, string | null>,
+): string {
   const result = toURLSearchParams(params);
   for (const [name, value] of Object.entries(overrides)) {
     result.delete(name);
@@ -25,7 +32,7 @@ export function hrefWith(params: SearchParams, overrides: Record<string, string 
     }
   }
   const query = result.toString();
-  return query ? `/catalog?${query}` : "/catalog";
+  return query ? `${basePath}?${query}` : basePath;
 }
 
 export function firstValue(value: string | string[] | undefined): string | undefined {
