@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n/client";
 
-/** Адрес, который сервер примет как изображение: http(s) или путь от корня сайта (как IsValidImageUrl в API). */
+/**
+ * Адрес, который сервер примет как изображение (http(s) или путь от корня сайта, как IsValidImageUrl в API)
+ * и который имеет смысл загружать для предпросмотра: у домена должна быть точка (или это localhost),
+ * чтобы недописанный адрес вроде «https://pl» не превращался в запрос к несуществующему хосту.
+ */
 export function isPreviewableUrl(url: string): boolean {
   const value = url.trim();
   if (value.startsWith("/")) {
@@ -11,10 +15,21 @@ export function isPreviewableUrl(url: string): boolean {
   }
   try {
     const parsed = new URL(value);
-    return (parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.host.length > 0;
+    const host = parsed.hostname;
+    return (parsed.protocol === "http:" || parsed.protocol === "https:") && (host.includes(".") || host === "localhost");
   } catch {
     return false;
   }
+}
+
+/** Значение, которое обновляется только после паузы во вводе (предпросмотр не грузит каждый набранный символ). */
+export function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
 }
 
 /**
@@ -42,7 +57,7 @@ export function AdminThumb({ url, alt, size = "sm" }: { url: string | null; alt:
     <img
       src={url}
       alt={alt}
-      loading="lazy"
+      loading={size === "lg" ? "eager" : "lazy"}
       onError={() => setFailedUrl(url)}
       className={`${box} shrink-0 rounded-md bg-zinc-100 object-cover dark:bg-zinc-800`}
     />

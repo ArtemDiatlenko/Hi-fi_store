@@ -10,6 +10,7 @@ import { type FieldErrors, focusFirstInvalid } from "@/lib/admin/api";
 import { describeFailure, directKeys } from "@/lib/admin/forms";
 import type { AdminBrand } from "@/lib/admin/types";
 import { useAdminQuery, useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { formatNumber } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
@@ -35,6 +36,7 @@ export function BrandManager() {
   const [createKey, setCreateKey] = useState(0);
   const [confirmElement, confirm] = useConfirm();
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
 
   function changed(message: string) {
     setProblem(null);
@@ -60,7 +62,7 @@ export function BrandManager() {
     }
     if (outcome.status !== 401 && outcome.status !== 403) {
       setProblem({ ...describeFailure(outcome, locale, dict, () => null).problem, title: dict.admin.common.deleteFailed });
-      requestAnimationFrame(() => alertRef.current?.focus());
+      afterCommit(() => alertRef.current?.focus());
     }
   }
 
@@ -144,6 +146,7 @@ function BrandForm({ brand, onSaved, onCancel }: { brand: AdminBrand | null; onS
   const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const titleId = useId();
 
   function update(field: keyof BrandValues, value: string) {
@@ -174,7 +177,7 @@ function BrandForm({ brand, onSaved, onCancel }: { brand: AdminBrand | null; onS
     const view = describeFailure(outcome, locale, dict, directKeys(FIELDS), ["slug"]);
     setErrors(view.fields);
     setProblem(view.problem);
-    focusFirstInvalid(formRef.current, alertRef.current);
+    afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
   return (

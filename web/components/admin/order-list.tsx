@@ -122,7 +122,7 @@ export function OrderList() {
                     {data.items.map((order) => (
                       <tr key={order.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
                         <td className="whitespace-nowrap px-4 py-3">
-                          <Link href={localeHref(locale, `/admin/orders/${order.id}`)} className="font-medium underline underline-offset-2">
+                          <Link href={localeHref(locale, `/admin/order/${order.id}`)} className="font-medium underline underline-offset-2">
                             №{order.number}
                           </Link>
                         </td>
@@ -151,7 +151,7 @@ export function OrderList() {
                 {data.items.map((order) => (
                   <li key={order.id}>
                     <Link
-                      href={localeHref(locale, `/admin/orders/${order.id}`)}
+                      href={localeHref(locale, `/admin/order/${order.id}`)}
                       className="flex flex-col gap-1 rounded-xl border border-zinc-200 p-3 text-sm hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
                     >
                       <span className="flex items-center justify-between gap-2">

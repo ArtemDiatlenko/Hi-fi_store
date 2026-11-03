@@ -10,6 +10,7 @@ import { indentedLabel, withDepth } from "@/lib/admin/categories";
 import { describeFailure, directKeys } from "@/lib/admin/forms";
 import { type AdminBrand, type AdminCategory, type AdminProductDetails, productConditions } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import type { ProductCondition } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -79,6 +80,7 @@ export function ProductMainForm({ productId, initial, categories, brands, onSave
   const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const isNew = productId === null;
 
   function update<K extends keyof ProductMainValues>(field: K, value: ProductMainValues[K]) {
@@ -132,7 +134,7 @@ export function ProductMainForm({ productId, initial, categories, brands, onSave
     const view = describeFailure(outcome, locale, dict, directKeys(FIELDS), ["slug", "sku"]);
     setErrors(view.fields);
     setProblem(view.problem);
-    focusFirstInvalid(formRef.current, alertRef.current);
+    afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
   const categoryOptions = withDepth(categories);

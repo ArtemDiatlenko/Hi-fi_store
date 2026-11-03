@@ -61,7 +61,7 @@ export function ProductList() {
       <PageHeader
         title={t.title}
         actions={
-          <Link href={localeHref(locale, "/admin/products/new")} className={buttonClass.primary}>
+          <Link href={localeHref(locale, "/admin/product/new")} className={buttonClass.primary}>
             {t.add}
           </Link>
         }
@@ -132,7 +132,7 @@ export function ProductList() {
                           <div className="flex items-center gap-3">
                             <AdminThumb url={product.imageUrl} alt="" />
                             <div className="flex min-w-0 flex-col">
-                              <Link href={localeHref(locale, `/admin/products/${product.id}`)} className="font-medium underline-offset-2 hover:underline">
+                              <Link href={localeHref(locale, `/admin/product/${product.id}`)} className="font-medium underline-offset-2 hover:underline">
                                 {product.name}
                               </Link>
                               <span className="text-xs text-zinc-500">
@@ -167,7 +167,7 @@ export function ProductList() {
                   <li key={product.id} className="flex gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
                     <AdminThumb url={product.imageUrl} alt="" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
-                      <Link href={localeHref(locale, `/admin/products/${product.id}`)} className="font-medium underline-offset-2 hover:underline">
+                      <Link href={localeHref(locale, `/admin/product/${product.id}`)} className="font-medium underline-offset-2 hover:underline">
                         {product.name}
                       </Link>
                       <span className="text-xs text-zinc-500">

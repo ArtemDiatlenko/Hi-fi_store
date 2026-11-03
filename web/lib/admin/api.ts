@@ -106,12 +106,13 @@ export function conflictField(problem: ProblemBody): "slug" | "sku" | "key" | "v
   return null;
 }
 
-/** Ставит фокус на первое поле с ошибкой внутри контейнера, иначе — на запасной элемент (сводку ошибок). */
+/**
+ * Ставит фокус на первое (в порядке документа) поле с ошибкой внутри контейнера, иначе — на запасной
+ * элемент (сводку ошибок). Вызывайте после рендера с ошибками — через useAfterCommit.
+ */
 export function focusFirstInvalid(container: HTMLElement | null, fallback?: HTMLElement | null): void {
-  requestAnimationFrame(() => {
-    const invalid = container?.querySelector<HTMLElement>('[aria-invalid="true"]');
-    (invalid ?? fallback)?.focus();
-  });
+  const invalid = container?.querySelector<HTMLElement>('[aria-invalid="true"]');
+  (invalid ?? fallback)?.focus();
 }
 
 /** Строка формы → число для API: пустая строка → null; запятая как десятичный разделитель допустима. */

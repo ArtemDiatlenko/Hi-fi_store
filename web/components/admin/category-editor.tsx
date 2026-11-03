@@ -14,6 +14,7 @@ import { ancestorsOf } from "@/lib/admin/categories";
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminCategory, AdminCategoryDetails } from "@/lib/admin/types";
 import { type AdminRequest, useAdminQuery, useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
@@ -30,13 +31,13 @@ export function CategoryCreate() {
     <>
       <PageHeader title={t.newTitle} back={{ href: localeHref(locale, "/admin/categories"), label: t.backToList }} />
       {categories.error ? <LoadError message={tpl(dict.admin.common.loadError, { status: categories.error.status })} onRetry={categories.reload} /> : null}
-      <Section title={t.newTitle}>
+      <Section title={t.mainSection}>
         <CategoryForm
           key={parent}
           categoryId={null}
           initial={categoryValues(null, parent)}
           categories={categories.data ?? []}
-          onSaved={(category) => router.push(localeHref(locale, `/admin/categories/${category.id}?notice=created`))}
+          onSaved={(category) => router.push(localeHref(locale, `/admin/category/${category.id}?notice=created`))}
         />
       </Section>
     </>
@@ -79,6 +80,7 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
   const [problem, setProblem] = useState<FormProblem | null>(null);
   const [confirmElement, confirm] = useConfirm();
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const ancestors = categories.data ? ancestorsOf(categories.data, id) : [];
   const inherited = useInheritedSpecs(request, ancestors);
 
@@ -88,7 +90,7 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
   function showProblem(next: FormProblem) {
     setNotice(null);
     setProblem(next);
-    requestAnimationFrame(() => alertRef.current?.focus());
+    afterCommit(() => alertRef.current?.focus());
   }
 
   if (category.error && !category.data) {
@@ -138,7 +140,7 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
         back={{ href: localeHref(locale, "/admin/categories"), label: t.backToList }}
         actions={
           <>
-            <Link href={localeHref(locale, `/admin/categories/new?parent=${data.id}`)} className={buttonClass.secondary}>
+            <Link href={localeHref(locale, `/admin/category/new?parent=${data.id}`)} className={buttonClass.secondary}>
               + {t.addChild}
             </Link>
             <button type="button" onClick={remove} className={buttonClass.danger}>
@@ -161,13 +163,13 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
         onDismiss={() => {
           setNotice(null);
           if (createdNotice) {
-            router.replace(localeHref(locale, `/admin/categories/${data.id}`), { scroll: false });
+            router.replace(localeHref(locale, `/admin/category/${data.id}`), { scroll: false });
           }
         }}
       />
       <FormAlert ref={alertRef} problem={problem} />
 
-      <Section title={t.title}>
+      <Section title={t.mainSection}>
         <CategoryForm
           key={JSON.stringify([data.name, data.slug, data.description, data.parentId, data.sortOrder])}
           categoryId={data.id}
@@ -196,7 +198,7 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
                     </span>
                     <span className="font-mono text-xs leading-5">{spec.key}</span>
                     <span>·</span>
-                    <Link href={localeHref(locale, `/admin/categories/${details.id}`)} className="underline underline-offset-2">
+                    <Link href={localeHref(locale, `/admin/category/${details.id}`)} className="underline underline-offset-2">
                       {tpl(dict.admin.specDefs.inheritedFrom, { name: details.name })}
                     </Link>
                   </li>

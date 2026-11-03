@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { OrderView } from "@/components/admin/order-view";
+import { CategoryEditor } from "@/components/admin/category-editor";
 import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { dict } = await getI18n();
-  return { title: dict.admin.orders.title };
+  return { title: dict.admin.categories.title };
 }
 
-export default async function AdminOrderPage(props: PageProps<"/[lang]/admin/orders/[id]">) {
+export default async function AdminCategoryEditPage(props: PageProps<"/[lang]/admin/category/[id]">) {
   const { dict } = await getI18n();
   return (
     <Suspense fallback={<p className="text-sm text-zinc-500">{dict.admin.common.loading}</p>}>
-      <OrderView params={props.params} />
+      <CategoryEditor params={props.params} />
     </Suspense>
   );
 }

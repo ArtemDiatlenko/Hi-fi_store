@@ -11,6 +11,7 @@ import { type FieldErrors, focusFirstInvalid, numberToInput, parseDecimal } from
 import { describeFailure, directKeys } from "@/lib/admin/forms";
 import { type AdminSpecDefinition, specValueTypes } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import type { SpecValueType } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/client";
 import { tpl } from "@/lib/i18n/util";
@@ -161,6 +162,7 @@ function SpecDefinitionForm({
   const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const titleId = useId();
   const checkboxId = useId();
 
@@ -203,7 +205,7 @@ function SpecDefinitionForm({
     const view = describeFailure(outcome, locale, dict, directKeys(FIELDS), ["key", "valueType"]);
     setErrors(view.fields);
     setProblem(view.problem);
-    focusFirstInvalid(formRef.current, alertRef.current);
+    afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
   return (

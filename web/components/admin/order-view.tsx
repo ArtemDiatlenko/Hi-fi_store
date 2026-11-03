@@ -10,6 +10,7 @@ import { buttonClass, FormAlert, type FormProblem, LoadError, Notice, PageHeader
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminOrderDetails } from "@/lib/admin/types";
 import { useAdminQuery, useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
@@ -27,6 +28,7 @@ export function OrderView({ params }: { params: Promise<{ id: string }> }) {
   const [pendingStatus, setPendingStatus] = useState<OrderStatus | null>(null);
   const [confirmElement, confirm] = useConfirm();
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const actionsId = useId();
   const metaId = useId();
   const back = { href: localeHref(locale, "/admin/orders"), label: t.backToList };
@@ -78,7 +80,7 @@ export function OrderView({ params }: { params: Promise<{ id: string }> }) {
     const view = describeFailure(outcome, locale, dict, () => null);
     setProblem({ ...view.problem, title: t.changeFailed });
     order.reload();
-    requestAnimationFrame(() => alertRef.current?.focus());
+    afterCommit(() => alertRef.current?.focus());
   }
 
   return (
@@ -133,12 +135,6 @@ export function OrderView({ params }: { params: Promise<{ id: string }> }) {
               {t.meta}
             </h2>
             <dl className="flex flex-col gap-2 text-sm">
-              <div>
-                <dt className="text-zinc-500">{dict.order.placedAt}</dt>
-                <dd>
-                  <time dateTime={data.createdAt}>{formatDateTime(data.createdAt, locale)}</time>
-                </dd>
-              </div>
               <div>
                 <dt className="text-zinc-500">{t.updatedAt}</dt>
                 <dd>

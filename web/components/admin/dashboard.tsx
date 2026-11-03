@@ -119,10 +119,10 @@ export function AdminDashboard() {
           {t.quickActions}
         </h2>
         <div className="flex flex-wrap gap-2">
-          <Link href={localeHref(locale, "/admin/products/new")} className={buttonClass.primary}>
+          <Link href={localeHref(locale, "/admin/product/new")} className={buttonClass.primary}>
             {t.addProduct}
           </Link>
-          <Link href={localeHref(locale, "/admin/categories/new")} className={buttonClass.secondary}>
+          <Link href={localeHref(locale, "/admin/category/new")} className={buttonClass.secondary}>
             {t.addCategory}
           </Link>
           <Link href={localeHref(locale, "/admin/brands")} className={buttonClass.secondary}>
@@ -148,7 +148,7 @@ export function AdminDashboard() {
             {recent.data.items.map((order) => (
               <li key={order.id}>
                 <Link
-                  href={localeHref(locale, `/admin/orders/${order.id}`)}
+                  href={localeHref(locale, `/admin/order/${order.id}`)}
                   className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900"
                 >
                   <span className="flex min-w-0 flex-col">

@@ -9,6 +9,7 @@ import { indentedLabel, selfAndDescendants, withDepth } from "@/lib/admin/catego
 import { describeFailure, directKeys } from "@/lib/admin/forms";
 import type { AdminCategory, AdminCategoryDetails } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 
 export interface CategoryValues {
@@ -50,6 +51,7 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
   const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const isNew = categoryId === null;
 
   // Нельзя перенести раздел в самого себя или в свой подраздел — такие варианты не предлагаем.
@@ -94,7 +96,7 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
     const view = describeFailure(outcome, locale, dict, directKeys(FIELDS), ["slug"]);
     setErrors(view.fields);
     setProblem(view.problem);
-    focusFirstInvalid(formRef.current, alertRef.current);
+    afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
   return (

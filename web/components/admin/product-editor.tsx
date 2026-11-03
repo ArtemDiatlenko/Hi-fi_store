@@ -14,6 +14,7 @@ import { buttonClass, FormAlert, type FormProblem, LoadError, Notice, PageHeader
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminBrand, AdminCategory, AdminProductDetails } from "@/lib/admin/types";
 import { useAdminQuery, useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
@@ -43,7 +44,7 @@ export function ProductCreate() {
           initial={EMPTY_PRODUCT}
           categories={categories.data ?? []}
           brands={brands.data ?? []}
-          onSaved={(product) => router.push(localeHref(locale, `/admin/products/${product.id}?notice=created`))}
+          onSaved={(product) => router.push(localeHref(locale, `/admin/product/${product.id}?notice=created`))}
         />
       </Section>
     </>
@@ -71,6 +72,7 @@ export function ProductEditor({ params }: { params: Promise<{ id: string }> }) {
   const [busy, setBusy] = useState(false);
   const [confirmElement, confirm] = useConfirm();
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
 
   const createdNotice = searchParams.get("notice") === "created" ? t.created : null;
   const shownNotice = notice ?? createdNotice;
@@ -78,7 +80,7 @@ export function ProductEditor({ params }: { params: Promise<{ id: string }> }) {
   function dismissNotice() {
     setNotice(null);
     if (createdNotice) {
-      router.replace(localeHref(locale, `/admin/products/${id}`), { scroll: false });
+      router.replace(localeHref(locale, `/admin/product/${id}`), { scroll: false });
     }
   }
 
@@ -115,7 +117,7 @@ export function ProductEditor({ params }: { params: Promise<{ id: string }> }) {
       saved(outcome.data, outcome.data.isPublished ? t.publishedDone : t.unpublishedDone);
     } else if (outcome.status !== 401 && outcome.status !== 403) {
       setProblem(describeFailure(outcome, locale, dict, () => null).problem);
-      requestAnimationFrame(() => alertRef.current?.focus());
+      afterCommit(() => alertRef.current?.focus());
     }
   }
 
@@ -139,7 +141,7 @@ export function ProductEditor({ params }: { params: Promise<{ id: string }> }) {
     if (outcome.status !== 401 && outcome.status !== 403) {
       const view = describeFailure(outcome, locale, dict, () => null);
       setProblem({ ...view.problem, title: dict.admin.common.deleteFailed });
-      requestAnimationFrame(() => alertRef.current?.focus());
+      afterCommit(() => alertRef.current?.focus());
     }
   }
 

@@ -8,7 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: dict.admin.products.editTitle };
 }
 
-export default async function AdminProductEditPage(props: PageProps<"/[lang]/admin/products/[id]">) {
+export default async function AdminProductEditPage(props: PageProps<"/[lang]/admin/product/[id]">) {
   const { dict } = await getI18n();
   return (
     <Suspense fallback={<p className="text-sm text-zinc-500">{dict.admin.common.loading}</p>}>

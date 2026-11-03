@@ -146,31 +146,37 @@ function ActiveAdminNav({ email }: { email: string | null }) {
 
 type SectionKey = "dashboard" | "products" | "categories" | "brands" | "orders";
 
-const SECTIONS: { key: SectionKey; path: string }[] = [
+// Списки — во множественном числе, страницы записей — в единственном (/admin/product/{id}), см. admin/layout.tsx.
+const SECTIONS: { key: SectionKey; path: string; itemPath?: string }[] = [
   { key: "dashboard", path: "/admin" },
-  { key: "products", path: "/admin/products" },
-  { key: "categories", path: "/admin/categories" },
+  { key: "products", path: "/admin/products", itemPath: "/admin/product" },
+  { key: "categories", path: "/admin/categories", itemPath: "/admin/category" },
   { key: "brands", path: "/admin/brands" },
-  { key: "orders", path: "/admin/orders" },
+  { key: "orders", path: "/admin/orders", itemPath: "/admin/order" },
 ];
 
-function isActive(path: string, activePath: string | null): boolean {
+function isActive(section: { path: string; itemPath?: string }, activePath: string | null): boolean {
   if (activePath === null) {
     return false;
   }
-  return path === "/admin" ? activePath === "/admin" : activePath === path || activePath.startsWith(`${path}/`);
+  if (section.path === "/admin") {
+    return activePath === "/admin";
+  }
+  return [section.path, section.itemPath].some(
+    (path) => path !== undefined && (activePath === path || activePath.startsWith(`${path}/`)),
+  );
 }
 
 function AdminNav({ activePath, email }: { activePath: string | null; email: string | null }) {
   const { locale, dict } = useI18n();
   const [open, setOpen] = useState(false);
   const listId = useId();
-  const current = SECTIONS.find((section) => isActive(section.path, activePath));
+  const current = SECTIONS.find((section) => isActive(section, activePath));
 
   const links = (onNavigate?: () => void) => (
     <ul className="flex flex-col gap-1">
       {SECTIONS.map((section) => {
-        const active = isActive(section.path, activePath);
+        const active = isActive(section, activePath);
         return (
           <li key={section.key}>
             <Link

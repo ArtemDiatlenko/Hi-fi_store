@@ -5,12 +5,13 @@
 // изображении, а живой регион сообщает новую позицию. Первое изображение — главное.
 
 import { type FormEvent, useRef, useState } from "react";
-import { AdminThumb } from "@/components/admin/thumb";
+import { AdminThumb, useDebouncedValue } from "@/components/admin/thumb";
 import { buttonClass, Field, FormAlert, type FormProblem } from "@/components/admin/ui";
 import { type FieldErrors, focusFirstInvalid } from "@/lib/admin/api";
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminProductDetails } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { tpl } from "@/lib/i18n/util";
 import { REMOTE_IMAGE_HOSTS } from "@/lib/image-hosts";
@@ -47,12 +48,20 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
   const nextId = useRef(0);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const addRef = useRef<HTMLButtonElement>(null);
 
-  function focusLater(selector: string, fallback?: HTMLElement | null) {
-    requestAnimationFrame(() => {
-      const target = formRef.current?.querySelector<HTMLElement>(selector);
-      (target && !target.hasAttribute("disabled") ? target : fallback)?.focus();
+  /** Фокус на элемент внутри формы после рендера (кнопки и поля строк появляются/меняются только в нём). */
+  function focusAfterRender(selectors: string[], fallback?: () => HTMLElement | null) {
+    afterCommit(() => {
+      for (const selector of selectors) {
+        const target = formRef.current?.querySelector<HTMLElement>(selector);
+        if (target && !target.hasAttribute("disabled")) {
+          target.focus();
+          return;
+        }
+      }
+      fallback?.()?.focus();
     });
   }
 
@@ -72,14 +81,10 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
     [next[index], next[target]] = [next[target], next[index]];
     setRows(next);
     setAnnouncement(tpl(t.moved, { n: target + 1 }));
+    // Фокус остаётся на перемещённом изображении: та же кнопка, а если она стала недоступна (край списка) — обратная.
     const action = delta < 0 ? "up" : "down";
     const other = delta < 0 ? "down" : "up";
-    requestAnimationFrame(() => {
-      const row = formRef.current?.querySelector<HTMLElement>(`[data-uid="${uid}"]`);
-      const preferred = row?.querySelector<HTMLButtonElement>(`[data-action="${action}"]`);
-      const fallback = row?.querySelector<HTMLButtonElement>(`[data-action="${other}"]`);
-      (preferred && !preferred.disabled ? preferred : fallback)?.focus();
-    });
+    focusAfterRender([`[data-uid="${uid}"] [data-action="${action}"]`, `[data-uid="${uid}"] [data-action="${other}"]`]);
   }
 
   function remove(index: number) {
@@ -87,11 +92,7 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
     setRows(next);
     setAnnouncement(tpl(t.removed, { n: index + 1 }));
     const neighbour = next[index] ?? next[index - 1];
-    if (neighbour) {
-      focusLater(`[data-uid="${neighbour.uid}"] [data-action="remove"]`, addRef.current);
-    } else {
-      requestAnimationFrame(() => addRef.current?.focus());
-    }
+    focusAfterRender(neighbour ? [`[data-uid="${neighbour.uid}"] [data-action="remove"]`] : [], () => addRef.current);
   }
 
   function add() {
@@ -99,7 +100,7 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
     const uid = `new-${nextId.current}`;
     setRows((current) => [...current, { uid, url: "", alt: "" }]);
     setAnnouncement(tpl(t.added, { n: rows.length + 1 }));
-    focusLater(`[data-uid="${uid}"] input`);
+    focusAfterRender([`[data-uid="${uid}"] input`]);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -131,7 +132,7 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
     });
     setErrors(view.fields);
     setProblem(view.problem);
-    focusFirstInvalid(formRef.current, alertRef.current);
+    afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
   return (
@@ -150,7 +151,7 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
           return (
             <li key={row.uid} data-uid={row.uid} className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-3 sm:flex-row dark:border-zinc-800">
               <div className="flex shrink-0 flex-row items-start gap-3 sm:flex-col">
-                <AdminThumb url={row.url || null} alt={row.alt || tpl(t.item, { n })} size="lg" />
+                <RowPreview url={row.url} alt={row.alt || tpl(t.item, { n })} />
                 <span className="flex items-center gap-2 text-xs text-zinc-500">
                   {tpl(t.item, { n })}
                   {index === 0 ? (
@@ -237,4 +238,10 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
       </div>
     </form>
   );
+}
+
+/** Предпросмотр строки: адрес подхватывается после паузы во вводе. */
+function RowPreview({ url, alt }: { url: string; alt: string }) {
+  const debounced = useDebouncedValue(url.trim(), 500);
+  return <AdminThumb url={debounced || null} alt={alt} size="lg" />;
 }

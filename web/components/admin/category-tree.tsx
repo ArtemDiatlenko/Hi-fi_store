@@ -11,6 +11,7 @@ import { buttonClass, FormAlert, type FormProblem, LoadError, Notice, PageHeader
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminCategory } from "@/lib/admin/types";
 import { useAdminQuery, useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
@@ -43,6 +44,7 @@ export function CategoryTree() {
   const [problem, setProblem] = useState<FormProblem | null>(null);
   const [confirmElement, confirm] = useConfirm();
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const basePath = localeHref(locale, "/admin/categories");
 
   const deletedName = searchParams.get("deleted");
@@ -69,7 +71,7 @@ export function CategoryTree() {
       return;
     }
     setProblem({ ...describeFailure(outcome, locale, dict, () => null).problem, title: dict.admin.common.deleteFailed });
-    requestAnimationFrame(() => alertRef.current?.focus());
+    afterCommit(() => alertRef.current?.focus());
   }
 
   const renderNodes = (nodes: TreeNode[], depth: number) => (
@@ -78,7 +80,7 @@ export function CategoryTree() {
         <li key={category.id}>
           <div className="flex flex-col gap-2 rounded-lg border border-zinc-200 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
             <div className="flex min-w-0 flex-col gap-1">
-              <Link href={localeHref(locale, `/admin/categories/${category.id}`)} className="font-medium underline-offset-2 hover:underline">
+              <Link href={localeHref(locale, `/admin/category/${category.id}`)} className="font-medium underline-offset-2 hover:underline">
                 {category.name}
               </Link>
               <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
@@ -94,13 +96,13 @@ export function CategoryTree() {
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
               <Link
-                href={localeHref(locale, `/admin/categories/new?parent=${category.id}`)}
+                href={localeHref(locale, `/admin/category/new?parent=${category.id}`)}
                 aria-label={tpl(t.addChildAria, { name: category.name })}
                 className={buttonClass.secondary}
               >
                 + {t.addChild}
               </Link>
-              <Link href={localeHref(locale, `/admin/categories/${category.id}`)} aria-label={tpl(t.editAria, { name: category.name })} className={buttonClass.secondary}>
+              <Link href={localeHref(locale, `/admin/category/${category.id}`)} aria-label={tpl(t.editAria, { name: category.name })} className={buttonClass.secondary}>
                 {dict.admin.common.edit}
               </Link>
               <button type="button" onClick={() => remove(category)} aria-label={tpl(t.deleteAria, { name: category.name })} className={buttonClass.danger}>
@@ -119,7 +121,7 @@ export function CategoryTree() {
       <PageHeader
         title={t.title}
         actions={
-          <Link href={localeHref(locale, "/admin/categories/new")} className={buttonClass.primary}>
+          <Link href={localeHref(locale, "/admin/category/new")} className={buttonClass.primary}>
             {t.add}
           </Link>
         }

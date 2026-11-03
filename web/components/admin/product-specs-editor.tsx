@@ -10,6 +10,7 @@ import { type FieldErrors, focusFirstInvalid, parseDecimal } from "@/lib/admin/a
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminProductDetails, AdminSpecDefinition } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
@@ -57,6 +58,7 @@ export function ProductSpecsEditor({ product, categoryChanged, onSaved }: Props)
   const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
+  const afterCommit = useAfterCommit();
   const definitions = product.availableSpecs;
 
   function update(key: string, value: string) {
@@ -97,7 +99,7 @@ export function ProductSpecsEditor({ product, categoryChanged, onSaved }: Props)
     });
     setErrors(view.fields);
     setProblem(view.problem);
-    focusFirstInvalid(formRef.current, alertRef.current);
+    afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
   return (
@@ -111,7 +113,7 @@ export function ProductSpecsEditor({ product, categoryChanged, onSaved }: Props)
       {definitions.length === 0 ? (
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {tpl(t.none, { category: product.category.name })}{" "}
-          <Link href={localeHref(locale, `/admin/categories/${product.category.id}`)} className="underline underline-offset-2">
+          <Link href={localeHref(locale, `/admin/category/${product.category.id}`)} className="underline underline-offset-2">
             {t.manage}
           </Link>
         </p>
@@ -133,7 +135,7 @@ export function ProductSpecsEditor({ product, categoryChanged, onSaved }: Props)
             <button type="submit" disabled={pending} className={buttonClass.primary}>
               {pending ? dict.admin.common.saving : t.save}
             </button>
-            <Link href={localeHref(locale, `/admin/categories/${product.category.id}`)} className="text-sm underline underline-offset-2">
+            <Link href={localeHref(locale, `/admin/category/${product.category.id}`)} className="text-sm underline underline-offset-2">
               {t.manage}
             </Link>
           </div>
