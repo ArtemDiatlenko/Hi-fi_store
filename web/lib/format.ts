@@ -23,3 +23,17 @@ export function conditionLabel(condition: ProductCondition): string {
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(value);
 }
+
+// Часовой пояс магазина (доставка — Новая почта). Фиксированный пояс даёт одинаковый текст
+// на сервере и в браузере, без расхождений при гидратации.
+const STORE_TIME_ZONE = "Europe/Kyiv";
+
+const dateTimeFormatter = new Intl.DateTimeFormat("ru-RU", {
+  dateStyle: "long",
+  timeStyle: "short",
+  timeZone: STORE_TIME_ZONE,
+});
+
+export function formatDateTime(iso: string): string {
+  return dateTimeFormatter.format(new Date(iso));
+}

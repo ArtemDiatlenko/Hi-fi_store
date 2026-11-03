@@ -1,5 +1,7 @@
 using HiFiStore.Domain.Catalog;
+using HiFiStore.Domain.Orders;
 using HiFiStore.Infrastructure.Identity;
+using HiFiStore.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -21,9 +23,14 @@ public class StoreDbContext(DbContextOptions options)
 
     public DbSet<ProductSpec> ProductSpecs => Set<ProductSpec>();
 
+    public DbSet<Order> Orders => Set<Order>();
+
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.HasSequence<long>(OrderConfiguration.NumberSequence).StartsAt(100001);
         builder.ApplyConfigurationsFromAssembly(typeof(StoreDbContext).Assembly);
     }
 }

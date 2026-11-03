@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { AddToCart } from "@/components/add-to-cart";
 import { getProduct, type ProductDetails, type ProductSpecValue } from "@/lib/api";
 import { conditionLabel, formatNumber, formatPrice } from "@/lib/format";
 
@@ -56,6 +57,8 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
             {product.stock > 0 ? `В наличии: ${product.stock} шт.` : "Нет в наличии"}
           </span>
         </div>
+
+        <AddToCart productId={product.id} stock={product.stock} />
 
         {product.shortDescription ? <p className="text-zinc-700 dark:text-zinc-300">{product.shortDescription}</p> : null}
 
