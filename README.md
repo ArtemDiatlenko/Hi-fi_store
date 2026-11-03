@@ -13,7 +13,8 @@
 api/
   HiFiStore.slnx
   src/
-    HiFiStore.Api/             контроллеры (витрина, корзина и заказы, аккаунт, админка), разбор параметров, Program.cs
+    HiFiStore.Api/             контроллеры (витрина, корзина и заказы, аккаунт, админка), разбор параметров,
+                               команды migrate и create-admin (Cli/), Program.cs
     HiFiStore.Domain/          сущности каталога и заказов
     HiFiStore.Infrastructure/  EF Core, миграции, сервисы каталога, заказов и админки, Identity-инициализация, тестовые данные
   tests/
@@ -31,7 +32,7 @@ docker compose up -d                      # PostgreSQL на localhost:5432 (post
 
 cd api
 export ConnectionStrings__Store='Host=localhost;Port=5432;Database=hifistore;Username=postgres;Password=postgres'
-export Seed__Admin__Email='admin@example.local'      # необязательно: создаёт администратора
+export Seed__Admin__Email='admin@example.local'      # необязательно: создаёт администратора при Store:AutoMigrate
 export Seed__Admin__Password='<пароль для локальной разработки>'
 dotnet run --project src/HiFiStore.Api    # в Development миграции применяются и заполняется демо-каталог
 ```
@@ -65,21 +66,90 @@ dotnet ef migrations add <Имя> --project src/HiFiStore.Infrastructure --start
 Строка подключения для `dotnet ef` берётся из `ConnectionStrings__Store`, как и при запуске.
 
 Роли `Admin` и `Customer` тоже создаёт миграция (`SeedIdentityRoles`, постоянные идентификаторы), а не код при старте.
-Поэтому в окружении без `Store:AutoMigrate` достаточно применить миграции, и регистрация сразу назначает роль `Customer`:
+Поэтому в окружении без `Store:AutoMigrate` достаточно применить миграции, и регистрация сразу назначает роль `Customer`.
+Применить миграции без запуска API можно командой самого API (SDK и `dotnet ef` для неё не нужны, см.
+[развёртывание](#развёртывание-в-продакшене)) или через `dotnet ef`:
 
 ```bash
 cd api
-dotnet ef database update --project src/HiFiStore.Infrastructure --startup-project src/HiFiStore.Api
+dotnet run --project src/HiFiStore.Api -- migrate
+dotnet ef database update --project src/HiFiStore.Infrastructure --startup-project src/HiFiStore.Api   # то же самое
 ```
 
 Если роли в базе уже были созданы при старте прежней версией (со случайными идентификаторами), миграция переводит их
 на постоянные вместе с пользователями.
 
+## Развёртывание в продакшене
+
+В продакшене (`ASPNETCORE_ENVIRONMENT=Production`, по умолчанию) `Store:AutoMigrate` выключен: при старте API
+не трогает схему базы и не создаёт пользователей. Для этого у исполняемого файла API есть команды обслуживания —
+они используют ту же конфигурацию, но веб-сервер не запускают. На сервере нужен только ASP.NET Core Runtime 10,
+SDK и `dotnet ef` не нужны.
+
+1. Соберите и опубликуйте API:
+
+   ```bash
+   cd api
+   dotnet publish src/HiFiStore.Api -c Release -o publish      # папка api/publish в .gitignore
+   ```
+
+   Содержимое `api/publish` скопируйте на сервер. Команды ниже запускайте из этой папки — там лежат `appsettings.json`.
+
+2. Задайте строку подключения (и при необходимости адрес, на котором слушать) через переменные окружения —
+   не в `appsettings*.json`:
+
+   ```bash
+   export ConnectionStrings__Store='Host=db.internal;Port=5432;Database=hifistore;Username=hifistore;Password=…'
+   export ASPNETCORE_URLS='http://0.0.0.0:8080'
+   ```
+
+3. Примените миграции — схема, последовательность номеров заказов, роли `Admin` и `Customer`:
+
+   ```bash
+   dotnet HiFiStore.Api.dll migrate
+   ```
+
+   Команда показывает, какие миграции применяет, и завершается. Если базы ещё нет, она будет создана
+   (у пользователя БД должно быть право на это; иначе создайте пустую базу заранее). Повторный запуск безопасен.
+   Запускайте `migrate` при каждом обновлении, до старта новой версии.
+
+4. Создайте администратора:
+
+   ```bash
+   dotnet HiFiStore.Api.dll create-admin --email admin@example.com
+   ```
+
+   Пароль в аргументах не передаётся (он остался бы в истории команд). В терминале команда спросит его дважды со
+   скрытым вводом. Для автоматизации задайте переменную `HIFISTORE_ADMIN_PASSWORD`, например из менеджера секретов:
+   `HIFISTORE_ADMIN_PASSWORD="$(cat /run/secrets/admin_password)" dotnet HiFiStore.Api.dll create-admin --email …`.
+   Пароль проверяется теми же правилами Identity, что и при регистрации (не короче 8 символов, цифра, строчная
+   и заглавная буквы, спецсимвол); ошибки выводятся, и пользователь не создаётся.
+
+   - Новый пользователь создаётся с подтверждённым email и ролью `Admin`.
+   - Если пользователь с таким email уже есть, ему выдаётся роль `Admin`, а пароль не меняется и не запрашивается.
+   - `--reset-password` задаёт существующему пользователю новый пароль и снимает блокировку входа после
+     неудачных попыток — так восстанавливается доступ, если пароль администратора забыт.
+   - Пока в базе есть неприменённые миграции, команда ничего не делает и просит сначала выполнить `migrate`.
+
+5. Запустите API:
+
+   ```bash
+   dotnet HiFiStore.Api.dll
+   ```
+
+   и войдите администратором через `POST /api/auth/login` — `/api/admin/...` доступны с полученным токеном.
+
+Коды выхода команд: `0` — успех, `1` — ошибка выполнения (нет строки подключения или пароля, база недоступна,
+не применены миграции, некорректный email, пароль не прошёл проверку), `2` — неизвестная команда или неверные
+аргументы (выводится справка, её же показывает `dotnet HiFiStore.Api.dll --help`). Аргументы, начинающиеся с `-`
+(например, `--urls`), как и раньше относятся к запуску API. В разработке те же команды доступны через
+`dotnet run --project src/HiFiStore.Api -- migrate` и `… -- create-admin --email …`.
+
 ## Тесты
 
 ```bash
 cd api
-dotnet test                                                       # unit-тесты: разбор параметров, slug, заказы, модель EF
+dotnet test                                                       # unit-тесты: разбор параметров и команд, slug, заказы, модель EF
 HIFISTORE_TEST_CONNECTION='Host=localhost;Port=5432;Database=hifistore_test;Username=postgres;Password=postgres' \
   dotnet test                                                     # + интеграционные тесты с PostgreSQL
 ```
@@ -222,9 +292,10 @@ GitHub Actions (`.github/workflows/ci.yml`) запускается на push в 
 
 ## Известные ограничения
 
-- Роль `Admin` выдаётся только администратору из настроек `Seed:Admin`, а его создаёт инициализатор, который
-  работает только при `Store:AutoMigrate`. Эндпоинтов для управления пользователями и ролями нет. Роли попадают
-  в bearer-токен при выдаче, поэтому изменение ролей вступает в силу после повторного входа или `POST /api/auth/refresh`.
+- Роль `Admin` выдаёт только команда `create-admin` (в разработке — ещё и инициализатор из настроек `Seed:Admin`
+  при `Store:AutoMigrate`). Эндпоинтов и интерфейса для управления пользователями и ролями нет, снять роль `Admin`
+  можно только в базе. Роли попадают в bearer-токен при выдаче, поэтому изменение ролей вступает в силу после
+  повторного входа или `POST /api/auth/refresh`.
 - Административные эндпоинты каталога и заказов есть (`/api/admin`), а интерфейса администратора во фронте пока нет:
   каталогом и заказами управляют только через API.
 - На карточке товара для несуществующего slug страница показывает «не найдено», но HTTP-статус 200:
