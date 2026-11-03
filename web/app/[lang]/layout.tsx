@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { type CategoryNode, getCategories } from "@/lib/api";
 import { htmlLang, type Locale, locales, ogLocale } from "@/lib/i18n/config";
 import { I18nProvider } from "@/lib/i18n/client";
 import { addLocalePrefix } from "@/lib/i18n/routing";
@@ -71,11 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const { locale, dict } = await getI18n();
 
-  // Разделы нужны шапке (меню) и подвалу. Промис не ожидаем здесь: оболочка страницы рендерится
-  // сразу, а меню и ссылки подвала подставляются потоково. Если API недоступен — пустой список,
-  // и вместо меню остаётся обычная ссылка на каталог.
-  const categories = getCategories().catch((): CategoryNode[] => []);
-
+  // Шапка и подвал витрины — в app/[lang]/(store)/layout.tsx, у админки своя оболочка (app/[lang]/admin).
   return (
     <html lang={htmlLang[locale]} className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
@@ -86,11 +79,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
           >
             {dict.common.skipToContent}
           </a>
-          <SiteHeader categories={categories} />
-          <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 outline-none">
-            {children}
-          </main>
-          <SiteFooter categories={categories} />
+          {children}
         </I18nProvider>
       </body>
     </html>

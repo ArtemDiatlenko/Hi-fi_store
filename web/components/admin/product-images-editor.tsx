@@ -11,6 +11,7 @@ import { type FieldErrors, focusFirstInvalid } from "@/lib/admin/api";
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminProductDetails } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useUnsavedChanges } from "@/lib/admin/unsaved-changes";
 import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { tpl } from "@/lib/i18n/util";
@@ -50,6 +51,10 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
   const alertRef = useRef<HTMLDivElement>(null);
   const afterCommit = useAfterCommit();
   const addRef = useRef<HTMLButtonElement>(null);
+  useUnsavedChanges(
+    rows.length !== product.images.length ||
+      rows.some((row, index) => row.url !== product.images[index].url || row.alt !== (product.images[index].alt ?? "")),
+  );
 
   /** Фокус на элемент внутри формы после рендера (кнопки и поля строк появляются/меняются только в нём). */
   function focusAfterRender(selectors: string[], fallback?: () => HTMLElement | null) {

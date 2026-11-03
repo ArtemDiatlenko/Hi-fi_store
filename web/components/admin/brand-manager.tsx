@@ -10,6 +10,7 @@ import { type FieldErrors, focusFirstInvalid } from "@/lib/admin/api";
 import { describeFailure, directKeys } from "@/lib/admin/forms";
 import type { AdminBrand } from "@/lib/admin/types";
 import { useAdminQuery, useAdminRequest } from "@/lib/admin/session";
+import { useUnsavedChanges } from "@/lib/admin/unsaved-changes";
 import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { formatNumber } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
@@ -140,7 +141,9 @@ function BrandForm({ brand, onSaved, onCancel }: { brand: AdminBrand | null; onS
   const { locale, dict } = useI18n();
   const t = dict.admin.brands;
   const request = useAdminRequest();
-  const [values, setValues] = useState<BrandValues>(brand ? { name: brand.name, slug: brand.slug, country: brand.country ?? "" } : EMPTY);
+  const [initial] = useState<BrandValues>(() => (brand ? { name: brand.name, slug: brand.slug, country: brand.country ?? "" } : EMPTY));
+  const [values, setValues] = useState<BrandValues>(initial);
+  useUnsavedChanges(values.name !== initial.name || values.slug !== initial.slug || values.country !== initial.country);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [problem, setProblem] = useState<FormProblem | null>(null);
   const [pending, setPending] = useState(false);
