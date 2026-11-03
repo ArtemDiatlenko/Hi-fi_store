@@ -1,24 +1,37 @@
 namespace HiFiStore.Infrastructure.Email;
 
 /// <summary>
-/// Настройки почты (секция <c>Email</c>). Без <c>Email:Smtp:Host</c> письма не отправляются, а пишутся в лог —
-/// так удобно разрабатывать: ссылки подтверждения и сброса пароля видны в выводе API.
+/// Настройки почты (секция <c>Email</c>). Auto выбирает Resend по ключу API, затем SMTP по Host,
+/// иначе пишет письмо в лог. Для явного выбора: Log, Smtp или Resend.
 /// </summary>
 public sealed class EmailOptions
 {
     public const string Section = "Email";
 
-    /// <summary>Адрес отправителя. Для SMTP обязателен; обычно совпадает с учётной записью SMTP.</summary>
+    public string Provider { get; set; } = "Auto";
+
+    /// <summary>Адрес отправителя без отображаемого имени. Обязателен для реальной отправки.</summary>
     public string From { get; set; } = "";
 
     public string FromName { get; set; } = "Hi-Fi Store";
 
+    /// <summary>Рабочий адрес для ответов клиентов; необязателен.</summary>
+    public string? ReplyTo { get; set; }
+
+    public ResendOptions Resend { get; set; } = new();
+
     public SmtpOptions Smtp { get; set; } = new();
+}
+
+public sealed class ResendOptions
+{
+    /// <summary>Секретный ключ с правом отправки. Задаётся через Email__Resend__ApiKey.</summary>
+    public string? ApiKey { get; set; }
 }
 
 public sealed class SmtpOptions
 {
-    /// <summary>Сервер SMTP (например, smtp.gmail.com, smtp-relay.brevo.com). Пусто — письма идут в лог.</summary>
+    /// <summary>Сервер SMTP (например, smtp.gmail.com). Обязателен при Email:Provider=Smtp.</summary>
     public string? Host { get; set; }
 
     /// <summary>587 — STARTTLS (по умолчанию), 465 не поддерживается встроенным клиентом .NET.</summary>

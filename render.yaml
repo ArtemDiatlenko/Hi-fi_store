@@ -26,8 +26,10 @@ services:
         value: demo-admin@hifistore.local
       - key: Seed__Admin__Password
         sync: false
-      # Почта (см. раздел «Почта» в README). Ссылки в письмах ведут на витрину.
-      # Без Email__Smtp__Host письма не отправляются, а пишутся в лог API.
+      # Шаблон: Email:Provider=Log в appsettings — письма только в логе API.
+      # Для реальной отправки на Free нужен HTTP API: Email__Provider=Resend,
+      # Email__Resend__ApiKey и Email__From на подтверждённом домене (см. README).
+      # SMTP-порты на Free заблокированы; SMTP-параметры ниже — для других тарифов.
       - key: Store__PublicUrl
         value: https://hifistore-web.onrender.com
       - key: Store__OwnerEmail

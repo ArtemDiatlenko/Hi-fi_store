@@ -3,6 +3,7 @@ using HiFiStore.Domain.Inquiries;
 using HiFiStore.Domain.Orders;
 using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Persistence.Configurations;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +11,10 @@ using Microsoft.EntityFrameworkCore;
 namespace HiFiStore.Infrastructure.Persistence;
 
 public class StoreDbContext(DbContextOptions options)
-    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options), IDataProtectionKeyContext
 {
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+
     public DbSet<Category> Categories => Set<Category>();
 
     public DbSet<Brand> Brands => Set<Brand>();

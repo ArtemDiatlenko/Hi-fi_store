@@ -5,6 +5,7 @@ using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Inquiries;
 using HiFiStore.Infrastructure.Orders;
 using HiFiStore.Infrastructure.Persistence;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -27,6 +28,8 @@ public static class DependencyInjection
                 "Задайте переменную окружения ConnectionStrings__Store или dotnet user-secrets.");
 
         services.AddDbContext<StoreDbContext>(options => options.UseNpgsql(NormalizeConnectionString(connectionString)));
+        // Ключи ссылок подтверждения, восстановления пароля и сессий переживают перезапуск контейнера.
+        services.AddDataProtection().SetApplicationName("HiFiStore").PersistKeysToDbContext<StoreDbContext>();
         services.AddScoped<ICatalogService, CatalogService>();
         services.AddScoped<IOrderService, OrderService>();
 
@@ -41,13 +44,19 @@ public static class DependencyInjection
         services.AddScoped<IAdminCustomerService, AdminCustomerService>();
         services.AddScoped<IInquiryService, InquiryService>();
 
-        // Почта: без Email:Smtp:Host письма пишутся в лог. Очередь (IEmailOutbox) и фоновую отправку
+        // Почта: по умолчанию демонстрация в логе; HTTP API Resend или SMTP подключаются настройками.
+        // Очередь (IEmailOutbox) и фоновую отправку
         // регистрирует API-проект — ей нужен хост приложения.
         var email = configuration.GetSection(EmailOptions.Section).Get<EmailOptions>() ?? new EmailOptions();
         EmailTransportFactory.Validate(email);
         services.AddSingleton(email);
         services.AddSingleton(configuration.GetSection("Store").Get<StoreLinkOptions>() ?? new StoreLinkOptions());
-        if (EmailTransportFactory.IsSmtpConfigured(email))
+        if (EmailTransportFactory.Provider(email) == "resend")
+        {
+            services.AddHttpClient(ResendEmailTransport.ClientName, client => client.Timeout = TimeSpan.FromSeconds(30));
+            services.TryAddSingleton<IEmailTransport, ResendEmailTransport>();
+        }
+        else if (EmailTransportFactory.Provider(email) == "smtp")
         {
             services.TryAddSingleton<IEmailTransport, SmtpEmailTransport>();
         }
