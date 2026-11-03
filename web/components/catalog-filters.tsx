@@ -1,14 +1,10 @@
 import Link from "next/link";
 import type { CategoryNode, CatalogFacets, SpecFacet } from "@/lib/api";
-import { conditionLabel } from "@/lib/format";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { localeHref } from "@/lib/i18n/routing";
+import { getI18n } from "@/lib/i18n/server";
+import { tpl } from "@/lib/i18n/util";
 import { type SearchParams, toURLSearchParams } from "@/lib/query";
-
-const SORT_OPTIONS = [
-  { value: "newest", label: "Сначала новые" },
-  { value: "price_asc", label: "Сначала дешевле" },
-  { value: "price_desc", label: "Сначала дороже" },
-  { value: "name", label: "По названию" },
-] as const;
 
 interface Props {
   categories: CategoryNode[];
@@ -31,22 +27,32 @@ function flattenCategories(nodes: CategoryNode[], depth = 0): CategoryOption[] {
 
 /**
  * Фильтры каталога — обычная GET-форма: работает без JavaScript, а состояние живёт в адресной строке.
- * Имена полей совпадают с query-параметрами API (см. ProductFilterParser).
+ * Имена полей совпадают с query-параметрами API (см. ProductFilterParser). Текст локализован;
+ * значения характеристик (бренды, спецификации) приходят из API как есть.
  */
-export function CatalogFilters({ categories, facets, params }: Props) {
+export async function CatalogFilters({ categories, facets, params }: Props) {
+  const { locale, dict } = await getI18n();
   const query = toURLSearchParams(params);
   const selectedCategory = query.get("category") ?? "";
   const selectedBrands = query.getAll("brand");
   const selectedConditions = query.getAll("condition");
+  const catalogPath = localeHref(locale, "/catalog");
+
+  const sortOptions = [
+    { value: "newest", label: dict.catalog.sortNewest },
+    { value: "price_asc", label: dict.catalog.sortPriceAsc },
+    { value: "price_desc", label: dict.catalog.sortPriceDesc },
+    { value: "name", label: dict.catalog.sortName },
+  ];
 
   return (
-    <form method="get" action="/catalog" className="flex flex-col gap-6 text-sm">
+    <form method="get" action={catalogPath} className="flex flex-col gap-6 text-sm">
       <div className="flex flex-col gap-2">
         <label htmlFor="sort" className="font-medium">
-          Сортировка
+          {dict.catalog.sort}
         </label>
-        <select id="sort" name="sort" defaultValue={query.get("sort") ?? "newest"} className="rounded-md border px-2 py-2 dark:bg-zinc-900">
-          {SORT_OPTIONS.map((option) => (
+        <select id="sort" name="sort" defaultValue={query.get("sort") ?? "newest"} className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900">
+          {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -56,20 +62,20 @@ export function CatalogFilters({ categories, facets, params }: Props) {
 
       <div className="flex flex-col gap-2">
         <label htmlFor="q" className="font-medium">
-          Поиск по названию
+          {dict.catalog.search}
         </label>
-        <input id="q" name="q" type="search" defaultValue={query.get("q") ?? ""} className="rounded-md border px-2 py-2 dark:bg-zinc-900" />
+        <input id="q" name="q" type="search" defaultValue={query.get("q") ?? ""} className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900" />
       </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="category" className="font-medium">
-          Раздел
+          {dict.catalog.section}
         </label>
-        <select id="category" name="category" defaultValue={selectedCategory} className="rounded-md border px-2 py-2 dark:bg-zinc-900">
-          <option value="">Все разделы</option>
+        <select id="category" name="category" defaultValue={selectedCategory} className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900">
+          <option value="">{dict.catalog.allSections}</option>
           {flattenCategories(categories).map((option) => (
             <option key={option.slug} value={option.slug}>
-              {"  ".repeat(option.depth)}
+              {"  ".repeat(option.depth)}
               {option.name}
             </option>
           ))}
@@ -77,74 +83,74 @@ export function CatalogFilters({ categories, facets, params }: Props) {
       </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 font-medium">Цена</legend>
+        <legend className="mb-2 font-medium">{dict.catalog.price}</legend>
         <div className="flex items-center gap-2">
           <input
             name="minPrice"
             type="number"
             min={0}
-            placeholder={facets.minPrice !== null ? String(Math.floor(facets.minPrice)) : "от"}
+            placeholder={facets.minPrice !== null ? String(Math.floor(facets.minPrice)) : dict.catalog.from}
             defaultValue={query.get("minPrice") ?? ""}
-            className="w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
-            aria-label="Цена от"
+            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            aria-label={dict.catalog.priceFrom}
           />
-          <span>–</span>
+          <span aria-hidden="true">–</span>
           <input
             name="maxPrice"
             type="number"
             min={0}
-            placeholder={facets.maxPrice !== null ? String(Math.ceil(facets.maxPrice)) : "до"}
+            placeholder={facets.maxPrice !== null ? String(Math.ceil(facets.maxPrice)) : dict.catalog.to}
             defaultValue={query.get("maxPrice") ?? ""}
-            className="w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
-            aria-label="Цена до"
+            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            aria-label={dict.catalog.priceTo}
           />
         </div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 font-medium">Состояние</legend>
+        <legend className="mb-2 font-medium">{dict.catalog.condition}</legend>
         {facets.conditions.map((condition) => (
-          <label key={condition} className="flex items-center gap-2">
-            <input type="checkbox" name="condition" value={condition} defaultChecked={selectedConditions.includes(condition)} />
-            {conditionLabel(condition)}
+          <label key={condition} className="flex min-h-11 items-center gap-2">
+            <input type="checkbox" name="condition" value={condition} defaultChecked={selectedConditions.includes(condition)} className="h-4 w-4" />
+            {dict.conditions[condition]}
           </label>
         ))}
       </fieldset>
 
       {facets.brands.length > 0 ? (
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 font-medium">Бренд</legend>
+          <legend className="mb-2 font-medium">{dict.catalog.brand}</legend>
           {facets.brands.map((brand) => (
-            <label key={brand.slug} className="flex items-center gap-2">
-              <input type="checkbox" name="brand" value={brand.slug} defaultChecked={selectedBrands.includes(brand.slug)} />
+            <label key={brand.slug} className="flex min-h-11 items-center gap-2">
+              <input type="checkbox" name="brand" value={brand.slug} defaultChecked={selectedBrands.includes(brand.slug)} className="h-4 w-4" />
               {brand.name}
             </label>
           ))}
         </fieldset>
       ) : null}
 
-      <label className="flex items-center gap-2">
-        <input type="checkbox" name="inStock" value="true" defaultChecked={query.get("inStock") === "true"} />
-        Только в наличии
+      <label className="flex min-h-11 items-center gap-2">
+        <input type="checkbox" name="inStock" value="true" defaultChecked={query.get("inStock") === "true"} className="h-4 w-4" />
+        {dict.catalog.inStockOnly}
       </label>
 
       {facets.specs.map((spec) => (
-        <SpecFilterField key={spec.key} spec={spec} query={query} />
+        <SpecFilterField key={spec.key} spec={spec} query={query} dict={dict} />
       ))}
 
       <div className="flex items-center gap-3">
-        <button type="submit" className="rounded-md bg-zinc-900 px-4 py-2 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
-          Применить
+        <button type="submit" className="min-h-11 rounded-md bg-zinc-900 px-4 py-2 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+          {dict.catalog.apply}
         </button>
-        <Link href="/catalog" className="text-zinc-600 underline dark:text-zinc-400">
-          Сбросить
+        <Link href={catalogPath} className="text-zinc-600 underline dark:text-zinc-400">
+          {dict.catalog.reset}
         </Link>
       </div>
     </form>
   );
 }
 
-function SpecFilterField({ spec, query }: { spec: SpecFacet; query: URLSearchParams }) {
+function SpecFilterField({ spec, query, dict }: { spec: SpecFacet; query: URLSearchParams; dict: Dictionary }) {
   const title = spec.unit ? `${spec.name}, ${spec.unit}` : spec.name;
 
   if (spec.valueType === "Number") {
@@ -156,20 +162,20 @@ function SpecFilterField({ spec, query }: { spec: SpecFacet; query: URLSearchPar
             name={`spec.${spec.key}.min`}
             type="number"
             step="any"
-            placeholder={spec.min !== null ? String(spec.min) : "от"}
+            placeholder={spec.min !== null ? String(spec.min) : dict.catalog.from}
             defaultValue={query.get(`spec.${spec.key}.min`) ?? ""}
-            className="w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
-            aria-label={`${spec.name}: от`}
+            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            aria-label={tpl(dict.catalog.specFrom, { name: spec.name })}
           />
-          <span>–</span>
+          <span aria-hidden="true">–</span>
           <input
             name={`spec.${spec.key}.max`}
             type="number"
             step="any"
-            placeholder={spec.max !== null ? String(spec.max) : "до"}
+            placeholder={spec.max !== null ? String(spec.max) : dict.catalog.to}
             defaultValue={query.get(`spec.${spec.key}.max`) ?? ""}
-            className="w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
-            aria-label={`${spec.name}: до`}
+            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            aria-label={tpl(dict.catalog.specTo, { name: spec.name })}
           />
         </div>
       </fieldset>
@@ -182,8 +188,8 @@ function SpecFilterField({ spec, query }: { spec: SpecFacet; query: URLSearchPar
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 font-medium">{title}</legend>
         {(spec.values ?? []).map((value) => (
-          <label key={value} className="flex items-center gap-2">
-            <input type="checkbox" name={`spec.${spec.key}`} value={value} defaultChecked={selected.includes(value)} />
+          <label key={value} className="flex min-h-11 items-center gap-2">
+            <input type="checkbox" name={`spec.${spec.key}`} value={value} defaultChecked={selected.includes(value)} className="h-4 w-4" />
             {value}
           </label>
         ))}
@@ -200,11 +206,11 @@ function SpecFilterField({ spec, query }: { spec: SpecFacet; query: URLSearchPar
         id={`spec-${spec.key}`}
         name={`spec.${spec.key}`}
         defaultValue={query.get(`spec.${spec.key}`) ?? ""}
-        className="rounded-md border px-2 py-2 dark:bg-zinc-900"
+        className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900"
       >
-        <option value="">Не важно</option>
-        <option value="true">Да</option>
-        <option value="false">Нет</option>
+        <option value="">{dict.catalog.boolAny}</option>
+        <option value="true">{dict.catalog.boolYes}</option>
+        <option value="false">{dict.catalog.boolNo}</option>
       </select>
     </div>
   );

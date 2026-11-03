@@ -4,33 +4,56 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { TOKEN_STORAGE_KEY } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n/client";
+import type { Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { localeHref } from "@/lib/i18n/routing";
+import { translateIdentityError } from "@/lib/i18n/server-messages";
+import { tpl } from "@/lib/i18n/util";
 
 type Mode = "login" | "register";
 
 interface IdentityError {
+  code?: string;
   description?: string;
 }
 
-/** Ошибки Identity приходят массивом { code, description } либо в формате ProblemDetails. */
-async function readError(response: Response): Promise<string> {
+/**
+ * Ошибки Identity приходят массивом { code, description } либо в формате ProblemDetails
+ * ({ errors: { <код>: [<описание>] } }). Описания — по-английски; переводим по коду,
+ * а неизвестный код показываем как есть (fallback на текст сервера). См. lib/i18n/server-messages.
+ */
+async function readError(response: Response, locale: Locale, dict: Dictionary): Promise<string> {
   if (response.status === 401) {
-    return "Неверный email или пароль.";
+    return dict.auth.invalidCredentials;
   }
   try {
     const body: unknown = await response.json();
     if (Array.isArray(body)) {
-      return (body as IdentityError[]).map((e) => e.description).filter(Boolean).join(" ");
+      return dedupe(
+        (body as IdentityError[]).map((error) => translateIdentityError(error.code, error.description ?? "", locale)),
+      );
     }
     if (body && typeof body === "object" && "errors" in body) {
-      return Object.values((body as { errors: Record<string, string[]> }).errors).flat().join(" ");
+      const errors = (body as { errors: Record<string, string[]> }).errors;
+      return dedupe(
+        Object.entries(errors).flatMap(([code, messages]) =>
+          messages.map((message) => translateIdentityError(code, message, locale)),
+        ),
+      );
     }
   } catch {
     // Тело ответа не JSON — покажем общее сообщение.
   }
-  return `Не удалось выполнить запрос (${response.status}).`;
+  return tpl(dict.auth.requestFailed, { status: response.status });
+}
+
+function dedupe(messages: string[]): string {
+  return [...new Set(messages.filter(Boolean))].join(" ");
 }
 
 export function AuthForm({ mode }: { mode: Mode }) {
+  const { locale, dict } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -51,7 +74,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           body: JSON.stringify(credentials),
         });
         if (!registered.ok) {
-          setError(await readError(registered));
+          setError(await readError(registered, locale, dict));
           return;
         }
       }
@@ -62,7 +85,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         body: JSON.stringify(credentials),
       });
       if (!response.ok) {
-        setError(await readError(response));
+        setError(await readError(response, locale, dict));
         return;
       }
 
@@ -71,13 +94,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
         window.localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
       } catch {
         // Хранилище недоступно (приватный режим и т. п.): вход работать не будет, сообщим.
-        setError("Браузер не разрешает сохранить сессию.");
+        setError(dict.auth.storageError);
         return;
       }
-      router.push("/account");
+      router.push(localeHref(locale, "/account"));
       router.refresh();
     } catch {
-      setError("Нет связи с сервером. Попробуйте позже.");
+      setError(dict.auth.noConnection);
     } finally {
       setPending(false);
     }
@@ -87,23 +110,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <div className="mx-auto w-full max-w-sm">
-      <h1 className="mb-6 text-2xl font-semibold">{isRegister ? "Регистрация" : "Вход"}</h1>
+      <h1 className="mb-6 text-2xl font-semibold">{isRegister ? dict.auth.registerTitle : dict.auth.loginTitle}</h1>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input name="email" type="email" required autoComplete="email" className="rounded-md border px-3 py-2 dark:bg-zinc-900" />
+          {dict.auth.email}
+          <input name="email" type="email" required autoComplete="email" className="min-h-11 rounded-md border px-3 py-2 dark:bg-zinc-900" />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          Пароль
+          {dict.auth.password}
           <input
             name="password"
             type="password"
             required
             minLength={isRegister ? 8 : undefined}
             autoComplete={isRegister ? "new-password" : "current-password"}
-            className="rounded-md border px-3 py-2 dark:bg-zinc-900"
+            className="min-h-11 rounded-md border px-3 py-2 dark:bg-zinc-900"
           />
-          {isRegister ? <span className="text-xs text-zinc-500">Не менее 8 символов.</span> : null}
+          {isRegister ? <span className="text-xs text-zinc-500">{dict.auth.passwordHint}</span> : null}
         </label>
         {error ? (
           <p role="alert" className="text-sm text-red-600">
@@ -113,19 +136,25 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-zinc-900 px-4 py-2 font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
+          className="min-h-11 rounded-md bg-zinc-900 px-4 py-2 font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
         >
-          {pending ? "Подождите…" : isRegister ? "Зарегистрироваться" : "Войти"}
+          {pending ? dict.auth.pleaseWait : isRegister ? dict.auth.register : dict.auth.login}
         </button>
       </form>
       <p className="mt-6 text-sm text-zinc-600 dark:text-zinc-400">
         {isRegister ? (
           <>
-            Уже есть аккаунт? <Link href="/login" className="underline">Войти</Link>
+            {dict.auth.haveAccount}
+            <Link href={localeHref(locale, "/login")} className="underline">
+              {dict.auth.login}
+            </Link>
           </>
         ) : (
           <>
-            Нет аккаунта? <Link href="/register" className="underline">Зарегистрироваться</Link>
+            {dict.auth.noAccount}
+            <Link href={localeHref(locale, "/register")} className="underline">
+              {dict.auth.register}
+            </Link>
           </>
         )}
       </p>

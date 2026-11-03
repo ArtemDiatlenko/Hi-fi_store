@@ -77,46 +77,8 @@ export interface StockShortage {
   available: number;
 }
 
-const statusLabels: Record<OrderStatus, string> = {
-  New: "Новый",
-  Confirmed: "Подтверждён",
-  Shipped: "Отправлен",
-  Completed: "Выполнен",
-  Cancelled: "Отменён",
-};
+// Порядок вариантов доставки и оплаты в форме оформления. Подписи и подсказки берутся из словаря
+// (dict.delivery / dict.payment) по значению — текст локализуется, значения остаются стабильными.
+export const deliveryMethods: DeliveryMethod[] = ["NovaPoshtaWarehouse", "NovaPoshtaCourier", "Pickup"];
 
-export const deliveryOptions: { value: DeliveryMethod; label: string; hint: string }[] = [
-  { value: "NovaPoshtaWarehouse", label: "Новая почта — отделение или почтомат", hint: "Нужны город и номер отделения." },
-  { value: "NovaPoshtaCourier", label: "Новая почта — курьер", hint: "Доставка по адресу." },
-  { value: "Pickup", label: "Самовывоз из магазина", hint: "Менеджер сообщит адрес и время." },
-];
-
-export const paymentOptions: { value: PaymentMethod; label: string; hint: string }[] = [
-  { value: "CashOnDelivery", label: "Оплата при получении", hint: "Наложенный платёж или оплата при самовывозе." },
-  { value: "BankTransfer", label: "Безналичный расчёт", hint: "Пришлём счёт после подтверждения заказа." },
-];
-
-export function statusLabel(status: OrderStatus): string {
-  return statusLabels[status] ?? status;
-}
-
-export function deliveryLabel(method: DeliveryMethod): string {
-  return deliveryOptions.find((option) => option.value === method)?.label ?? method;
-}
-
-export function paymentLabel(method: PaymentMethod): string {
-  return paymentOptions.find((option) => option.value === method)?.label ?? method;
-}
-
-/** Склонение «товар/товара/товаров». */
-export function itemsWord(count: number): string {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  if (mod10 === 1 && mod100 !== 11) {
-    return "товар";
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return "товара";
-  }
-  return "товаров";
-}
+export const paymentMethods: PaymentMethod[] = ["CashOnDelivery", "BankTransfer"];

@@ -7,12 +7,16 @@ import { clearToken, readToken } from "@/lib/auth";
 import { clearCart, useCart } from "@/lib/cart";
 import { authHeaders, readProblem } from "@/lib/client-api";
 import { formatPrice } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/client";
+import { localeHref } from "@/lib/i18n/routing";
+import { translateServerMessage } from "@/lib/i18n/server-messages";
+import { tpl } from "@/lib/i18n/util";
 import {
   type CheckoutResponse,
   type DeliveryMethod,
-  deliveryOptions,
+  deliveryMethods,
   type PaymentMethod,
-  paymentOptions,
+  paymentMethods,
 } from "@/lib/orders";
 import { useCartQuote } from "@/lib/use-cart-quote";
 
@@ -44,7 +48,7 @@ const INITIAL_VALUES: Values = {
   comment: "",
 };
 
-/** Ключ ошибки сервера → поле формы. Ошибки позиций (<c>items[0].quantity</c>) показываются у списка товаров. */
+/** Ключ ошибки сервера → поле формы. Ошибки позиций (items[0].quantity) показываются у списка товаров. */
 function fieldForKey(key: string): FieldName | null {
   const name = key.replace(/^\$\./, "");
   if (name === "cityRef") {
@@ -67,6 +71,7 @@ interface FormError {
 }
 
 export function CheckoutForm() {
+  const { locale, dict } = useI18n();
   const router = useRouter();
   const items = useCart();
   const { quote, fresh, loading, error: quoteError, reload } = useCartQuote(items);
@@ -170,7 +175,7 @@ export function CheckoutForm() {
         const result = (await response.json()) as CheckoutResponse;
         setPlaced(true);
         clearCart();
-        router.push(`/orders/${encodeURIComponent(result.token)}`);
+        router.push(localeHref(locale, `/orders/${encodeURIComponent(result.token)}`));
         return;
       }
 
@@ -181,14 +186,16 @@ export function CheckoutForm() {
         const other: string[] = [];
         for (const [key, messages] of Object.entries(problem.errors)) {
           const field = fieldForKey(key);
+          // Серверные сообщения (рус.) → активная локаль; незнакомое остаётся как есть.
+          const localized = messages.map((message) => translateServerMessage(message, locale));
           if (field) {
-            fieldErrors[field] = [...(fieldErrors[field] ?? []), ...messages];
+            fieldErrors[field] = [...(fieldErrors[field] ?? []), ...localized];
           } else {
-            other.push(...messages);
+            other.push(...localized);
           }
         }
         setErrors(fieldErrors);
-        setFormError({ title: problem.title ?? "Проверьте данные заказа.", messages: other });
+        setFormError({ title: dict.checkout.errCheckData, messages: other });
         if (other.length > 0) {
           // Ошибки позиций: товар сняли с продажи и т. п. — обновим корзину.
           reload();
@@ -199,10 +206,14 @@ export function CheckoutForm() {
 
       if (response.status === 409) {
         setFormError({
-          title: "Часть товаров закончилась.",
+          title: dict.checkout.errOutOfStockTitle,
           messages: problem.items?.map((item) =>
-            `${item.name || "Товар"}: в заказе ${item.requested} шт., доступно ${item.available} шт.`,
-          ) ?? [problem.detail ?? "Обновите корзину и попробуйте ещё раз."],
+            tpl(dict.checkout.errOutOfStockLine, {
+              name: item.name || dict.cart.productFallback,
+              requested: item.requested,
+              available: item.available,
+            }),
+          ) ?? [problem.detail ? translateServerMessage(problem.detail, locale) : dict.checkout.errOutOfStockFallback],
         });
         reload();
         focusFirstProblem({});
@@ -213,17 +224,17 @@ export function CheckoutForm() {
         clearToken();
         setSignedIn(false);
         setFormError({
-          title: "Сессия истекла.",
-          messages: ["Войдите снова или отправьте форму ещё раз — заказ будет оформлен без привязки к аккаунту."],
+          title: dict.checkout.errSessionTitle,
+          messages: [dict.checkout.errSessionBody],
         });
         focusFirstProblem({});
         return;
       }
 
-      setFormError({ title: "Не удалось оформить заказ.", messages: [`Сервер ответил ${response.status}. Попробуйте позже.`] });
+      setFormError({ title: dict.checkout.errGenericTitle, messages: [tpl(dict.checkout.errGenericBody, { status: response.status })] });
       focusFirstProblem({});
     } catch {
-      setFormError({ title: "Нет связи с сервером.", messages: ["Проверьте подключение и попробуйте ещё раз."] });
+      setFormError({ title: dict.checkout.errNoConnTitle, messages: [dict.checkout.errNoConnBody] });
       focusFirstProblem({});
     } finally {
       setPending(false);
@@ -233,22 +244,22 @@ export function CheckoutForm() {
   if (placed) {
     return (
       <p role="status" className="text-sm text-zinc-600 dark:text-zinc-400">
-        Заказ оформлен. Открываем страницу подтверждения…
+        {dict.checkout.placed}
       </p>
     );
   }
 
   if (items === null) {
-    return <p className="text-sm text-zinc-500">Загрузка корзины…</p>;
+    return <p className="text-sm text-zinc-500">{dict.cart.loading}</p>;
   }
 
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-start gap-4">
-        <h1 className="text-2xl font-semibold">Оформление заказа</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">Корзина пуста — добавьте товары, чтобы оформить заказ.</p>
-        <Link href="/catalog" className="underline">
-          Перейти в каталог
+        <h1 className="text-2xl font-semibold">{dict.checkout.title}</h1>
+        <p className="text-zinc-600 dark:text-zinc-400">{dict.checkout.emptyCart}</p>
+        <Link href={localeHref(locale, "/catalog")} className="underline">
+          {dict.cart.goToCatalog}
         </Link>
       </div>
     );
@@ -256,27 +267,29 @@ export function CheckoutForm() {
 
   const canSubmit = !pending && fresh && quote !== null && quote.canCheckout;
   const method = values.deliveryMethod;
+  const deliveryOpts = deliveryMethods.map((value) => ({ value, label: dict.delivery[value].label, hint: dict.delivery[value].hint }));
+  const paymentOpts = paymentMethods.map((value) => ({ value, label: dict.payment[value].label, hint: dict.payment[value].hint }));
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
       <form onSubmit={submit} noValidate aria-labelledby="checkout-title" className="flex flex-col gap-6">
         <div>
           <h1 id="checkout-title" className="text-2xl font-semibold">
-            Оформление заказа
+            {dict.checkout.title}
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
             {signedIn ? (
-              "Заказ будет привязан к вашему аккаунту."
+              dict.checkout.signedInNote
             ) : (
               <>
-                Можно оформить без регистрации — ссылку на заказ покажем сразу после оформления.{" "}
-                <Link href="/login" className="underline">
-                  Войти
+                {dict.checkout.guestNote}
+                <Link href={localeHref(locale, "/login")} className="underline">
+                  {dict.checkout.loginLink}
                 </Link>
               </>
             )}
           </p>
-          <p className="mt-1 text-xs text-zinc-500">Поля, отмеченные *, обязательны.</p>
+          <p className="mt-1 text-xs text-zinc-500">{dict.checkout.requiredNote}</p>
         </div>
 
         {formError ? (
@@ -294,14 +307,14 @@ export function CheckoutForm() {
                 ))}
               </ul>
             ) : null}
-            {Object.keys(errors).length > 0 ? <p className="mt-2">Исправьте поля, отмеченные ниже.</p> : null}
+            {Object.keys(errors).length > 0 ? <p className="mt-2">{dict.checkout.errFixFields}</p> : null}
           </div>
         ) : null}
 
-        <Section title="Контактные данные">
+        <Section title={dict.checkout.contactSection}>
           <TextField
             field="fullName"
-            label="Имя и фамилия"
+            label={dict.checkout.fullName}
             required
             autoComplete="name"
             maxLength={200}
@@ -311,20 +324,20 @@ export function CheckoutForm() {
           />
           <TextField
             field="phone"
-            label="Телефон"
+            label={dict.checkout.phone}
             type="tel"
             required
             autoComplete="tel"
             maxLength={32}
-            placeholder="+380 67 123 45 67"
-            hint="Позвоним, чтобы подтвердить заказ."
+            placeholder={dict.checkout.phonePlaceholder}
+            hint={dict.checkout.phoneHint}
             value={values.phone}
             error={errors.phone}
             onChange={(value) => update("phone", value)}
           />
           <TextField
             field="email"
-            label="Email"
+            label={dict.checkout.email}
             type="email"
             required
             autoComplete="email"
@@ -337,8 +350,8 @@ export function CheckoutForm() {
 
         <ChoiceGroup
           field="deliveryMethod"
-          legend="Доставка"
-          options={deliveryOptions}
+          legend={dict.checkout.deliverySection}
+          options={deliveryOpts}
           value={values.deliveryMethod}
           error={errors.deliveryMethod}
           onChange={(value) => update("deliveryMethod", value as DeliveryMethod)}
@@ -346,7 +359,7 @@ export function CheckoutForm() {
           {method !== "Pickup" ? (
             <TextField
               field="city"
-              label="Город"
+              label={dict.checkout.city}
               required
               autoComplete="address-level2"
               maxLength={200}
@@ -358,10 +371,10 @@ export function CheckoutForm() {
           {method === "NovaPoshtaWarehouse" ? (
             <TextField
               field="warehouse"
-              label="Отделение или почтомат"
+              label={dict.checkout.warehouse}
               required
               maxLength={300}
-              hint="Например: Отделение №12 или Почтомат №5012."
+              hint={dict.checkout.warehouseHint}
               value={values.warehouse}
               error={errors.warehouse}
               onChange={(value) => update("warehouse", value)}
@@ -370,11 +383,11 @@ export function CheckoutForm() {
           {method === "NovaPoshtaCourier" ? (
             <TextField
               field="address"
-              label="Адрес"
+              label={dict.checkout.address}
               required
               autoComplete="street-address"
               maxLength={500}
-              hint="Улица, дом, квартира."
+              hint={dict.checkout.addressHint}
               value={values.address}
               error={errors.address}
               onChange={(value) => update("address", value)}
@@ -384,17 +397,17 @@ export function CheckoutForm() {
 
         <ChoiceGroup
           field="paymentMethod"
-          legend="Оплата"
-          options={paymentOptions}
+          legend={dict.checkout.paymentSection}
+          options={paymentOpts}
           value={values.paymentMethod}
           error={errors.paymentMethod}
           onChange={(value) => update("paymentMethod", value as PaymentMethod)}
         />
 
-        <Section title="Комментарий">
+        <Section title={dict.checkout.commentSection}>
           <TextField
             field="comment"
-            label="Комментарий к заказу"
+            label={dict.checkout.comment}
             multiline
             maxLength={1000}
             value={values.comment}
@@ -407,21 +420,21 @@ export function CheckoutForm() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full rounded-md bg-zinc-900 px-6 py-3 font-medium text-white disabled:opacity-60 sm:w-fit dark:bg-zinc-100 dark:text-zinc-900"
+            className="min-h-11 w-full rounded-md bg-zinc-900 px-6 py-3 font-medium text-white disabled:opacity-60 sm:w-fit dark:bg-zinc-100 dark:text-zinc-900"
           >
-            {pending ? "Оформляем…" : "Подтвердить заказ"}
+            {pending ? dict.checkout.submitting : dict.checkout.submit}
           </button>
-          <p className="text-xs text-zinc-500">Онлайн-оплаты пока нет: менеджер свяжется с вами для подтверждения.</p>
+          <p className="text-xs text-zinc-500">{dict.checkout.paymentNote}</p>
         </div>
       </form>
 
       <aside aria-labelledby="checkout-summary-title" className="flex h-fit flex-col gap-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800 lg:sticky lg:top-6">
         <div className="flex items-baseline justify-between gap-4">
           <h2 id="checkout-summary-title" className="text-lg font-medium">
-            Ваш заказ
+            {dict.checkout.summaryTitle}
           </h2>
-          <Link href="/cart" className="text-sm underline">
-            Изменить
+          <Link href={localeHref(locale, "/cart")} className="text-sm underline">
+            {dict.checkout.edit}
           </Link>
         </div>
 
@@ -429,7 +442,7 @@ export function CheckoutForm() {
           <div role="alert" className="text-sm text-red-700 dark:text-red-400">
             {quoteError}{" "}
             <button type="button" onClick={reload} className="underline">
-              Повторить
+              {dict.common.retry}
             </button>
           </div>
         ) : null}
@@ -439,35 +452,39 @@ export function CheckoutForm() {
             {quote.items.map((line) => (
               <li key={line.productId} className="flex justify-between gap-4">
                 <span>
-                  {line.name ?? "Товар недоступен"} <span className="text-zinc-500">× {line.quantity}</span>
+                  {line.name ?? dict.cart.productUnavailable} <span className="text-zinc-500">× {line.quantity}</span>
                   {line.status === "InsufficientStock" ? (
-                    <span className="block text-red-700 dark:text-red-400">В наличии только {line.availableStock} шт.</span>
+                    <span className="block text-red-700 dark:text-red-400">{tpl(dict.checkout.onlyNLeftShort, { count: line.availableStock })}</span>
                   ) : null}
                   {line.status === "Unavailable" ? (
-                    <span className="block text-red-700 dark:text-red-400">Больше не продаётся.</span>
+                    <span className="block text-red-700 dark:text-red-400">{dict.checkout.noLongerSold}</span>
                   ) : null}
                 </span>
-                <span className="shrink-0 font-medium">{line.unitPrice !== null ? formatPrice(line.lineTotal) : "—"}</span>
+                <span className="shrink-0 font-medium">{line.unitPrice !== null ? formatPrice(line.lineTotal, locale) : "—"}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-zinc-500">Пересчитываем цены…</p>
+          <p className="text-sm text-zinc-500">{dict.checkout.recalculating}</p>
         )}
 
         {quote ? (
           <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3 text-base dark:border-zinc-800">
-            <span className="font-medium">Итого</span>
+            <span className="font-medium">{dict.checkout.total}</span>
             <span className="font-semibold" aria-live="polite">
-              {formatPrice(quote.total)}
+              {formatPrice(quote.total, locale)}
             </span>
           </div>
         ) : null}
-        <p className="text-xs text-zinc-500">Доставка в сумму заказа не входит.</p>
+        <p className="text-xs text-zinc-500">{dict.common.deliveryNotIncluded}</p>
 
         {fresh && quote && !quote.canCheckout ? (
           <p className="text-sm text-red-700 dark:text-red-400">
-            Некоторых товаров не хватает. <Link href="/cart" className="underline">Исправьте корзину</Link>, чтобы продолжить.
+            {dict.checkout.missingItems}
+            <Link href={localeHref(locale, "/cart")} className="underline">
+              {dict.checkout.fixCart}
+            </Link>
+            {dict.checkout.missingItemsTail}
           </p>
         ) : null}
       </aside>
@@ -517,7 +534,7 @@ function TextField({
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error?.length ? `${id}-error` : undefined;
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
-  const className = `rounded-md border px-3 py-2 text-base dark:bg-zinc-900 ${
+  const className = `min-h-11 rounded-md border px-3 py-2 text-base dark:bg-zinc-900 ${
     errorId ? "border-red-600 dark:border-red-500" : "border-zinc-300 dark:border-zinc-700"
   }`;
 
