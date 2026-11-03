@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { addLocalePrefix, localeHref } from "@/lib/i18n/routing";
 import { SITE_URL } from "@/lib/site";
 
-// Публичные индексируемые маршруты (без checkout/account/orders — те noindex). Контент товаров
+// Публичные индексируемые маршруты (без checkout/account/orders/admin — те noindex). Контент товаров
 // в sitemap не включаем: он требует обращения к API, а сборка витрины идёт без запущенного API.
 const PUBLIC_PATHS = ["/catalog", "/login", "/register"];
 

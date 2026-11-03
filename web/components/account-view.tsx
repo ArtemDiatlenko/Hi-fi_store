@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ADMIN_ROLE } from "@/lib/admin/types";
 import { clearToken, readToken } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
@@ -101,6 +102,11 @@ export function AccountView() {
       <Link href={localeHref(locale, "/account/orders")} className="w-fit underline">
         {dict.account.myOrders}
       </Link>
+      {me.roles.includes(ADMIN_ROLE) ? (
+        <Link href={localeHref(locale, "/admin")} className="w-fit underline">
+          {dict.admin.access.accountLink}
+        </Link>
+      ) : null}
       <button
         type="button"
         onClick={logout}

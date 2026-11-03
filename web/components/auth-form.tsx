@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
-import { TOKEN_STORAGE_KEY } from "@/lib/auth";
+import { safeReturnPath, TOKEN_STORAGE_KEY } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n/client";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
@@ -97,7 +97,9 @@ export function AuthForm({ mode }: { mode: Mode }) {
         setError(dict.auth.storageError);
         return;
       }
-      router.push(localeHref(locale, "/account"));
+      // ?next=… — вернуть туда, откуда отправили на вход (например, в админку); только адреса этого сайта.
+      const next = safeReturnPath(new URLSearchParams(window.location.search).get("next"));
+      router.push(next ?? localeHref(locale, "/account"));
       router.refresh();
     } catch {
       setError(dict.auth.noConnection);
