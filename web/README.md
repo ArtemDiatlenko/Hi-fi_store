@@ -17,6 +17,11 @@ npm run build
 - `/checkout` — оформление заказа, гостем или после входа;
 - `/orders/[token]` — страница подтверждения заказа по публичному токену;
 - `/login`, `/register`, `/account` — вход, регистрация и профиль по bearer-токену;
-- `/account/orders`, `/account/orders/[id]` — заказы покупателя.
+- `/account/orders`, `/account/orders/[id]` — заказы покупателя;
+- `/admin` — админ-панель (только для роли `Admin`, `noindex`): обзор, товары (`/admin/products`, `/admin/product/new`,
+  `/admin/product/[id]` — основные поля, характеристики, изображения, публикация), разделы с характеристиками
+  (`/admin/categories`, `/admin/category/[id]`), бренды (`/admin/brands`), заказы (`/admin/orders`, `/admin/order/[id]`).
+  Страницы записей — в единственном числе: `/admin/products/[id]` совпадал бы по форме с витринным
+  `/[lang]/products/[slug]`, и предзагрузка Next угадывала бы не тот маршрут (подробнее — в `app/[lang]/admin/layout.tsx`).
 
 Подробнее о запуске и API — в корневом `README.md`.
