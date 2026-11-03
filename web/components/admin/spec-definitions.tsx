@@ -74,7 +74,7 @@ export function SpecDefinitions({ categoryId, specs, onChanged, onProblem }: Pro
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-spec-list className="flex flex-col gap-4">
       {specs.length === 0 ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.empty}</p> : null}
       {specs.length > 0 ? (
         <ul className="flex flex-col gap-2">
@@ -123,7 +123,9 @@ export function SpecDefinitions({ categoryId, specs, onChanged, onProblem }: Pro
         </ul>
       ) : null}
 
-      <div className="rounded-lg border border-dashed border-zinc-300 p-3 dark:border-zinc-700">
+      <details data-spec-create className="rounded-lg border border-dashed border-zinc-300 p-3 dark:border-zinc-700">
+        <summary className="cursor-pointer text-sm font-medium">+ {t.addTitle}</summary>
+        <div className="pt-4">
         <SpecDefinitionForm
           key={`new-${specs.length}`}
           title={t.addTitle}
@@ -132,7 +134,8 @@ export function SpecDefinitions({ categoryId, specs, onChanged, onProblem }: Pro
           initial={specValues(null, nextSortOrder)}
           onSaved={(saved) => onChanged(tpl(t.added, { name: saved.name }))}
         />
-      </div>
+        </div>
+      </details>
       {confirmElement}
     </div>
   );

@@ -3,6 +3,9 @@ import { Suspense } from "react";
 import { CategoryEditor } from "@/components/admin/category-editor";
 import { getI18n } from "@/lib/i18n/server";
 
+// The browser session gate intentionally defers rendering the editor.
+export const instant = false;
+
 export async function generateMetadata(): Promise<Metadata> {
   const { dict } = await getI18n();
   return { title: dict.admin.categories.title };

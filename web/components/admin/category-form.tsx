@@ -3,6 +3,7 @@
 // Поля раздела: создание (POST) и изменение/перенос (PUT /api/admin/categories/{id}).
 
 import { type FormEvent, useRef, useState } from "react";
+import Link from "next/link";
 import { buttonClass, Field, FormAlert, type FormProblem } from "@/components/admin/ui";
 import { type FieldErrors, focusFirstInvalid, numberToInput, parseDecimal } from "@/lib/admin/api";
 import { indentedLabel, selfAndDescendants, withDepth } from "@/lib/admin/categories";
@@ -12,6 +13,10 @@ import { useAdminRequest } from "@/lib/admin/session";
 import { useUnsavedChanges } from "@/lib/admin/unsaved-changes";
 import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
+import { workshopCopy } from "@/lib/i18n/workshop";
+import { localeHref } from "@/lib/i18n/routing";
+import { categoryPath } from "@/lib/categories";
+import styles from "./category-pilot.module.css";
 
 export interface CategoryValues {
   name: string;
@@ -45,6 +50,7 @@ interface Props {
 export function CategoryForm({ categoryId, initial, categories, onSaved }: Props) {
   const { locale, dict } = useI18n();
   const t = dict.admin.categories;
+  const copy = workshopCopy[locale].category;
   const request = useAdminRequest();
   const [values, setValues] = useState<CategoryValues>(initial);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -54,7 +60,8 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
   const alertRef = useRef<HTMLDivElement>(null);
   const afterCommit = useAfterCommit();
   const isNew = categoryId === null;
-  useUnsavedChanges(FIELDS.some((field) => values[field] !== initial[field]));
+  const dirty = FIELDS.some((field) => values[field] !== initial[field]);
+  useUnsavedChanges(dirty);
 
   // Нельзя перенести раздел в самого себя или в свой подраздел — такие варианты не предлагаем.
   const excluded = categoryId ? selfAndDescendants(categories, categoryId) : new Set<string>();
@@ -102,10 +109,12 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
   }
 
   return (
-    <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-4">
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.admin.common.requiredNote}</p>
+    <form ref={formRef} onSubmit={submit} noValidate className={styles.categoryForm}>
       <FormAlert ref={alertRef} problem={problem} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={styles.formColumns}>
+        <section className={`${styles.panel} ${styles.basic}`}>
+          <div className={styles.panelHeading}><h2>{copy.main}</h2><p>{copy.mainHint}</p></div>
+          <p className={styles.required}>{dict.admin.common.requiredNote}</p>
         <Field label={dict.admin.common.name} required error={errors.name}>
           {(control) => <input {...control} name="name" maxLength={200} value={values.name} onChange={(event) => update("name", event.target.value)} />}
         </Field>
@@ -114,6 +123,12 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
             <input {...control} name="slug" maxLength={200} spellCheck={false} autoComplete="off" value={values.slug} onChange={(event) => update("slug", event.target.value)} />
           )}
         </Field>
+          <Field label={dict.admin.common.description} error={errors.description} className={styles.description}>
+            {(control) => <textarea {...control} name="description" rows={3} value={values.description} onChange={(event) => update("description", event.target.value)} />}
+          </Field>
+        </section>
+        <section className={`${styles.panel} ${styles.structure}`}>
+          <div className={styles.panelHeading}><h2>{copy.structure}</h2><p>{copy.structureHint}</p></div>
         <Field label={t.parent} error={errors.parentId}>
           {(control) => (
             <select {...control} name="parentId" value={values.parentId} onChange={(event) => update("parentId", event.target.value)}>
@@ -131,14 +146,17 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
             <input {...control} name="sortOrder" type="number" step={1} inputMode="numeric" value={values.sortOrder} onChange={(event) => update("sortOrder", event.target.value)} />
           )}
         </Field>
+          {!isNew ? <Link href={localeHref(locale, categoryPath(initial.slug))} className={styles.previewLink}>{copy.preview}<span aria-hidden="true">↗</span></Link> : null}
+        </section>
       </div>
-      <Field label={dict.admin.common.description} error={errors.description}>
-        {(control) => <textarea {...control} name="description" rows={3} value={values.description} onChange={(event) => update("description", event.target.value)} />}
-      </Field>
-      <div>
-        <button type="submit" disabled={pending} className={buttonClass.primary}>
+      <div className={styles.saveBar}>
+        <p role="status"><span className={dirty ? styles.dirtyDot : styles.savedDot} />{dirty ? copy.unsaved : isNew ? t.newTitle : copy.saved}</p>
+        <div>
+          <button type="button" disabled={!dirty || pending} onClick={() => { setValues(initial); setErrors({}); setProblem(null); }} className={buttonClass.secondary}>{dict.admin.common.cancel}</button>
+        <button type="submit" disabled={pending || (!dirty && !isNew)} className={buttonClass.primary}>
           {pending ? (isNew ? dict.admin.common.creating : dict.admin.common.saving) : isNew ? t.createSubmit : dict.admin.common.save}
         </button>
+        </div>
       </div>
     </form>
   );

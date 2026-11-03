@@ -34,6 +34,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Пропускаем API (их проксирует next.config), ассеты Next, файлы метаданных и статические файлы
-  // демо-каталога из public/demo (иллюстрации товаров).
-  matcher: ["/((?!api|_next/static|_next/image|demo/|favicon.ico|sitemap.xml|robots.txt).*)"],
+  // демо-каталога из public/demo и оформления из public/design.
+  matcher: ["/((?!api|_next/static|_next/image|demo/|design/|favicon.ico|sitemap.xml|robots.txt).*)"],
 };
