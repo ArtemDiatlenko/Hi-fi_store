@@ -60,7 +60,8 @@ public sealed record ValidatedCheckout(
     PaymentMethod PaymentMethod,
     string? Comment);
 
-public sealed record AdminOrderFilter(OrderStatus? Status, string? Search, int Page, int PageSize);
+/// <param name="CustomerId">Только заказы, оформленные после входа этим пользователем.</param>
+public sealed record AdminOrderFilter(OrderStatus? Status, string? Search, int Page, int PageSize, Guid? CustomerId = null);
 
 // ---- Ответы ----
 

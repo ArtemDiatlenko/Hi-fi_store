@@ -8,10 +8,15 @@ const DISALLOW = [
   "/account",
   "/orders/",
   "/admin",
+  // Ссылки из писем: в адресе одноразовые коды.
+  "/confirm-email",
+  "/reset-password",
   "/en/checkout",
   "/en/account",
   "/en/orders/",
   "/en/admin",
+  "/en/confirm-email",
+  "/en/reset-password",
 ];
 
 export default function robots(): MetadataRoute.Robots {

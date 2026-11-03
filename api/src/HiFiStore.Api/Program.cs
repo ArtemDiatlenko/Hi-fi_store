@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
 using HiFiStore.Api.Cli;
+using HiFiStore.Api.Email;
 using HiFiStore.Api.Identity;
 using HiFiStore.Infrastructure;
+using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Persistence;
 using HiFiStore.Infrastructure.Persistence.Seeding;
@@ -23,6 +25,12 @@ builder.Services
     .AddIdentityApiEndpoints<ApplicationUser>(StoreIdentity.ConfigureOptions)
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<StoreDbContext>();
+
+// Письма: Identity (подтверждение email, сброс пароля) и уведомления о заказах уходят через очередь в фоне.
+builder.Services.AddSingleton<EmailOutbox>();
+builder.Services.AddSingleton<IEmailOutbox>(services => services.GetRequiredService<EmailOutbox>());
+builder.Services.AddHostedService<EmailDispatcher>();
+builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
 builder.Services.AddAuthorization();
 

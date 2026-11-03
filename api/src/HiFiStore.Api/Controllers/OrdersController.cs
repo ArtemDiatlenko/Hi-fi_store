@@ -1,3 +1,4 @@
+using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Orders;
 using Microsoft.AspNetCore.Authentication;
@@ -11,7 +12,7 @@ namespace HiFiStore.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/orders")]
-public sealed class OrdersController(IOrderService orders, UserManager<ApplicationUser> users) : ControllerBase
+public sealed class OrdersController(IOrderService orders, UserManager<ApplicationUser> users, OrderNotifier notifier) : ControllerBase
 {
     /// <summary>
     /// Оформляет заказ. Bearer-токен необязателен: с ним заказ привязывается к аккаунту.
@@ -47,6 +48,12 @@ public sealed class OrdersController(IOrderService orders, UserManager<Applicati
         }
 
         var result = await orders.PlaceOrderAsync(checkout!, userId, ct);
+        if (result is PlaceOrderResult.Placed placedOrder)
+        {
+            // Письма покупателю и владельцу уходят в фоне и не влияют на ответ.
+            notifier.OrderPlaced(placedOrder.Response);
+        }
+
         return result switch
         {
             PlaceOrderResult.Placed placed => Created(

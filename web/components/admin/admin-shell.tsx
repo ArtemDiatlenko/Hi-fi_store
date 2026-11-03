@@ -185,7 +185,7 @@ function ActiveAdminNav({ email }: { email: string | null }) {
   return <AdminNav activePath={stripLocalePrefix(pathname)} email={email} />;
 }
 
-type SectionKey = "dashboard" | "products" | "categories" | "brands" | "orders";
+type SectionKey = "dashboard" | "products" | "categories" | "brands" | "orders" | "customers";
 
 // Списки — во множественном числе, страницы записей — в единственном (/admin/product/{id}), см. admin/layout.tsx.
 const SECTIONS: { key: SectionKey; path: string; itemPath?: string }[] = [
@@ -194,6 +194,7 @@ const SECTIONS: { key: SectionKey; path: string; itemPath?: string }[] = [
   { key: "categories", path: "/admin/categories", itemPath: "/admin/category" },
   { key: "brands", path: "/admin/brands" },
   { key: "orders", path: "/admin/orders", itemPath: "/admin/order" },
+  { key: "customers", path: "/admin/customers", itemPath: "/admin/customer" },
 ];
 
 function isActive(section: { path: string; itemPath?: string }, activePath: string | null): boolean {
@@ -347,6 +348,7 @@ function NavIcon({ section }: { section: SectionKey }) {
     categories: "M4 6h16M4 12h10M4 18h6",
     brands: "M7 7h.01M7 3h5l8.5 8.5a2 2 0 010 2.8l-5.2 5.2a2 2 0 01-2.8 0L4 11V6a3 3 0 013-3z",
     orders: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 7h6m-6 4h4",
+    customers: "M16 19v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 10a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM21 19v-1a4 4 0 00-3-3.87M15.5 3.13a3.5 3.5 0 010 6.74",
   };
   return <OutlineIcon d={paths[section]} />;
 }

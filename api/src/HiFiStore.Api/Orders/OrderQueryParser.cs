@@ -5,7 +5,7 @@ namespace HiFiStore.Api.Orders;
 
 /// <summary>
 /// Разбор query-параметров списков заказов: <c>page</c>, <c>pageSize</c> (1..100, по умолчанию 20),
-/// для администратора — ещё <c>status</c> и <c>q</c> (номер, телефон, email или имя).
+/// для администратора — ещё <c>status</c>, <c>q</c> (номер, телефон, email или имя) и <c>customerId</c>.
 /// </summary>
 public static class OrderQueryParser
 {
@@ -44,7 +44,21 @@ public static class OrderQueryParser
             AddError(errors, "q", $"Строка поиска — не больше {MaxSearchLength} символов.");
         }
 
-        filter = new AdminOrderFilter(status, search, page, pageSize);
+        Guid? customerId = null;
+        var rawCustomer = FirstValue(query, "customerId");
+        if (rawCustomer is not null)
+        {
+            if (Guid.TryParse(rawCustomer, out var parsedCustomer))
+            {
+                customerId = parsedCustomer;
+            }
+            else
+            {
+                AddError(errors, "customerId", "Некорректный идентификатор покупателя.");
+            }
+        }
+
+        filter = new AdminOrderFilter(status, search, page, pageSize, customerId);
         return errors.Count == 0;
     }
 
