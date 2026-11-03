@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
-import { TOKEN_STORAGE_KEY } from "@/lib/auth";
+import { saveToken } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n/client";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
@@ -91,7 +91,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
       const { accessToken } = (await response.json()) as { accessToken: string };
       try {
-        window.localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
+        saveToken(accessToken);
       } catch {
         // Хранилище недоступно (приватный режим и т. п.): вход работать не будет, сообщим.
         setError(dict.auth.storageError);
