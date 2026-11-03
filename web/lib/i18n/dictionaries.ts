@@ -337,6 +337,13 @@ const uk = {
       brands: "Бренди",
       orders: "Замовлення",
       toStore: "До магазину",
+      badge: "Адмін",
+    },
+    unsaved: {
+      title: "Є незбережені зміни",
+      text: "Зміни на цій сторінці ще не збережено. Якщо піти зараз, їх буде втрачено.",
+      leave: "Піти без збереження",
+      stay: "Залишитися",
     },
     access: {
       checking: "Перевіряємо доступ…",
@@ -1065,6 +1072,13 @@ const en: Dictionary = {
       brands: "Brands",
       orders: "Orders",
       toStore: "Back to store",
+      badge: "Admin",
+    },
+    unsaved: {
+      title: "Unsaved changes",
+      text: "Changes on this page haven't been saved yet. If you leave now, they will be lost.",
+      leave: "Leave without saving",
+      stay: "Stay",
     },
     access: {
       checking: "Checking access…",

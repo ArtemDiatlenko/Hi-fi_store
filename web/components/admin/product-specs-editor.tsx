@@ -10,6 +10,7 @@ import { type FieldErrors, focusFirstInvalid, parseDecimal } from "@/lib/admin/a
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminProductDetails, AdminSpecDefinition } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useUnsavedChanges } from "@/lib/admin/unsaved-changes";
 import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
@@ -60,6 +61,8 @@ export function ProductSpecsEditor({ product, categoryChanged, onSaved }: Props)
   const alertRef = useRef<HTMLDivElement>(null);
   const afterCommit = useAfterCommit();
   const definitions = product.availableSpecs;
+  const savedValues = initialValues(product);
+  useUnsavedChanges(definitions.some((definition) => (values[definition.key] ?? "") !== (savedValues[definition.key] ?? "")));
 
   function update(key: string, value: string) {
     setValues((current) => ({ ...current, [key]: value }));
