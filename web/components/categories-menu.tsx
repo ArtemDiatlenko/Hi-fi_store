@@ -132,7 +132,7 @@ export function CategoriesMenu({ categories }: { categories: Promise<CategoryNod
         ref={panelRef}
         hidden={!open}
         onKeyDown={onPanelKeyDown}
-        className="absolute left-0 top-full z-50 mt-2 w-[min(52rem,calc(100vw-2rem))] rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl shadow-zinc-900/10 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-black/50"
+        className="absolute left-0 top-full z-50 mt-2 w-[min(60rem,calc(100vw-12rem))] rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl shadow-zinc-900/10 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-black/50"
       >
         <div className="mb-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-zinc-200 pb-4 text-sm dark:border-zinc-800">
           <Link

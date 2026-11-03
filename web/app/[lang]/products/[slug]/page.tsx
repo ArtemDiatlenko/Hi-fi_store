@@ -138,15 +138,15 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
 
           {product.shortDescription ? <p className="leading-relaxed text-zinc-700 dark:text-zinc-300">{product.shortDescription}</p> : null}
 
-          <section aria-labelledby="product-specs">
-            <h2 id="product-specs" className="mb-3 text-lg font-semibold">
+          <section>
+            <h2 className="mb-3 text-lg font-semibold">
               {dict.product.specsTitle}
             </h2>
             <SpecTable specs={product.specs} locale={locale} dict={dict} />
           </section>
 
-          <section aria-labelledby="product-description">
-            <h2 id="product-description" className="mb-2 text-lg font-semibold">
+          <section>
+            <h2 className="mb-2 text-lg font-semibold">
               {dict.product.descriptionTitle}
             </h2>
             <p className="whitespace-pre-line leading-relaxed text-zinc-700 dark:text-zinc-300">{product.description}</p>
@@ -178,9 +178,9 @@ async function RelatedProducts({ product }: { product: ProductDetails }) {
   }
 
   return (
-    <section aria-labelledby="related-products" className="border-t border-zinc-200 pt-10 dark:border-zinc-800">
+    <section data-section="related" className="border-t border-zinc-200 pt-10 dark:border-zinc-800">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-        <h2 id="related-products" className="text-2xl font-semibold tracking-tight">
+        <h2 className="text-2xl font-semibold tracking-tight">
           {dict.product.relatedTitle}
         </h2>
         <Link

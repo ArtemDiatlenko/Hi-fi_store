@@ -130,8 +130,8 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
         </FiltersPanel>
       </aside>
 
-      <section aria-labelledby="catalog-results" className="flex flex-col gap-6">
-        <h2 id="catalog-results" className="sr-only">
+      <section data-section="results" className="flex flex-col gap-6">
+        <h2 className="sr-only">
           {tpl(dict.catalog.found, { count: products.totalCount })}
         </h2>
         {products.items.length === 0 ? (
