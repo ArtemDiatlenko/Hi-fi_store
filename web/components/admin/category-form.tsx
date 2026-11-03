@@ -9,6 +9,7 @@ import { indentedLabel, selfAndDescendants, withDepth } from "@/lib/admin/catego
 import { describeFailure, directKeys } from "@/lib/admin/forms";
 import type { AdminCategory, AdminCategoryDetails } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useUnsavedChanges } from "@/lib/admin/unsaved-changes";
 import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -53,6 +54,7 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
   const alertRef = useRef<HTMLDivElement>(null);
   const afterCommit = useAfterCommit();
   const isNew = categoryId === null;
+  useUnsavedChanges(FIELDS.some((field) => values[field] !== initial[field]));
 
   // Нельзя перенести раздел в самого себя или в свой подраздел — такие варианты не предлагаем.
   const excluded = categoryId ? selfAndDescendants(categories, categoryId) : new Set<string>();

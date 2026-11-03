@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -21,6 +23,22 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+// Админка рисуется в браузере после проверки доступа, поэтому остальная страница целиком пререндерится,
+// а метаданные страниц записей (/admin/order/[id] и т. п.) откладываются до запроса. С Cache Components это
+// нужно отметить явно, иначе сборка падает (blocking-prerender-metadata-runtime). Метка ничего не рисует
+// и не мешает статической оболочке. Раньше ту же роль невольно играла потоковая шапка витрины.
+async function Connection() {
+  await connection();
+  return null;
+}
+
 export default function AdminLayout({ children }: LayoutProps<"/[lang]/admin">) {
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <>
+      <AdminShell>{children}</AdminShell>
+      <Suspense>
+        <Connection />
+      </Suspense>
+    </>
+  );
 }

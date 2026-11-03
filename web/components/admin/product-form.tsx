@@ -10,6 +10,7 @@ import { indentedLabel, withDepth } from "@/lib/admin/categories";
 import { describeFailure, directKeys } from "@/lib/admin/forms";
 import { type AdminBrand, type AdminCategory, type AdminProductDetails, productConditions } from "@/lib/admin/types";
 import { useAdminRequest } from "@/lib/admin/session";
+import { useUnsavedChanges } from "@/lib/admin/unsaved-changes";
 import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import type { ProductCondition } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/client";
@@ -82,6 +83,7 @@ export function ProductMainForm({ productId, initial, categories, brands, onSave
   const alertRef = useRef<HTMLDivElement>(null);
   const afterCommit = useAfterCommit();
   const isNew = productId === null;
+  useUnsavedChanges(FIELDS.some((field) => values[field] !== initial[field]));
 
   function update<K extends keyof ProductMainValues>(field: K, value: ProductMainValues[K]) {
     setValues((current) => ({ ...current, [field]: value }));
