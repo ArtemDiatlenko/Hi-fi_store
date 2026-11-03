@@ -4,8 +4,8 @@ using HiFiStore.Infrastructure.Email;
 namespace HiFiStore.Api.Email;
 
 /// <summary>
-/// Очередь писем в памяти процесса. Письма, не отправленные до остановки API, теряются — для уведомлений
-/// магазина это приемлемо; если понадобится гарантия доставки, очередь можно перенести в базу.
+/// Демонстрационная очередь писем в памяти процесса. Неотправленные письма теряются при остановке API;
+/// для надёжной доставки в рабочем магазине нужна сохраняемая очередь.
 /// </summary>
 public sealed class EmailOutbox : IEmailOutbox
 {
@@ -40,16 +40,19 @@ public sealed class EmailDispatcher(EmailOutbox outbox, IEmailTransport transpor
                 await transport.SendAsync(message, ct);
                 return;
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch (Exception ex) when (!ct.IsCancellationRequested)
             {
-                if (attempt >= RetryDelays.Length)
+                if (attempt >= RetryDelays.Length || ex is EmailDeliveryException { Retryable: false })
                 {
                     logger.LogError(ex, "Не удалось отправить письмо «{Subject}» на {To}.", message.Subject, message.To);
                     return;
                 }
 
-                logger.LogWarning(ex, "Ошибка отправки письма «{Subject}», повтор через {Delay}.", message.Subject, RetryDelays[attempt]);
-                await Task.Delay(RetryDelays[attempt], ct);
+                var delay = RetryDelays[attempt];
+                if (ex is EmailDeliveryException { RetryAfter: { } requested } && requested > delay)
+                    delay = requested < TimeSpan.FromMinutes(5) ? requested : TimeSpan.FromMinutes(5);
+                logger.LogWarning(ex, "Ошибка отправки письма «{Subject}», повтор через {Delay}.", message.Subject, delay);
+                await Task.Delay(delay, ct);
             }
         }
     }
