@@ -199,13 +199,11 @@ public static class DemoCatalog
                 UpdatedAt = now,
             };
 
-            product.Images.Add(new ProductImage
+            // У неопубликованной «чернетки» фото нет — в её описании сказано, что они готовятся.
+            if (published)
             {
-                Id = Guid.NewGuid(),
-                Url = $"https://placehold.co/800x600/png?text={Uri.EscapeDataString(name)}",
-                Alt = $"{ItemKind(category.Slug)} {name}",
-                SortOrder = 0,
-            });
+                AddDemoImages(product, category.Slug);
+            }
 
             foreach (var (key, value) in specs)
             {
@@ -220,17 +218,75 @@ public static class DemoCatalog
 
             db.Products.Add(product);
         }
-
-        // Вид товара для подписи к фото: «Інтегральний підсилювач Aurora I-80».
-        static string ItemKind(string categorySlug) => categorySlug switch
-        {
-            "integrated-amplifiers" => "Інтегральний підсилювач",
-            "tube-amplifiers" => "Ламповий підсилювач",
-            "bookshelf-speakers" => "Поличні колонки",
-            "floor-speakers" => "Підлогові колонки",
-            "turntables" => "Програвач вінілу",
-            "interconnects" => "Міжблочний кабель",
-            _ => throw new ArgumentOutOfRangeException(nameof(categorySlug), categorySlug, null),
-        };
     }
+
+    /// <summary>Префикс заглушек из ранних версий демо-каталога.</summary>
+    private const string LegacyPlaceholderPrefix = "https://placehold.co/";
+
+    /// <summary>
+    /// Обновляет фото в уже заполненной базе (демо-сайт на Render): у опубликованных демо-товаров, все фото
+    /// которых — заглушки placehold.co из ранних версий каталога, ставит иллюстрации. Фото, заданные вручную,
+    /// и товары, которых нет в демо-каталоге, не трогает. Возвращает число обновлённых товаров.
+    /// </summary>
+    public static async Task<int> UpgradeLegacyImagesAsync(StoreDbContext db, CancellationToken ct = default)
+    {
+        var products = await db.Products
+            .Include(p => p.Images)
+            .Include(p => p.Category)
+            .Where(p => p.IsPublished && DemoSlugs.Contains(p.Slug)
+                && p.Images.Any() && p.Images.All(i => i.Url.StartsWith(LegacyPlaceholderPrefix)))
+            .ToListAsync(ct);
+
+        foreach (var product in products)
+        {
+            db.ProductImages.RemoveRange(product.Images);
+            product.Images.Clear();
+            AddDemoImages(product, product.Category.Slug);
+            // У новых фото Id задан заранее: без явного Add EF счёл бы их существующими (UPDATE вместо INSERT).
+            db.ProductImages.AddRange(product.Images);
+        }
+
+        await db.SaveChangesAsync(ct);
+        return products.Count;
+    }
+
+    // Товары демо-каталога, для которых есть иллюстрации в web/public/demo/products.
+    private static readonly string[] DemoSlugs =
+    [
+        "aurora-i-80", "aurora-i-150-pro", "nord-audio-na-40", "kvarts-lampa-25", "kvarts-lampa-8-demo",
+        "vega-se-300-draft", "liniya-mini-2", "nord-audio-ns-5-walnut", "liniya-tower-9", "vega-floor-3",
+        "kvarts-vrashchenie-1", "aurora-direct-x", "liniya-silver-rca-1", "nord-audio-xlr-2", "kvarts-rca-0-5-demo",
+    ];
+
+    /// <summary>
+    /// Иллюстрации из web/public/demo/products (генератор — web/scripts/demo-images.mjs): общий вид, деталь,
+    /// товар в интерьере. Это нарисованные заглушки, а не фото.
+    /// </summary>
+    private static void AddDemoImages(Product product, string categorySlug)
+    {
+        var name = product.Name;
+        var alts = new[] { $"{ItemKind(categorySlug)} {name}", $"{name}: деталі крупним планом", $"{name} в інтер’єрі" };
+        for (var i = 0; i < alts.Length; i++)
+        {
+            product.Images.Add(new ProductImage
+            {
+                Id = Guid.NewGuid(),
+                Url = $"/demo/products/{product.Slug}-{i + 1}.svg",
+                Alt = alts[i],
+                SortOrder = i,
+            });
+        }
+    }
+
+    // Вид товара для подписи к фото: «Інтегральний підсилювач Aurora I-80».
+    private static string ItemKind(string categorySlug) => categorySlug switch
+    {
+        "integrated-amplifiers" => "Інтегральний підсилювач",
+        "tube-amplifiers" => "Ламповий підсилювач",
+        "bookshelf-speakers" => "Поличні колонки",
+        "floor-speakers" => "Підлогові колонки",
+        "turntables" => "Програвач вінілу",
+        "interconnects" => "Міжблочний кабель",
+        _ => "Товар",
+    };
 }
