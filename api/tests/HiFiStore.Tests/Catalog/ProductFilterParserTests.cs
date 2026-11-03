@@ -1,3 +1,4 @@
+using HiFiStore.Api;
 using HiFiStore.Api.Catalog;
 using HiFiStore.Domain.Catalog;
 using HiFiStore.Infrastructure.Catalog;
@@ -18,7 +19,7 @@ public class ProductFilterParserTests
         Assert.Null(filter.CategorySlug);
         Assert.Equal(CatalogSort.Newest, filter.Sort);
         Assert.Equal(1, filter.Page);
-        Assert.Equal(ProductFilterParser.DefaultPageSize, filter.PageSize);
+        Assert.Equal(Paging.DefaultPageSize, filter.PageSize);
         Assert.Empty(filter.Specs);
     }
 

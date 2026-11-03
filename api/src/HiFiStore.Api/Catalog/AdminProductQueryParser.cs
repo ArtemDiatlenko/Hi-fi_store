@@ -1,4 +1,3 @@
-using System.Globalization;
 using HiFiStore.Infrastructure.Catalog.Admin;
 
 namespace HiFiStore.Api.Catalog;
@@ -15,15 +14,15 @@ public static class AdminProductQueryParser
     {
         errors = [];
 
+        var (page, pageSize) = Paging.Parse(query, errors);
         result = new AdminProductQuery
         {
             Search = FirstValue(query, "q"),
             CategoryId = ParseGuid(query, "categoryId", errors),
             BrandId = ParseGuid(query, "brandId", errors),
             IsPublished = ParseBool(query, "published", errors),
-            Page = ParseInt(query, "page", 1, int.MaxValue, 1, errors),
-            PageSize = ParseInt(
-                query, "pageSize", 1, ProductFilterParser.MaxPageSize, ProductFilterParser.DefaultPageSize, errors),
+            Page = page,
+            PageSize = pageSize,
         };
 
         return errors.Count == 0;
@@ -61,25 +60,6 @@ public static class AdminProductQueryParser
 
         errors[name] = ["Ожидается true или false."];
         return null;
-    }
-
-    private static int ParseInt(
-        IQueryCollection query, string name, int min, int max, int defaultValue, Dictionary<string, string[]> errors)
-    {
-        var value = FirstValue(query, name);
-        if (value is null)
-        {
-            return defaultValue;
-        }
-
-        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result) &&
-            result >= min && result <= max)
-        {
-            return result;
-        }
-
-        errors[name] = [$"Ожидается целое число от {min} до {max}."];
-        return defaultValue;
     }
 
     private static string? FirstValue(IQueryCollection query, string name)

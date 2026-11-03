@@ -19,9 +19,6 @@ namespace HiFiStore.Api.Catalog;
 /// </summary>
 public static class ProductFilterParser
 {
-    public const int DefaultPageSize = 20;
-    public const int MaxPageSize = 100;
-
     private static readonly Regex SpecKeyPattern = new("^[a-z0-9_]{1,64}$", RegexOptions.Compiled);
 
     public static bool TryParse(IQueryCollection query, out ProductFilter filter, out Dictionary<string, string[]> errors)
@@ -53,8 +50,7 @@ public static class ProductFilterParser
             AddError(errors, "minPrice", "minPrice не может быть больше maxPrice.");
         }
 
-        var page = ParseInt(query, "page", 1, errors, min: 1, max: int.MaxValue);
-        var pageSize = ParseInt(query, "pageSize", DefaultPageSize, errors, min: 1, max: MaxPageSize);
+        var (page, pageSize) = Paging.Parse(query, errors);
         var sort = ParseSort(query, errors);
         var inStock = ParseBool(query, "inStock", errors);
         var specs = ParseSpecs(query, errors);
@@ -190,25 +186,6 @@ public static class ProductFilterParser
 
         AddError(errors, name, "Ожидается true или false.");
         return false;
-    }
-
-    private static int ParseInt(
-        IQueryCollection query, string name, int defaultValue, Dictionary<string, string[]> errors, int min, int max)
-    {
-        var value = FirstValue(query, name);
-        if (value is null)
-        {
-            return defaultValue;
-        }
-
-        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result) &&
-            result >= min && result <= max)
-        {
-            return result;
-        }
-
-        AddError(errors, name, $"Ожидается целое число от {min} до {max}.");
-        return defaultValue;
     }
 
     private static decimal? ParseDecimal(IQueryCollection query, string name, Dictionary<string, string[]> errors)

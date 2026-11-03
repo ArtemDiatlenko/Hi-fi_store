@@ -1,3 +1,4 @@
+using HiFiStore.Api;
 using HiFiStore.Api.Catalog;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
@@ -17,7 +18,7 @@ public class AdminProductQueryParserTests
         Assert.Null(query.CategoryId);
         Assert.Null(query.IsPublished);
         Assert.Equal(1, query.Page);
-        Assert.Equal(ProductFilterParser.DefaultPageSize, query.PageSize);
+        Assert.Equal(Paging.DefaultPageSize, query.PageSize);
     }
 
     [Fact]
