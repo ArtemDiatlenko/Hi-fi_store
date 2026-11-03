@@ -1,8 +1,10 @@
 using HiFiStore.Infrastructure.Catalog;
+using HiFiStore.Infrastructure.Catalog.Admin;
 using HiFiStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HiFiStore.Infrastructure;
 
@@ -21,6 +23,12 @@ public static class DependencyInjection
 
         services.AddDbContext<StoreDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<ICatalogService, CatalogService>();
+
+        // Административный каталог. Время берётся из TimeProvider, чтобы в тестах его можно было подменить.
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<IAdminBrandService, AdminBrandService>();
+        services.AddScoped<IAdminCategoryService, AdminCategoryService>();
+        services.AddScoped<IAdminProductService, AdminProductService>();
 
         return services;
     }
