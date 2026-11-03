@@ -13,6 +13,7 @@ public class SlugsTests
     [InlineData("Съёмный объект", "semnyy-obekt")]
     [InlineData("Хэтчбек Цапля", "khetchbek-tsaplya")]
     [InlineData("Їжак Ґудзик Єнот", "yizhak-gudzik-yenot")]
+    [InlineData("Ламповий підсилювач", "lampoviy-pidsilyuvach")]
     public void Generate_TransliteratesCyrillic(string text, string expected) =>
         Assert.Equal(expected, Slugs.Generate(text));
 

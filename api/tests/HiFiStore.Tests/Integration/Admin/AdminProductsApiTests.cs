@@ -125,7 +125,7 @@ public sealed class AdminProductsApiTests(StoreWebApplicationFactory factory) : 
         Assert.Equal(live.GetProperty("id").GetGuid(), Assert.Single(bySku.GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid());
 
         var demoDraft = await GetAsync("/api/admin/products?q=vg-se300");
-        Assert.Equal("Вега SE-300 (черновик)", Assert.Single(demoDraft.GetProperty("items").EnumerateArray()).GetProperty("name").GetString());
+        Assert.Equal("Vega SE-300 (чернетка)", Assert.Single(demoDraft.GetProperty("items").EnumerateArray()).GetProperty("name").GetString());
 
         var invalid = await GetAsync("/api/admin/products?pageSize=0&categoryId=abc&published=maybe", HttpStatusCode.BadRequest);
         AssertFieldErrors(invalid, "pageSize", "categoryId", "published");

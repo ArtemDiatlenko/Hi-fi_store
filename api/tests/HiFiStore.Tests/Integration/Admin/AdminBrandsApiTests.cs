@@ -41,7 +41,7 @@ public sealed class AdminBrandsApiTests(StoreWebApplicationFactory factory) : Ad
     {
         await PrepareAsync();
 
-        var problem = await PostAsync("/api/admin/brands", new { name = "Ещё одна Аурора", slug = "aurora" }, HttpStatusCode.Conflict);
+        var problem = await PostAsync("/api/admin/brands", new { name = "Ще одна Aurora", slug = "aurora" }, HttpStatusCode.Conflict);
 
         Assert.Contains("aurora", problem.GetProperty("detail").GetString());
     }
