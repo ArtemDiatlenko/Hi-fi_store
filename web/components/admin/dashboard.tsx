@@ -42,17 +42,24 @@ export function AdminDashboard() {
   const t = dict.admin.dashboard;
 
   const newOrders = useCount("/api/admin/orders?status=New&pageSize=1");
+  const newInquiries = useCount("/api/admin/inquiries?status=New&pageSize=1");
   const confirmed = useCount("/api/admin/orders?status=Confirmed&pageSize=1");
   const shipped = useCount("/api/admin/orders?status=Shipped&pageSize=1");
   const products = useCount("/api/admin/products?pageSize=1");
   const unpublished = useCount("/api/admin/products?published=false&pageSize=1");
   const recent = useAdminQuery<PagedResult<AdminOrderSummary>>("/api/admin/orders?pageSize=5");
 
-  const counts = [newOrders, confirmed, shipped, products, unpublished];
+  const counts = [newOrders, newInquiries, confirmed, shipped, products, unpublished];
   const failedStatus = counts.find((item) => item.errorStatus !== null)?.errorStatus ?? null;
   const inProgress = confirmed.count !== null && shipped.count !== null ? confirmed.count + shipped.count : null;
 
   const cards: Card[] = [
+    {
+      label: t.newInquiries,
+      value: newInquiries.count,
+      accent: "border-l-emerald-500 dark:border-l-emerald-400",
+      links: [{ href: "/admin/inquiries?status=New", label: t.open, srSuffix: t.newInquiries }],
+    },
     {
       label: t.newOrders,
       value: newOrders.count,
@@ -94,7 +101,7 @@ export function AdminDashboard() {
         <LoadError message={loadErrorText(failedStatus, dict)} onRetry={() => counts.forEach((item) => item.reload())} />
       ) : null}
 
-      <ul className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 xl:grid-cols-4">
+      <ul className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
           <li key={card.label} className={`flex flex-col gap-1 rounded-2xl border border-l-4 border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 ${card.accent}`}>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">{card.label}</p>

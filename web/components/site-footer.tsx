@@ -20,6 +20,7 @@ export async function SiteFooter({ categories }: { categories: Promise<CategoryN
   const { locale, dict } = await getI18n();
 
   const customerLinks = [
+    { href: "/consultation", label: dict.header.consultation },
     { href: "/info/delivery", label: dict.info.delivery.title },
     { href: "/info/returns", label: dict.info.returns.title },
     { href: "/info/contacts", label: dict.info.contacts.title },

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HiFiStore.Api;
 using HiFiStore.Api.Cli;
 using HiFiStore.Api.Email;
 using HiFiStore.Api.Identity;
@@ -33,6 +34,7 @@ builder.Services.AddHostedService<EmailDispatcher>();
 builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
 builder.Services.AddAuthorization();
+builder.Services.AddInquiryRateLimit();
 
 builder.Services
     .AddControllers()
@@ -57,6 +59,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 app.MapGroup("/api/auth").MapIdentityApi<ApplicationUser>().WithTags("Auth")

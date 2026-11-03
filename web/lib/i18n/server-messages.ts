@@ -38,6 +38,29 @@ const EXACT: Record<string, Translations> = {
     en: "Invalid phone number: 10 to 15 digits are required, e.g. +380 67 123 45 67.",
   },
   "Укажите email.": { uk: "Вкажіть email.", en: "Enter your email." },
+  // Заявка на консультацию (InquiryValidator).
+  "Выберите тему обращения.": { uk: "Оберіть тему звернення.", en: "Choose a topic." },
+  "Укажите, как к вам обращаться.": { uk: "Вкажіть, як до вас звертатися.", en: "Tell us your name." },
+  "Имя — не больше 200 символов.": { uk: "Ім’я — не більше 200 символів.", en: "Name — up to 200 characters." },
+  "Выберите способ связи.": { uk: "Оберіть спосіб зв’язку.", en: "Choose how to contact you." },
+  "Укажите email — вы выбрали связь по почте.": {
+    uk: "Вкажіть email — ви обрали зв’язок поштою.",
+    en: "Enter your email — you chose to be contacted by email.",
+  },
+  "Укажите телефон — по нему с вами свяжутся.": {
+    uk: "Вкажіть телефон — за ним з вами зв’яжуться.",
+    en: "Enter your phone number — we will contact you on it.",
+  },
+  "Опишите запрос — хотя бы 10 символов.": {
+    uk: "Опишіть запит — хоча б 10 символів.",
+    en: "Describe your request — at least 10 characters.",
+  },
+  "Описание — не больше 3000 символов.": { uk: "Опис — не більше 3000 символів.", en: "Description — up to 3000 characters." },
+  "Бюджет — не больше 100 символов.": { uk: "Бюджет — не більше 100 символів.", en: "Budget — up to 100 characters." },
+  "Нужно согласие на обработку персональных данных.": {
+    uk: "Потрібна згода на обробку персональних даних.",
+    en: "Consent to personal data processing is required.",
+  },
   "Некорректный email.": { uk: "Некоректний email.", en: "Invalid email." },
   "Выберите способ доставки.": { uk: "Оберіть спосіб доставки.", en: "Choose a delivery method." },
   "Выберите способ оплаты.": { uk: "Оберіть спосіб оплати.", en: "Choose a payment method." },

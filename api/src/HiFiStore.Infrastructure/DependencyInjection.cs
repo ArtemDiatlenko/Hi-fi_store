@@ -2,6 +2,7 @@ using HiFiStore.Infrastructure.Catalog;
 using HiFiStore.Infrastructure.Catalog.Admin;
 using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Identity;
+using HiFiStore.Infrastructure.Inquiries;
 using HiFiStore.Infrastructure.Orders;
 using HiFiStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,7 @@ public static class DependencyInjection
         // Учётные записи администраторов (create-admin, Seed:Admin). UserManager регистрирует Identity в API-проекте.
         services.AddScoped<AdminAccountService>();
         services.AddScoped<IAdminCustomerService, AdminCustomerService>();
+        services.AddScoped<IInquiryService, InquiryService>();
 
         // Почта: без Email:Smtp:Host письма пишутся в лог. Очередь (IEmailOutbox) и фоновую отправку
         // регистрирует API-проект — ей нужен хост приложения.

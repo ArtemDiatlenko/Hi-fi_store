@@ -7,6 +7,7 @@ import { SITE_URL } from "@/lib/site";
 const PUBLIC_PATHS: { path: string; priority: number }[] = [
   { path: "/", priority: 1 },
   { path: "/catalog", priority: 0.9 },
+  { path: "/consultation", priority: 0.6 },
   { path: "/info/delivery", priority: 0.5 },
   { path: "/info/returns", priority: 0.5 },
   { path: "/info/contacts", priority: 0.5 },
