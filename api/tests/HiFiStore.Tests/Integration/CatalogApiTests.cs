@@ -26,9 +26,9 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
 
         var page = await GetJsonAsync("/api/catalog/products?category=amplifiers&pageSize=100");
 
-        // 3 интегральных + 2 ламповых опубликованных; черновик «Вега SE-300» скрыт.
+        // 3 интегральных + 2 ламповых опубликованных; черновик «Vega SE-300» скрыт.
         Assert.Equal(5, page.GetProperty("totalCount").GetInt32());
-        Assert.DoesNotContain(Names(page), n => n.Contains("черновик"));
+        Assert.DoesNotContain(Names(page), n => n.Contains("Vega SE-300") || n.Contains("чернетка"));
     }
 
     [SkippableFact]
@@ -38,7 +38,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
 
         var page = await GetJsonAsync("/api/catalog/products?category=amplifiers&spec.power_w.min=50&spec.power_w.max=150&sort=name");
 
-        Assert.Equal(["Аурора I-150 Pro", "Аурора I-80"], Names(page));
+        Assert.Equal(["Aurora I-150 Pro", "Aurora I-80"], Names(page));
     }
 
     [SkippableFact]
@@ -48,7 +48,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
 
         var page = await GetJsonAsync("/api/catalog/products?category=tube-amplifiers&spec.tube_type=EL34,6V6&sort=name");
 
-        Assert.Equal(["Кварц Лампа 25", "Кварц Лампа 8 Demo"], Names(page));
+        Assert.Equal(["Kvarts Lampa 25", "Kvarts Lampa 8 Demo"], Names(page));
     }
 
     [SkippableFact]
@@ -58,7 +58,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
 
         var page = await GetJsonAsync("/api/catalog/products?spec.bluetooth=true&inStock=true&sort=name");
 
-        Assert.Equal(["Аурора I-80", "Норд Аудио NA-40"], Names(page));
+        Assert.Equal(["Aurora I-80", "Nord Audio NA-40"], Names(page));
     }
 
     [SkippableFact]
@@ -115,11 +115,13 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
 
         var product = await GetJsonAsync("/api/catalog/products/aurora-i-80");
 
-        Assert.Equal("Аурора I-80", product.GetProperty("name").GetString());
-        Assert.Equal("Интегральные усилители", product.GetProperty("category").GetProperty("name").GetString());
+        Assert.Equal("Aurora I-80", product.GetProperty("name").GetString());
+        Assert.Equal("Інтегральні підсилювачі", product.GetProperty("category").GetProperty("name").GetString());
+        Assert.Equal("Aurora", product.GetProperty("brand").GetProperty("name").GetString());
         Assert.NotEmpty(product.GetProperty("images").EnumerateArray());
         Assert.Contains(product.GetProperty("specs").EnumerateArray(),
-            s => s.GetProperty("key").GetString() == "power_w" && s.GetProperty("value").GetDecimal() == 80m);
+            s => s.GetProperty("key").GetString() == "power_w" && s.GetProperty("value").GetDecimal() == 80m
+                && s.GetProperty("name").GetString() == "Вихідна потужність" && s.GetProperty("unit").GetString() == "Вт");
     }
 
     [SkippableFact]

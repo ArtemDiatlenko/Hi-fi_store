@@ -6,7 +6,7 @@ namespace HiFiStore.Infrastructure.Catalog;
 
 /// <summary>
 /// Slug — часть URL из строчных латинских букв, цифр и одиночных дефисов (<c>aurora-i-80</c>).
-/// Кириллица транслитерируется (<c>«Кварц Вращение 1»</c> → <c>kvarts-vrashchenie-1</c>),
+/// Кириллица транслитерируется (<c>«Ламповий підсилювач»</c> → <c>lampoviy-pidsilyuvach</c>),
 /// у латиницы отбрасываются диакритические знаки, остальные символы становятся разделителями.
 /// </summary>
 public static partial class Slugs
