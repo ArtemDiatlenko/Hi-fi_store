@@ -34,6 +34,7 @@ export function LanguageSwitcherFallback() {
         <Link
           key={target}
           href={addLocalePrefix("/", target)}
+          prefetch={false}
           hrefLang={target}
           lang={target}
           aria-label={names[target]}
@@ -52,6 +53,11 @@ export function LanguageSwitcherFallback() {
  * href указывает на базовый путь (работает без JS и при открытии в новой вкладке);
  * при обычном клике перехватываем переход и добавляем текущую query-строку, поэтому
  * фильтры каталога сохраняются. useSearchParams не используем — шапка остаётся статической.
+ *
+ * prefetch={false}: смена языка меняет корневой макет ([lang]) — это всегда полная загрузка
+ * документа, предзагрузка бесполезна. Хуже того, предзагрузка «/en» учит клиентский роутер шаблону
+ * «/[lang]», и он начинает угадывать украинские адреса без префикса («/catalog?…») как lang=catalog
+ * — лишние запросы с 404 в консоли.
  */
 export function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const { locale, dict } = useI18n();
@@ -68,6 +74,7 @@ export function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
           <Link
             key={target}
             href={switchLocaleHref(pathname, "", target)}
+            prefetch={false}
             hrefLang={target}
             lang={target}
             aria-label={names[target]}
