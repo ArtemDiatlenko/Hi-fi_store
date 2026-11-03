@@ -1,7 +1,12 @@
-import { formatDateTime, formatPrice } from "@/lib/format";
-import { deliveryLabel, type OrderDetails, type OrderStatus, paymentLabel, statusLabel } from "@/lib/orders";
+// Компонент без состояния и без хуков: используется и на сервере (страница подтверждения),
+// и в клиентском личном кабинете. Поэтому локаль и словарь приходят пропсами, а не через
+// root-params/контекст — так модуль работает в обоих деревьях.
 
-// Компонент без состояния: используется и на сервере (страница подтверждения), и в клиентском личном кабинете.
+import type { Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { formatDateTime, formatPrice } from "@/lib/format";
+import { tpl } from "@/lib/i18n/util";
+import { type OrderDetails, type OrderStatus } from "@/lib/orders";
 
 const statusStyles: Record<OrderStatus, string> = {
   New: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200",
@@ -11,35 +16,35 @@ const statusStyles: Record<OrderStatus, string> = {
   Cancelled: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
 };
 
-export function OrderStatusBadge({ status }: { status: OrderStatus }) {
+export function OrderStatusBadge({ status, dict }: { status: OrderStatus; dict: Dictionary }) {
   return (
     <span className={`inline-block rounded-full px-3 py-0.5 text-sm font-medium ${statusStyles[status]}`}>
-      {statusLabel(status)}
+      {dict.orderStatus[status]}
     </span>
   );
 }
 
-export function OrderDetailsView({ order }: { order: OrderDetails }) {
+export function OrderDetailsView({ order, locale, dict }: { order: OrderDetails; locale: Locale; dict: Dictionary }) {
   const { delivery, customer } = order;
 
   return (
     <div className="flex flex-col gap-8">
       <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[10rem_1fr]">
-        <dt className="text-zinc-500">Номер заказа</dt>
+        <dt className="text-zinc-500">{dict.order.number}</dt>
         <dd className="font-medium">№{order.number}</dd>
-        <dt className="text-zinc-500">Статус</dt>
+        <dt className="text-zinc-500">{dict.order.status}</dt>
         <dd>
-          <OrderStatusBadge status={order.status} />
+          <OrderStatusBadge status={order.status} dict={dict} />
         </dd>
-        <dt className="text-zinc-500">Оформлен</dt>
+        <dt className="text-zinc-500">{dict.order.placedAt}</dt>
         <dd>
-          <time dateTime={order.createdAt}>{formatDateTime(order.createdAt)}</time>
+          <time dateTime={order.createdAt}>{formatDateTime(order.createdAt, locale)}</time>
         </dd>
       </dl>
 
       <section aria-labelledby={`order-${order.id}-items`}>
         <h2 id={`order-${order.id}-items`} className="mb-3 text-lg font-medium">
-          Товары
+          {dict.order.itemsTitle}
         </h2>
         <ul className="divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
           {order.items.map((item) => (
@@ -47,75 +52,75 @@ export function OrderDetailsView({ order }: { order: OrderDetails }) {
               <span className="min-w-0">
                 <span className="font-medium">{item.name}</span>
                 <span className="block text-zinc-500">
-                  Арт. {item.sku} · {formatPrice(item.unitPrice)} × {item.quantity}
+                  {tpl(dict.order.skuShort, { sku: item.sku })} · {formatPrice(item.unitPrice, locale)} × {item.quantity}
                 </span>
               </span>
-              <span className="font-medium">{formatPrice(item.lineTotal)}</span>
+              <span className="font-medium">{formatPrice(item.lineTotal, locale)}</span>
             </li>
           ))}
         </ul>
         <p className="mt-3 flex justify-between gap-4 border-t border-zinc-200 pt-3 text-base dark:border-zinc-800">
-          <span className="font-medium">Итого</span>
-          <span className="font-semibold">{formatPrice(order.total)}</span>
+          <span className="font-medium">{dict.order.total}</span>
+          <span className="font-semibold">{formatPrice(order.total, locale)}</span>
         </p>
-        <p className="mt-1 text-xs text-zinc-500">Доставка в сумму заказа не входит.</p>
+        <p className="mt-1 text-xs text-zinc-500">{dict.common.deliveryNotIncluded}</p>
       </section>
 
       <div className="grid gap-8 sm:grid-cols-2">
         <section aria-labelledby={`order-${order.id}-delivery`}>
           <h2 id={`order-${order.id}-delivery`} className="mb-3 text-lg font-medium">
-            Доставка и оплата
+            {dict.order.deliveryAndPayment}
           </h2>
           <dl className="flex flex-col gap-2 text-sm">
             <div>
-              <dt className="text-zinc-500">Способ доставки</dt>
-              <dd>{deliveryLabel(delivery.method)}</dd>
+              <dt className="text-zinc-500">{dict.order.deliveryMethod}</dt>
+              <dd>{dict.delivery[delivery.method].label}</dd>
             </div>
             {delivery.city ? (
               <div>
-                <dt className="text-zinc-500">Город</dt>
+                <dt className="text-zinc-500">{dict.order.city}</dt>
                 <dd>{delivery.city}</dd>
               </div>
             ) : null}
             {delivery.warehouse ? (
               <div>
-                <dt className="text-zinc-500">Отделение</dt>
+                <dt className="text-zinc-500">{dict.order.warehouse}</dt>
                 <dd>{delivery.warehouse}</dd>
               </div>
             ) : null}
             {delivery.address ? (
               <div>
-                <dt className="text-zinc-500">Адрес</dt>
+                <dt className="text-zinc-500">{dict.order.address}</dt>
                 <dd>{delivery.address}</dd>
               </div>
             ) : null}
             <div>
-              <dt className="text-zinc-500">Оплата</dt>
-              <dd>{paymentLabel(order.paymentMethod)}</dd>
+              <dt className="text-zinc-500">{dict.order.payment}</dt>
+              <dd>{dict.payment[order.paymentMethod].label}</dd>
             </div>
           </dl>
         </section>
 
         <section aria-labelledby={`order-${order.id}-customer`}>
           <h2 id={`order-${order.id}-customer`} className="mb-3 text-lg font-medium">
-            Получатель
+            {dict.order.recipient}
           </h2>
           <dl className="flex flex-col gap-2 text-sm">
             <div>
-              <dt className="text-zinc-500">Имя</dt>
+              <dt className="text-zinc-500">{dict.order.name}</dt>
               <dd>{customer.fullName}</dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Телефон</dt>
+              <dt className="text-zinc-500">{dict.order.phone}</dt>
               <dd>{customer.phone}</dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Email</dt>
+              <dt className="text-zinc-500">{dict.order.email}</dt>
               <dd className="break-all">{customer.email}</dd>
             </div>
             {order.comment ? (
               <div>
-                <dt className="text-zinc-500">Комментарий</dt>
+                <dt className="text-zinc-500">{dict.order.comment}</dt>
                 <dd className="whitespace-pre-line">{order.comment}</dd>
               </div>
             ) : null}

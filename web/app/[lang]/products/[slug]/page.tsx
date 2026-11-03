@@ -5,23 +5,31 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { AddToCart } from "@/components/add-to-cart";
 import { getProduct, type ProductDetails, type ProductSpecValue } from "@/lib/api";
-import { conditionLabel, formatNumber, formatPrice } from "@/lib/format";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/config";
+import { localeHref } from "@/lib/i18n/routing";
+import { getI18n } from "@/lib/i18n/server";
+import { tpl } from "@/lib/i18n/util";
+import { formatNumber, formatPrice } from "@/lib/format";
 
-export default function ProductPage(props: PageProps<"/products/[slug]">) {
+export default async function ProductPage(props: PageProps<"/[lang]/products/[slug]">) {
+  const { dict } = await getI18n();
   return (
-    <Suspense fallback={<p className="text-sm text-zinc-500">Загрузка товара…</p>}>
+    <Suspense fallback={<p className="text-sm text-zinc-500">{dict.product.loading}</p>}>
       <ProductView params={props.params} />
     </Suspense>
   );
 }
 
-export async function generateMetadata(props: PageProps<"/products/[slug]">): Promise<Metadata> {
+export async function generateMetadata(props: PageProps<"/[lang]/products/[slug]">): Promise<Metadata> {
+  const { dict } = await getI18n();
   const { slug } = await props.params;
   const product = await getProduct(slug);
-  return { title: product?.name ?? "Товар" };
+  return { title: product?.name ?? dict.product.fallbackTitle };
 }
 
 async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
+  const { locale, dict } = await getI18n();
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) {
@@ -35,26 +43,26 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
       <div className="flex flex-col gap-6">
         <div>
           <p className="text-sm uppercase tracking-wide text-zinc-500">{product.brand.name}</p>
-          <h1 className="mt-1 text-3xl font-semibold leading-tight">{product.name}</h1>
+          <h1 className="mt-1 text-2xl font-semibold leading-tight sm:text-3xl">{product.name}</h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Артикул {product.sku} ·{" "}
-            <Link href={`/catalog?category=${product.category.slug}`} className="underline">
+            {tpl(dict.product.sku, { sku: product.sku })} ·{" "}
+            <Link href={localeHref(locale, `/catalog?category=${product.category.slug}`)} className="underline">
               {product.category.name}
             </Link>
           </p>
         </div>
 
         <div className="flex flex-wrap items-baseline gap-3">
-          <span className="text-3xl font-semibold">{formatPrice(product.price)}</span>
+          <span className="text-3xl font-semibold">{formatPrice(product.price, locale)}</span>
           {product.oldPrice !== null ? (
-            <span className="text-lg text-zinc-500 line-through">{formatPrice(product.oldPrice)}</span>
+            <span className="text-lg text-zinc-500 line-through">{formatPrice(product.oldPrice, locale)}</span>
           ) : null}
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm">
-          <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">{conditionLabel(product.condition)}</span>
+          <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">{dict.conditions[product.condition]}</span>
           <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">
-            {product.stock > 0 ? `В наличии: ${product.stock} шт.` : "Нет в наличии"}
+            {product.stock > 0 ? tpl(dict.product.inStock, { count: product.stock }) : dict.product.outOfStock}
           </span>
         </div>
 
@@ -63,12 +71,12 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
         {product.shortDescription ? <p className="text-zinc-700 dark:text-zinc-300">{product.shortDescription}</p> : null}
 
         <section>
-          <h2 className="mb-3 text-lg font-medium">Характеристики</h2>
-          <SpecTable specs={product.specs} />
+          <h2 className="mb-3 text-lg font-medium">{dict.product.specsTitle}</h2>
+          <SpecTable specs={product.specs} locale={locale} dict={dict} />
         </section>
 
         <section>
-          <h2 className="mb-2 text-lg font-medium">Описание</h2>
+          <h2 className="mb-2 text-lg font-medium">{dict.product.descriptionTitle}</h2>
           <p className="whitespace-pre-line text-zinc-700 dark:text-zinc-300">{product.description}</p>
         </section>
       </div>
@@ -87,9 +95,9 @@ function Gallery({ product }: { product: ProductDetails }) {
   );
 }
 
-function SpecTable({ specs }: { specs: ProductSpecValue[] }) {
+function SpecTable({ specs, locale, dict }: { specs: ProductSpecValue[]; locale: Locale; dict: Dictionary }) {
   if (specs.length === 0) {
-    return <p className="text-sm text-zinc-500">Характеристики не указаны.</p>;
+    return <p className="text-sm text-zinc-500">{dict.product.specsEmpty}</p>;
   }
 
   return (
@@ -97,19 +105,19 @@ function SpecTable({ specs }: { specs: ProductSpecValue[] }) {
       {specs.map((spec) => (
         <div key={spec.key} className="flex justify-between gap-4 py-2">
           <dt className="text-zinc-500">{spec.name}</dt>
-          <dd className="text-right font-medium">{formatSpecValue(spec)}</dd>
+          <dd className="text-right font-medium">{formatSpecValue(spec, locale, dict)}</dd>
         </div>
       ))}
     </dl>
   );
 }
 
-function formatSpecValue(spec: ProductSpecValue): string {
+function formatSpecValue(spec: ProductSpecValue, locale: Locale, dict: Dictionary): string {
   if (spec.valueType === "Boolean") {
-    return spec.value ? "Да" : "Нет";
+    return spec.value ? dict.product.boolYes : dict.product.boolNo;
   }
   if (spec.valueType === "Number" && typeof spec.value === "number") {
-    return spec.unit ? `${formatNumber(spec.value)} ${spec.unit}` : formatNumber(spec.value);
+    return spec.unit ? `${formatNumber(spec.value, locale)} ${spec.unit}` : formatNumber(spec.value, locale);
   }
-  return spec.value === null ? "—" : String(spec.value);
+  return spec.value === null ? dict.product.emptyValue : String(spec.value);
 }
