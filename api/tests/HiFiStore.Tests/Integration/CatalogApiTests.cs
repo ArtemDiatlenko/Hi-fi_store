@@ -151,6 +151,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     public async Task Account_Me_RequiresAuthentication()
     {
         Prepare();
+        await factory.EnsureDatabaseAsync();
 
         var response = await _client.GetAsync("/api/account/me");
 
@@ -161,6 +162,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     public async Task Account_Me_ReturnsRolesForAdmin()
     {
         Prepare();
+        await factory.EnsureDatabaseAsync();
 
         var login = await _client.PostAsJsonAsync("/api/auth/login",
             new { email = StoreWebApplicationFactory.AdminEmail, password = StoreWebApplicationFactory.AdminPassword });

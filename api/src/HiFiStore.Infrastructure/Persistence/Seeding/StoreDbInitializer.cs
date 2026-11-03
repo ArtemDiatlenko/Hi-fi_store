@@ -39,6 +39,8 @@ public static class StoreDbInitializer
 
     private static async Task EnsureRolesAsync(RoleManager<IdentityRole<Guid>> roles)
     {
+        // Только подстраховка: роли создаёт миграция SeedIdentityRoles. Поиск идёт по имени, поэтому
+        // созданные миграцией роли здесь не пересоздаются.
         foreach (var role in Roles.All)
         {
             if (!await roles.RoleExistsAsync(role))

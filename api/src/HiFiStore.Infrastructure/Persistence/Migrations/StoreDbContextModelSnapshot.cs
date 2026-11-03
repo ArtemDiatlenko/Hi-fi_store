@@ -347,6 +347,22 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0f28c48c-f65b-4e25-8292-eaf4e9285790"),
+                            ConcurrencyStamp = "d8b99957-9655-4730-b553-707100fd977d",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = new Guid("32f3d72f-e6ce-4221-bac3-23e76e877509"),
+                            ConcurrencyStamp = "8a50ba08-d637-481c-a5d4-485633aeaa95",
+                            Name = "Customer",
+                            NormalizedName = "CUSTOMER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

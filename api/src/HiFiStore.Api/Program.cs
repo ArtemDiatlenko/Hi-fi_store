@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using HiFiStore.Api.Identity;
 using HiFiStore.Infrastructure;
 using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Persistence;
@@ -46,7 +47,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGroup("/api/auth").MapIdentityApi<ApplicationUser>().WithTags("Auth");
+app.MapGroup("/api/auth").MapIdentityApi<ApplicationUser>().WithTags("Auth")
+    .AddEndpointFilterFactory(CustomerRoleOnRegistration.Create);
 
 app.Run();
 
