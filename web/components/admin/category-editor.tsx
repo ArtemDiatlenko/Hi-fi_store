@@ -106,7 +106,7 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
   }
 
   if (!category.data) {
-    return <p className="text-sm text-zinc-500">{dict.admin.common.loading}</p>;
+    return <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.admin.common.loading}</p>;
   }
 
   const data = category.data;
@@ -186,7 +186,7 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
 
       <Section title={dict.admin.specDefs.title} description={dict.admin.specDefs.hint}>
         {inheritedSpecs.length > 0 ? (
-          <div className="flex flex-col gap-2 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-900">
+          <div className="flex flex-col gap-2 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800/50">
             <p className="font-medium">{dict.admin.specDefs.inherited}</p>
             <ul className="flex flex-col gap-1">
               {inheritedSpecs.flatMap((details) =>

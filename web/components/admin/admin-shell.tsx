@@ -9,6 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, Suspense, useCallback, useEffect, useId, useMemo, useState } from "react";
 import { buttonClass, LoadError } from "@/components/admin/ui";
+import { ShieldIcon } from "@/components/icons";
 import { ADMIN_ROLE, type Me } from "@/lib/admin/types";
 import { AdminSessionProvider, type AuthProblem } from "@/lib/admin/session";
 import { clearToken, readToken } from "@/lib/auth";
@@ -85,7 +86,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (gate.status === "checking") {
     return (
-      <p role="status" className="text-sm text-zinc-500">
+      <p role="status" className="text-sm text-zinc-500 dark:text-zinc-400">
         {dict.admin.access.checking}
       </p>
     );
@@ -104,8 +105,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
     const loginHref = `${localeHref(locale, "/login")}?next=${encodeURIComponent(gate.returnTo)}`;
     const forbidden = gate.status === "forbidden";
     return (
-      <div className="mx-auto flex max-w-lg flex-col gap-4 rounded-xl border border-zinc-200 p-6 dark:border-zinc-800">
-        <h1 className="text-2xl font-semibold">{forbidden ? dict.admin.access.forbiddenTitle : dict.admin.access.signInTitle}</h1>
+      <div className="mx-auto flex max-w-lg flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <h1 className="text-2xl font-semibold tracking-tight">{forbidden ? dict.admin.access.forbiddenTitle : dict.admin.access.signInTitle}</h1>
         <p className="text-zinc-700 dark:text-zinc-300">
           {!forbidden
             ? dict.admin.access.signInText
@@ -183,10 +184,10 @@ function AdminNav({ activePath, email }: { activePath: string | null; email: str
               href={localeHref(locale, section.path)}
               aria-current={active ? "page" : undefined}
               onClick={onNavigate}
-              className={`flex min-h-11 items-center gap-3 rounded-md px-3 text-sm ${
+              className={`flex min-h-11 items-center gap-3 rounded-lg border px-3 text-sm font-medium ${
                 active
-                  ? "bg-zinc-900 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
+                  ? "border-amber-600/40 bg-amber-50 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200"
+                  : "border-transparent text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-white"
               }`}
             >
               <NavIcon section={section.key} />
@@ -202,12 +203,17 @@ function AdminNav({ activePath, email }: { activePath: string | null; email: str
     <>
       {/* Десктоп: боковая панель */}
       <nav aria-label={dict.admin.nav.label} className="sticky top-6 hidden flex-col gap-4 lg:flex">
-        <div className="flex flex-col gap-1 px-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{dict.admin.title}</p>
-          {email ? <p className="truncate text-xs text-zinc-500" title={email}>{email}</p> : null}
+        <div className="flex items-center gap-3 px-3">
+          <span aria-hidden="true" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-amber-400 dark:bg-amber-400/15 dark:text-amber-300">
+            <ShieldIcon className="h-5 w-5" />
+          </span>
+          <div className="flex min-w-0 flex-col">
+            <p className="text-sm font-semibold tracking-tight">{dict.admin.title}</p>
+            {email ? <p className="truncate text-xs text-zinc-500 dark:text-zinc-400" title={email}>{email}</p> : null}
+          </div>
         </div>
         {links()}
-        <Link href={localeHref(locale, "/catalog")} className="px-3 text-sm text-zinc-600 underline underline-offset-2 dark:text-zinc-400">
+        <Link href={localeHref(locale, "/catalog")} className="mx-3 w-fit text-sm text-zinc-600 underline underline-offset-2 hover:text-accent dark:text-zinc-400">
           {dict.admin.nav.toStore}
         </Link>
       </nav>
@@ -224,12 +230,13 @@ function AdminNav({ activePath, email }: { activePath: string | null; email: str
               setOpen(false);
             }
           }}
-          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-300 px-3 text-sm dark:border-zinc-700"
+          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         >
           <span className="flex min-w-0 items-center gap-2">
+            <ShieldIcon className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
             <span className="font-semibold">{dict.admin.title}</span>
             {current ? (
-              <span className="truncate text-zinc-500">· {dict.admin.nav[current.key]}</span>
+              <span className="truncate text-zinc-500 dark:text-zinc-400">· {dict.admin.nav[current.key]}</span>
             ) : null}
           </span>
           <svg aria-hidden="true" viewBox="0 0 24 24" className={`h-5 w-5 shrink-0 motion-safe:transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2}>
@@ -245,10 +252,10 @@ function AdminNav({ activePath, email }: { activePath: string | null; email: str
               setOpen(false);
             }
           }}
-          className="mt-2 rounded-md border border-zinc-200 p-2 dark:border-zinc-800"
+          className="mt-2 rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900"
         >
           {links(() => setOpen(false))}
-          {email ? <p className="truncate px-3 pt-2 text-xs text-zinc-500">{tpl(dict.admin.access.signedInAs, { email })}</p> : null}
+          {email ? <p className="truncate px-3 pt-2 text-xs text-zinc-500 dark:text-zinc-400">{tpl(dict.admin.access.signedInAs, { email })}</p> : null}
         </div>
       </nav>
     </>

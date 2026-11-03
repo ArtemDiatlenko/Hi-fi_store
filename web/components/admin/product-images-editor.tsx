@@ -142,7 +142,7 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
         {announcement}
       </p>
 
-      {rows.length === 0 ? <p className="text-sm text-zinc-500">{t.empty}</p> : null}
+      {rows.length === 0 ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.empty}</p> : null}
 
       <ol className="flex flex-col gap-3">
         {rows.map((row, index) => {
@@ -152,10 +152,10 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
             <li key={row.uid} data-uid={row.uid} className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-3 sm:flex-row dark:border-zinc-800">
               <div className="flex shrink-0 flex-row items-start gap-3 sm:flex-col">
                 <RowPreview url={row.url} alt={row.alt || tpl(t.item, { n })} />
-                <span className="flex items-center gap-2 text-xs text-zinc-500">
+                <span className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                   {tpl(t.item, { n })}
                   {index === 0 ? (
-                    <span className="rounded-full bg-zinc-900 px-2 py-0.5 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">{t.main}</span>
+                    <span className="rounded-full bg-amber-400 px-2 py-0.5 font-semibold text-zinc-950">{t.main}</span>
                   ) : null}
                 </span>
               </div>

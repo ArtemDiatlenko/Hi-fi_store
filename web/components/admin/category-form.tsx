@@ -101,7 +101,7 @@ export function CategoryForm({ categoryId, initial, categories, onSaved }: Props
 
   return (
     <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-4">
-      <p className="text-xs text-zinc-500">{dict.admin.common.requiredNote}</p>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.admin.common.requiredNote}</p>
       <FormAlert ref={alertRef} problem={problem} />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={dict.admin.common.name} required error={errors.name}>

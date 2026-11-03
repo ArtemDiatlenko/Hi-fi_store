@@ -103,7 +103,7 @@ export function ProductEditor({ params }: { params: Promise<{ id: string }> }) {
   }
 
   if (!product.data) {
-    return <p className="text-sm text-zinc-500">{dict.admin.common.loading}</p>;
+    return <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.admin.common.loading}</p>;
   }
 
   const data = product.data;

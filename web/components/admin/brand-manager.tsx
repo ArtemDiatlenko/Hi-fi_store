@@ -85,8 +85,8 @@ export function BrandManager() {
 
       <Section title={t.title}>
         {brands.error ? <LoadError message={tpl(dict.admin.common.loadError, { status: brands.error.status })} onRetry={brands.reload} /> : null}
-        {brands.data === null && !brands.error ? <p className="text-sm text-zinc-500">{dict.admin.common.loading}</p> : null}
-        {brands.data && brands.data.length === 0 ? <p className="text-sm text-zinc-500">{t.empty}</p> : null}
+        {brands.data === null && !brands.error ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.admin.common.loading}</p> : null}
+        {brands.data && brands.data.length === 0 ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.empty}</p> : null}
         {brands.data && brands.data.length > 0 ? (
           <ul aria-busy={brands.loading} className="flex flex-col gap-2">
             {brands.data.map((brand) => (
@@ -104,7 +104,7 @@ export function BrandManager() {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 flex-col gap-1">
                       <span className="font-medium">{brand.name}</span>
-                      <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
+                      <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
                         <span className="font-mono">{brand.slug}</span>
                         {brand.country ? <span>{brand.country}</span> : null}
                         <Link

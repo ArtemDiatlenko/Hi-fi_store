@@ -74,7 +74,7 @@ function ConfirmDialog({ options, onClose }: { options: ConfirmOptions; onClose:
         event.preventDefault();
         onClose(false);
       }}
-      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-black/50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+      className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-2xl border border-zinc-200 bg-white p-0 text-zinc-900 shadow-2xl shadow-zinc-900/10 backdrop:bg-black/50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
     >
       <div className="flex flex-col gap-4 p-6">
         <h2 id={titleId} className="text-lg font-semibold">

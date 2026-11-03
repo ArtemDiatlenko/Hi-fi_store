@@ -88,22 +88,22 @@ export function ProductList() {
         />
       ) : null}
 
-      {data === null && !products.error ? <p className="text-sm text-zinc-500">{dict.admin.common.loading}</p> : null}
+      {data === null && !products.error ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.admin.common.loading}</p> : null}
 
       {data ? (
         <div aria-busy={products.loading} className={`flex flex-col gap-4 ${products.loading ? "opacity-60" : ""}`}>
-          <p className="text-sm text-zinc-500" aria-live="polite">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400" aria-live="polite">
             {tpl(dict.admin.common.found, { count: data.totalCount })}
           </p>
 
           {data.items.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">{t.empty}</p>
+            <p className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:text-zinc-400 dark:border-zinc-700">{t.empty}</p>
           ) : (
             <>
               {/* Десктоп: таблица */}
-              <div className="hidden overflow-hidden rounded-xl border border-zinc-200 md:block dark:border-zinc-800">
+              <div className="hidden overflow-hidden rounded-2xl border border-zinc-200 md:block dark:border-zinc-800 bg-white dark:bg-zinc-900">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
+                  <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/60 dark:text-zinc-400">
                     <tr>
                       <th scope="col" className="px-4 py-3">
                         {t.colProduct}
@@ -127,7 +127,7 @@ export function ProductList() {
                   </thead>
                   <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                     {data.items.map((product) => (
-                      <tr key={product.id} className="align-middle hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
+                      <tr key={product.id} className="align-middle hover:bg-zinc-50 dark:hover:bg-zinc-800/60">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <AdminThumb url={product.imageUrl} alt="" />
@@ -135,7 +135,7 @@ export function ProductList() {
                               <Link href={localeHref(locale, `/admin/product/${product.id}`)} className="font-medium underline-offset-2 hover:underline">
                                 {product.name}
                               </Link>
-                              <span className="text-xs text-zinc-500">
+                              <span className="text-xs text-zinc-500 dark:text-zinc-400">
                                 {tpl(t.sku, { sku: product.sku })} · {product.category.name}
                               </span>
                             </div>
@@ -145,7 +145,7 @@ export function ProductList() {
                         <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
                           <span className="font-medium">{formatPrice(product.price, locale)}</span>
                           {product.oldPrice !== null ? (
-                            <span className="block text-xs text-zinc-500 line-through">{formatPrice(product.oldPrice, locale)}</span>
+                            <span className="block text-xs text-zinc-500 dark:text-zinc-400 line-through">{formatPrice(product.oldPrice, locale)}</span>
                           ) : null}
                         </td>
                         <td className={`whitespace-nowrap px-4 py-3 text-right tabular-nums ${product.stock === 0 ? "font-medium text-red-700 dark:text-red-400" : ""}`}>
@@ -164,13 +164,13 @@ export function ProductList() {
               {/* Мобильные: карточки */}
               <ul className="flex flex-col gap-3 md:hidden">
                 {data.items.map((product) => (
-                  <li key={product.id} className="flex gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+                  <li key={product.id} className="flex gap-3 rounded-2xl border border-zinc-200 p-3 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <AdminThumb url={product.imageUrl} alt="" />
                     <div className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
                       <Link href={localeHref(locale, `/admin/product/${product.id}`)} className="font-medium underline-offset-2 hover:underline">
                         {product.name}
                       </Link>
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
                         {tpl(t.sku, { sku: product.sku })} · {product.brand.name} · {product.category.name}
                       </span>
                       <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -219,7 +219,7 @@ function ProductFilters({
   const set = (name: keyof Filters) => (value: string) => setValues((current) => ({ ...current, [name]: value }));
 
   return (
-    <form role="search" aria-label={t.filtersLabel} onSubmit={submit} className="grid gap-3 rounded-xl border border-zinc-200 p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1.5fr_1fr_1fr_auto] lg:items-end dark:border-zinc-800">
+    <form role="search" aria-label={t.filtersLabel} onSubmit={submit} className="grid gap-3 rounded-2xl border border-zinc-200 p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1.5fr_1fr_1fr_auto] lg:items-end dark:border-zinc-800 bg-white dark:bg-zinc-900">
       <Field label={t.search}>
         {(control) => <input {...control} type="search" value={values.q} onChange={(event) => set("q")(event.target.value)} />}
       </Field>

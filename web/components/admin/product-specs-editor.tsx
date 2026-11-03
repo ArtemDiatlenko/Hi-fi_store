@@ -105,7 +105,7 @@ export function ProductSpecsEditor({ product, categoryChanged, onSaved }: Props)
   return (
     <div className="flex flex-col gap-4">
       {categoryChanged ? (
-        <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
           {t.categoryChanged}
         </p>
       ) : null}
@@ -160,8 +160,8 @@ function SpecField({
   const label = (
     <>
       {definition.name}
-      {definition.unit ? <span className="font-normal text-zinc-500">, {definition.unit}</span> : null}
-      <span className="ml-2 font-mono text-xs font-normal text-zinc-500">{tpl(dict.admin.specs.key, { key: definition.key })}</span>
+      {definition.unit ? <span className="font-normal text-zinc-500 dark:text-zinc-400">, {definition.unit}</span> : null}
+      <span className="ml-2 font-mono text-xs font-normal text-zinc-500 dark:text-zinc-400">{tpl(dict.admin.specs.key, { key: definition.key })}</span>
     </>
   );
 
@@ -187,7 +187,7 @@ function SpecField({
               onChange={(event) => onChange(event.target.value)}
             />
             {definition.unit ? (
-              <span aria-hidden="true" className="flex min-w-11 items-center justify-center rounded-md bg-zinc-100 px-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+              <span aria-hidden="true" className="flex min-w-11 items-center justify-center rounded-lg bg-zinc-100 px-3 text-sm text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                 {definition.unit}
               </span>
             ) : null}

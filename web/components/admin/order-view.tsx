@@ -46,7 +46,7 @@ export function OrderView({ params }: { params: Promise<{ id: string }> }) {
   }
 
   if (!order.data) {
-    return <p className="text-sm text-zinc-500">{dict.admin.common.loading}</p>;
+    return <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.admin.common.loading}</p>;
   }
 
   const data = order.data;
@@ -107,12 +107,12 @@ export function OrderView({ params }: { params: Promise<{ id: string }> }) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
         <aside className="flex flex-col gap-4 lg:order-2">
-          <section aria-labelledby={actionsId} className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+          <section aria-labelledby={actionsId} className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800 bg-white dark:bg-zinc-900">
             <h2 id={actionsId} className="font-medium">
               {t.actionsTitle}
             </h2>
             {data.nextStatuses.length === 0 ? (
-              <p className="text-sm text-zinc-500">{t.noActions}</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.noActions}</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {data.nextStatuses.map((status) => (
@@ -130,36 +130,36 @@ export function OrderView({ params }: { params: Promise<{ id: string }> }) {
             )}
           </section>
 
-          <section aria-labelledby={metaId} className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+          <section aria-labelledby={metaId} className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800 bg-white dark:bg-zinc-900">
             <h2 id={metaId} className="font-medium">
               {t.meta}
             </h2>
             <dl className="flex flex-col gap-2 text-sm">
               <div>
-                <dt className="text-zinc-500">{t.updatedAt}</dt>
+                <dt className="text-zinc-500 dark:text-zinc-400">{t.updatedAt}</dt>
                 <dd>
                   <time dateTime={data.updatedAt}>{formatDateTime(data.updatedAt, locale)}</time>
                 </dd>
               </div>
               <div>
-                <dt className="text-zinc-500">{t.customerType}</dt>
+                <dt className="text-zinc-500 dark:text-zinc-400">{t.customerType}</dt>
                 <dd>{data.userId ? t.registered : t.guest}</dd>
               </div>
               {data.userId ? (
                 <div>
-                  <dt className="text-zinc-500">{t.userId}</dt>
+                  <dt className="text-zinc-500 dark:text-zinc-400">{t.userId}</dt>
                   <dd className="break-all font-mono text-xs">{data.userId}</dd>
                 </div>
               ) : null}
               {data.delivery.cityRef ? (
                 <div>
-                  <dt className="text-zinc-500">{t.cityRef}</dt>
+                  <dt className="text-zinc-500 dark:text-zinc-400">{t.cityRef}</dt>
                   <dd className="break-all font-mono text-xs">{data.delivery.cityRef}</dd>
                 </div>
               ) : null}
               {data.delivery.warehouseRef ? (
                 <div>
-                  <dt className="text-zinc-500">{t.warehouseRef}</dt>
+                  <dt className="text-zinc-500 dark:text-zinc-400">{t.warehouseRef}</dt>
                   <dd className="break-all font-mono text-xs">{data.delivery.warehouseRef}</dd>
                 </div>
               ) : null}

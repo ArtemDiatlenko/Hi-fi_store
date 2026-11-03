@@ -83,7 +83,7 @@ export function CategoryTree() {
               <Link href={localeHref(locale, `/admin/category/${category.id}`)} className="font-medium underline-offset-2 hover:underline">
                 {category.name}
               </Link>
-              <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
+              <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
                 <span className="font-mono">{category.slug}</span>
                 <Link href={localeHref(locale, `/admin/products?categoryId=${category.id}`)} className="underline underline-offset-2">
                   {tpl(t.productCount, { count: category.productCount })}
@@ -140,8 +140,8 @@ export function CategoryTree() {
       {categories.error ? (
         <LoadError message={tpl(dict.admin.common.loadError, { status: categories.error.status })} onRetry={categories.reload} />
       ) : null}
-      {categories.data === null && !categories.error ? <p className="text-sm text-zinc-500">{dict.admin.common.loading}</p> : null}
-      {categories.data && categories.data.length === 0 ? <p className="text-sm text-zinc-500">{t.empty}</p> : null}
+      {categories.data === null && !categories.error ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.admin.common.loading}</p> : null}
+      {categories.data && categories.data.length === 0 ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.empty}</p> : null}
       {categories.data && categories.data.length > 0 ? (
         <section aria-label={t.treeLabel} aria-busy={categories.loading}>
           {renderNodes(buildTree(categories.data), 0)}

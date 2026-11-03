@@ -141,7 +141,7 @@ export function ProductMainForm({ productId, initial, categories, brands, onSave
 
   return (
     <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-4">
-      <p className="text-xs text-zinc-500">{dict.admin.common.requiredNote}</p>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.admin.common.requiredNote}</p>
       <FormAlert ref={alertRef} problem={problem} />
 
       <Field label={t.name} required error={errors.name}>
@@ -257,7 +257,7 @@ export function ProductMainForm({ productId, initial, categories, brands, onSave
         <button type="submit" disabled={pending} className={buttonClass.primary}>
           {pending ? (isNew ? dict.admin.common.creating : dict.admin.common.saving) : isNew ? t.createSubmit : t.saveMain}
         </button>
-        {isNew ? <p className="text-xs text-zinc-500">{t.newNote}</p> : null}
+        {isNew ? <p className="text-xs text-zinc-500 dark:text-zinc-400">{t.newNote}</p> : null}
       </div>
     </form>
   );

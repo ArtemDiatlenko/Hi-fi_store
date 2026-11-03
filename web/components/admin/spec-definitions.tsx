@@ -75,7 +75,7 @@ export function SpecDefinitions({ categoryId, specs, onChanged, onProblem }: Pro
 
   return (
     <div className="flex flex-col gap-4">
-      {specs.length === 0 ? <p className="text-sm text-zinc-500">{t.empty}</p> : null}
+      {specs.length === 0 ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t.empty}</p> : null}
       {specs.length > 0 ? (
         <ul className="flex flex-col gap-2">
           {specs.map((spec) => (
@@ -97,9 +97,9 @@ export function SpecDefinitions({ categoryId, specs, onChanged, onProblem }: Pro
                   <div className="flex min-w-0 flex-col gap-1">
                     <span className="font-medium">
                       {spec.name}
-                      {spec.unit ? <span className="font-normal text-zinc-500">, {spec.unit}</span> : null}
+                      {spec.unit ? <span className="font-normal text-zinc-500 dark:text-zinc-400">, {spec.unit}</span> : null}
                     </span>
-                    <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
+                    <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
                       <span className="font-mono">{spec.key}</span>
                       <span>{dict.admin.valueTypes[spec.valueType]}</span>
                       {spec.isFilterable ? <span>{t.filterableShort}</span> : null}
@@ -259,7 +259,7 @@ function SpecDefinitionForm({
               name="isFilterable"
               checked={values.isFilterable}
               onChange={(event) => update("isFilterable", event.target.checked)}
-              className="h-4 w-4"
+              className="h-4 w-4 accent-zinc-900 dark:accent-amber-400"
             />
             {t.filterable}
           </label>

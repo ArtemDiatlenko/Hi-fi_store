@@ -45,7 +45,7 @@ export function AdminThumb({ url, alt, size = "sm" }: { url: string | null; alt:
   if (!usable || failedUrl === url) {
     return (
       <span
-        className={`${box} flex shrink-0 items-center justify-center rounded-md bg-zinc-100 px-1 text-center text-[10px] leading-tight text-zinc-500 dark:bg-zinc-800`}
+        className={`${box} flex shrink-0 items-center justify-center rounded-md bg-zinc-100 px-1 text-center text-[10px] leading-tight text-zinc-500 dark:text-zinc-400 dark:bg-zinc-800`}
       >
         {url && failedUrl === url ? dict.admin.images.previewError : size === "lg" ? dict.admin.images.noPreview : dict.admin.products.noImage}
       </span>

@@ -51,7 +51,7 @@ export function OrderList() {
     <>
       <PageHeader title={t.title} />
 
-      <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <nav aria-label={t.statusFilter}>
           <ul className="flex flex-wrap gap-2">
             {tabs.map((tab) => {
@@ -63,8 +63,8 @@ export function OrderList() {
                     aria-current={active ? "page" : undefined}
                     className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm ${
                       active
-                        ? "border-zinc-900 bg-zinc-900 font-medium text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-                        : "border-zinc-300 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                        ? "border-zinc-900 bg-zinc-900 font-medium text-white dark:border-amber-400 dark:bg-amber-400 dark:text-zinc-950"
+                        : "border-zinc-300 bg-white hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                     }`}
                   >
                     {tab.label}
@@ -83,20 +83,20 @@ export function OrderList() {
           onRetry={orders.reload}
         />
       ) : null}
-      {data === null && !orders.error ? <p className="text-sm text-zinc-500">{dict.admin.common.loading}</p> : null}
+      {data === null && !orders.error ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.admin.common.loading}</p> : null}
 
       {data ? (
         <div aria-busy={orders.loading} className={`flex flex-col gap-4 ${orders.loading ? "opacity-60" : ""}`}>
-          <p className="text-sm text-zinc-500" aria-live="polite">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400" aria-live="polite">
             {tpl(dict.admin.common.found, { count: data.totalCount })}
           </p>
           {data.items.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:border-zinc-700">{t.empty}</p>
+            <p className="rounded-2xl border border-dashed border-zinc-300 p-8 text-center text-zinc-500 dark:text-zinc-400 dark:border-zinc-700">{t.empty}</p>
           ) : (
             <>
-              <div className="hidden overflow-hidden rounded-xl border border-zinc-200 md:block dark:border-zinc-800">
+              <div className="hidden overflow-hidden rounded-2xl border border-zinc-200 md:block dark:border-zinc-800 bg-white dark:bg-zinc-900">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
+                  <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-800/60 dark:text-zinc-400">
                     <tr>
                       <th scope="col" className="px-4 py-3">
                         {t.colNumber}
@@ -120,7 +120,7 @@ export function OrderList() {
                   </thead>
                   <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                     {data.items.map((order) => (
-                      <tr key={order.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/60">
+                      <tr key={order.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/60">
                         <td className="whitespace-nowrap px-4 py-3">
                           <Link href={localeHref(locale, `/admin/order/${order.id}`)} className="font-medium underline underline-offset-2">
                             №{order.number}
@@ -131,10 +131,10 @@ export function OrderList() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="block">{order.customerName}</span>
-                          <span className="block text-xs text-zinc-500">
+                          <span className="block text-xs text-zinc-500 dark:text-zinc-400">
                             {order.customerPhone} · <span className="break-all">{order.customerEmail}</span>
                           </span>
-                          <span className="block text-xs text-zinc-500">{order.isGuest ? t.guest : t.registered}</span>
+                          <span className="block text-xs text-zinc-500 dark:text-zinc-400">{order.isGuest ? t.guest : t.registered}</span>
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums">{order.itemCount}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums">{formatPrice(order.total, locale)}</td>
@@ -152,17 +152,17 @@ export function OrderList() {
                   <li key={order.id}>
                     <Link
                       href={localeHref(locale, `/admin/order/${order.id}`)}
-                      className="flex flex-col gap-1 rounded-xl border border-zinc-200 p-3 text-sm hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                      className="flex flex-col gap-1 rounded-2xl border border-zinc-200 bg-white p-3 text-sm hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800/60"
                     >
                       <span className="flex items-center justify-between gap-2">
                         <span className="font-medium">№{order.number}</span>
                         <OrderStatusBadge status={order.status} dict={dict} />
                       </span>
                       <span>{order.customerName}</span>
-                      <span className="break-all text-xs text-zinc-500">
+                      <span className="break-all text-xs text-zinc-500 dark:text-zinc-400">
                         {order.customerPhone} · {order.customerEmail}
                       </span>
-                      <span className="flex items-center justify-between gap-2 text-xs text-zinc-500">
+                      <span className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                         <time dateTime={order.createdAt}>{formatDateTime(order.createdAt, locale)}</time>
                         <span className="text-sm font-medium text-zinc-900 tabular-nums dark:text-zinc-100">{formatPrice(order.total, locale)}</span>
                       </span>
