@@ -39,6 +39,11 @@ export function OrderList() {
   if (q) {
     apiQuery.set("q", q);
   }
+  // ?customerId=… — заказы одного клиента (ссылка из карточки клиента); вкладки и поиск его сохраняют.
+  const customerId = searchParams.get("customerId");
+  if (customerId) {
+    apiQuery.set("customerId", customerId);
+  }
   const orders = useAdminQuery<PagedResult<AdminOrderSummary>>(`/api/admin/orders?${apiQuery.toString()}`);
   const data = orders.data;
 

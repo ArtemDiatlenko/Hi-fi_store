@@ -3,6 +3,7 @@
 // Карточка заказа в админке: снимок позиций, покупатель, доставка, оплата, комментарий, даты (Europe/Kyiv)
 // и смена статуса кнопками из nextStatuses. Отмена — с подтверждением (товары возвращаются на склад).
 
+import Link from "next/link";
 import { use, useId, useRef, useState } from "react";
 import { useConfirm } from "@/components/admin/confirm-dialog";
 import { OrderDetailsView, OrderStatusBadge } from "@/components/order-details";
@@ -148,7 +149,11 @@ export function OrderView({ params }: { params: Promise<{ id: string }> }) {
               {data.userId ? (
                 <div>
                   <dt className="text-zinc-500 dark:text-zinc-400">{t.userId}</dt>
-                  <dd className="break-all font-mono text-xs">{data.userId}</dd>
+                  <dd>
+                    <Link href={localeHref(locale, `/admin/customer/${data.userId}`)} className="underline underline-offset-2">
+                      {dict.admin.customers.openProfile}
+                    </Link>
+                  </dd>
                 </div>
               ) : null}
               {data.delivery.cityRef ? (

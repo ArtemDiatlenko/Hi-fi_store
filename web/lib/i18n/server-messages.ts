@@ -395,6 +395,11 @@ const IDENTITY: Record<string, Translations> = {
     en: "A user with this email is already registered.",
   },
   InvalidEmail: { uk: "Некоректний email.", en: "Invalid email." },
+  // Неверный или просроченный код из письма (сброс пароля, подтверждение email).
+  InvalidToken: {
+    uk: "Посилання недійсне або застаріло. Запросіть нове.",
+    en: "The link is invalid or has expired. Request a new one.",
+  },
   InvalidUserName: { uk: "Некоректний email.", en: "Invalid email." },
   PasswordTooShort: {
     uk: "Пароль має містити щонайменше 8 символів.",

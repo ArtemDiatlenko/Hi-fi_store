@@ -23,7 +23,7 @@ interface IdentityError {
  * ({ errors: { <код>: [<описание>] } }). Описания — по-английски; переводим по коду,
  * а неизвестный код показываем как есть (fallback на текст сервера). См. lib/i18n/server-messages.
  */
-async function readError(response: Response, locale: Locale, dict: Dictionary): Promise<string> {
+export async function readError(response: Response, locale: Locale, dict: Dictionary): Promise<string> {
   if (response.status === 401) {
     return dict.auth.invalidCredentials;
   }
@@ -130,6 +130,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
           />
           {isRegister ? <span className="text-xs text-zinc-500">{dict.auth.passwordHint}</span> : null}
         </label>
+        {isRegister ? null : (
+          <Link href={localeHref(locale, "/forgot-password")} className="-mt-2 w-fit text-sm underline">
+            {dict.auth.forgotLink}
+          </Link>
+        )}
         {error ? (
           <p role="alert" className="text-sm text-red-600">
             {error}

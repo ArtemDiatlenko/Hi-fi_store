@@ -5,6 +5,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HiFiStore.Infrastructure.Persistence.Configurations;
 
+internal sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
+{
+    // Пустое значение EF не отправляет, и дату ставит база. Миграция добавляет колонку без значения
+    // для уже существующих строк (см. AddUserRegisteredAt).
+    public void Configure(EntityTypeBuilder<ApplicationUser> builder) =>
+        builder.Property(u => u.RegisteredAt).HasDefaultValueSql("now()");
+}
+
 /// <summary>
 /// Роли приложения — часть схемы данных: они создаются миграцией, а не при старте, чтобы регистрация
 /// работала в любом окружении, в том числе без <c>Store:AutoMigrate</c>. Значения постоянные:

@@ -25,11 +25,15 @@ npm run build
 - `/cart` — корзина (хранится в `localStorage`, цены пересчитываются через API);
 - `/checkout` — оформление заказа, гостем или после входа;
 - `/orders/[token]` — страница подтверждения заказа по публичному токену;
-- `/login`, `/register`, `/account` — вход, регистрация и профиль по bearer-токену;
+- `/login`, `/register`, `/account` — вход, регистрация и профиль по bearer-токену; в профиле — подтверждён ли email
+  и повторная отправка письма;
+- `/forgot-password`, `/reset-password`, `/confirm-email` — восстановление пароля и подтверждение email по ссылкам
+  из писем (noindex; коды из ссылок отправляются в `/api/auth/...`);
 - `/account/orders`, `/account/orders/[id]` — заказы покупателя;
 - `/admin` — админ-панель (только для роли `Admin`, `noindex`): обзор, товары (`/admin/products`, `/admin/product/new`,
   `/admin/product/[id]` — основные поля, характеристики, изображения, публикация), разделы с характеристиками
-  (`/admin/categories`, `/admin/category/[id]`), бренды (`/admin/brands`), заказы (`/admin/orders`, `/admin/order/[id]`).
+  (`/admin/categories`, `/admin/category/[id]`), бренды (`/admin/brands`), заказы (`/admin/orders`, `/admin/order/[id]`),
+  клиенты (`/admin/customers`, `/admin/customer/[id]` — покупки, заказы, снятие блокировки входа, письмо подтверждения).
   Страницы записей — в единственном числе: `/admin/products/[id]` совпадал бы по форме с витринным
   `/[lang]/products/[slug]`, и предзагрузка Next угадывала бы не тот маршрут (подробнее — в `app/[lang]/admin/layout.tsx`).
 

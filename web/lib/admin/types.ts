@@ -129,3 +129,35 @@ export const productConditions: ProductCondition[] = ["New", "Used", "Demo"];
 export const specValueTypes: SpecValueType[] = ["Number", "Text", "Boolean"];
 
 export const orderStatuses: OrderStatus[] = ["New", "Confirmed", "Shipped", "Completed", "Cancelled"];
+
+/** Зарегистрированный пользователь в списке (api/src/HiFiStore.Infrastructure/Identity/AdminCustomerService.cs). */
+export interface AdminCustomerSummary {
+  id: string;
+  email: string;
+  fullName: string | null;
+  emailConfirmed: boolean;
+  isAdmin: boolean;
+  isLockedOut: boolean;
+  /** null — пользователь создан до появления даты регистрации. */
+  registeredAt: string | null;
+  orderCount: number;
+  /** Сумма заказов без отменённых. */
+  ordersTotal: number;
+  lastOrderAt: string | null;
+}
+
+export interface AdminCustomerDetails {
+  id: string;
+  email: string;
+  fullName: string | null;
+  phoneNumber: string | null;
+  emailConfirmed: boolean;
+  roles: string[];
+  isLockedOut: boolean;
+  lockoutEnd: string | null;
+  accessFailedCount: number;
+  registeredAt: string | null;
+  orderCount: number;
+  ordersTotal: number;
+  lastOrderAt: string | null;
+}
