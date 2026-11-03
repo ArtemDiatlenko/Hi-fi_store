@@ -4,24 +4,31 @@ databases:
     plan: free
 
 services:
+  # Бесплатный план: preDeployCommand недоступен, поэтому миграции и демо-админ
+  # выполняются при старте через Store:AutoMigrate и Seed:Admin.
   - type: web
     name: hifistore-api
     runtime: docker
+    plan: free
     rootDir: api
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/catalog/products
-    preDeployCommand: dotnet HiFiStore.Api.dll migrate && dotnet HiFiStore.Api.dll create-admin --email demo-admin@hifistore.local
     envVars:
       - key: ConnectionStrings__Store
         fromDatabase:
           name: hifistore-db
           property: connectionString
-      - key: HIFISTORE_ADMIN_PASSWORD
+      - key: Store__AutoMigrate
+        value: "true"
+      - key: Seed__Admin__Email
+        value: demo-admin@hifistore.local
+      - key: Seed__Admin__Password
         sync: false
 
   - type: web
     name: hifistore-web
     runtime: node
+    plan: free
     rootDir: web
     buildCommand: npm ci && npm run build
     startCommand: npm start
