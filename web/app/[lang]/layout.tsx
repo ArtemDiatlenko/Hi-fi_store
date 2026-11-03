@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { type CategoryNode, getCategories } from "@/lib/api";
 import { htmlLang, type Locale, locales, ogLocale } from "@/lib/i18n/config";
 import { I18nProvider } from "@/lib/i18n/client";
 import { addLocalePrefix } from "@/lib/i18n/routing";
@@ -8,14 +10,15 @@ import { getI18n, getLocale } from "@/lib/i18n/server";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
+// Кириллица нужна для украинского интерфейса и названий товаров из API.
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
 });
 
 // Статически генерируем обе локали. С Cache Components для корневого параметра нужно хотя бы
@@ -60,6 +63,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const { locale, dict } = await getI18n();
 
+  // Разделы нужны шапке (меню) и подвалу. Промис не ожидаем здесь: оболочка страницы рендерится
+  // сразу, а меню и ссылки подвала подставляются потоково. Если API недоступен — пустой список,
+  // и вместо меню остаётся обычная ссылка на каталог.
+  const categories = getCategories().catch((): CategoryNode[] => []);
+
   return (
     <html lang={htmlLang[locale]} className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
@@ -70,13 +78,11 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
           >
             {dict.common.skipToContent}
           </a>
-          <SiteHeader />
+          <SiteHeader categories={categories} />
           <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 outline-none">
             {children}
           </main>
-          <footer className="border-t border-zinc-200 py-6 text-center text-sm text-zinc-500 dark:border-zinc-800">
-            {dict.footer.tagline}
-          </footer>
+          <SiteFooter categories={categories} />
         </I18nProvider>
       </body>
     </html>

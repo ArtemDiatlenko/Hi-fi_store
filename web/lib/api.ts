@@ -1,6 +1,7 @@
 // Типы и клиент для ASP.NET Core API (см. api/src/HiFiStore.Api/Controllers).
 // Используется только на сервере (Server Components); браузер ходит через rewrite /api/*.
 
+import { cache } from "react";
 import type { OrderDetails } from "@/lib/orders";
 
 const API_URL = process.env.API_URL ?? "http://localhost:5166";
@@ -121,9 +122,13 @@ async function getJson<T>(path: string, query?: URLSearchParams): Promise<T | nu
   return (await response.json()) as T;
 }
 
-export function getCategories(): Promise<CategoryNode[]> {
-  return getJson<CategoryNode[]>("/api/catalog/categories").then((data) => data ?? []);
-}
+/**
+ * Дерево разделов. Обёрнуто в React cache: шапка, подвал и страница в одном запросе
+ * получают один и тот же промис, к API уходит один запрос.
+ */
+export const getCategories = cache((): Promise<CategoryNode[]> =>
+  getJson<CategoryNode[]>("/api/catalog/categories").then((data) => data ?? []),
+);
 
 export function getProducts(query: URLSearchParams): Promise<PagedResult<ProductListItem> | null> {
   return getJson<PagedResult<ProductListItem>>("/api/catalog/products", query);
