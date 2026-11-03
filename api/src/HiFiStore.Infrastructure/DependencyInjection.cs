@@ -5,6 +5,7 @@ using HiFiStore.Infrastructure.Orders;
 using HiFiStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -23,7 +24,7 @@ public static class DependencyInjection
                 "Не задана строка подключения ConnectionStrings:Store. " +
                 "Задайте переменную окружения ConnectionStrings__Store или dotnet user-secrets.");
 
-        services.AddDbContext<StoreDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<StoreDbContext>(options => options.UseNpgsql(NormalizeConnectionString(connectionString)));
         services.AddScoped<ICatalogService, CatalogService>();
         services.AddScoped<IOrderService, OrderService>();
 
@@ -37,5 +38,31 @@ public static class DependencyInjection
         services.AddScoped<AdminAccountService>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Render отдаёт строку подключения в виде URI (postgres://user:pass@host:port/db), а Npgsql ждёт формат key=value.
+    /// Обычная строка key=value возвращается как есть.
+    /// </summary>
+    private static string NormalizeConnectionString(string connectionString)
+    {
+        if (!connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+            && !connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            return connectionString;
+        }
+
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort ? 5432 : uri.Port,
+            Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
+            Username = Uri.UnescapeDataString(userInfo[0]),
+            Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : null,
+        };
+
+        return builder.ConnectionString;
     }
 }
