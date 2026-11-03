@@ -29,7 +29,7 @@ export function MobileMenu({ categories }: { categories: Promise<CategoryNode[]>
   useFocusTrap(open, panelRef, close);
 
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -98,6 +98,11 @@ export function MobileMenu({ categories }: { categories: Promise<CategoryNode[]>
                 <li>
                   <Link href={localeHref(locale, "/catalog?sort=newest")} onClick={close} className={itemClass}>
                     {dict.header.newArrivals}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={localeHref(locale, "/consultation")} onClick={close} className={itemClass}>
+                    {dict.header.consultation}
                   </Link>
                 </li>
               </ul>

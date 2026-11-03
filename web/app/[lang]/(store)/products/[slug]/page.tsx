@@ -139,6 +139,12 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
           </div>
 
           <AddToCart productId={product.id} stock={product.stock} />
+          <Link
+            href={localeHref(locale, `/consultation?product=${encodeURIComponent(product.slug)}&topic=Product`)}
+            className="-mt-2 inline-flex min-h-11 w-fit items-center text-sm font-medium underline underline-offset-4 hover:text-accent"
+          >
+            {product.stock > 0 ? dict.consultation.askMaker : dict.consultation.wantSimilar}
+          </Link>
 
           {product.shortDescription ? <p className="leading-relaxed text-zinc-700 dark:text-zinc-300">{product.shortDescription}</p> : null}
 

@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using HiFiStore.Domain.Inquiries;
 using HiFiStore.Domain.Orders;
+using HiFiStore.Infrastructure.Inquiries;
 using HiFiStore.Infrastructure.Orders;
 
 namespace HiFiStore.Infrastructure.Email;
@@ -87,6 +89,45 @@ public static class EmailTemplates
                 link is null ? Block.Empty : Button("Переглянути замовлення", link),
             ]);
     }
+
+    public static EmailMessage InquiryForOwner(string to, AdminInquiryDetails inquiry, string link) => Build(
+        to,
+        $"Нова заявка №{inquiry.Number}: {Topic(inquiry.Topic).ToLower(Uk)}",
+        [
+            Paragraph($"Від: {inquiry.Name}"),
+            Paragraph($"Зв’язок: {Contact(inquiry.PreferredContact)} — {string.Join(", ", new[] { inquiry.Phone, inquiry.Email }.Where(v => v is not null))}"),
+            inquiry.ProductName is { } product ? Paragraph($"Товар: {product}") : Block.Empty,
+            inquiry.Budget is { } budget ? Paragraph($"Бюджет: {budget}") : Block.Empty,
+            Paragraph(inquiry.Message),
+            Button("Відкрити в адмін-панелі", link),
+        ]);
+
+    public static EmailMessage InquiryReceived(AdminInquiryDetails inquiry) => Build(
+        inquiry.Email!,
+        $"Заявку №{inquiry.Number} отримано",
+        [
+            Paragraph($"Вітаємо, {inquiry.Name}!"),
+            Paragraph($"Ми отримали вашу заявку №{inquiry.Number}. Майстер зв’яжеться з вами найближчим часом — {Contact(inquiry.PreferredContact).ToLower(Uk)}."),
+            Muted("Якщо хочете щось додати, просто дайте відповідь на цей лист або вкажіть номер заявки."),
+        ]);
+
+    public static string Topic(InquiryTopic topic) => topic switch
+    {
+        InquiryTopic.Selection => "Підбір системи",
+        InquiryTopic.CustomBuild => "Виготовлення на замовлення",
+        InquiryTopic.Product => "Питання про товар",
+        InquiryTopic.Service => "Ремонт і обслуговування",
+        _ => "Інше",
+    };
+
+    private static string Contact(ContactMethod method) => method switch
+    {
+        ContactMethod.Phone => "Телефоном",
+        ContactMethod.Telegram => "У Telegram",
+        ContactMethod.Viber => "У Viber",
+        ContactMethod.Email => "Електронною поштою",
+        _ => method.ToString(),
+    };
 
     public static string Status(OrderStatus status) => status switch
     {
