@@ -8,6 +8,8 @@ import { getI18n } from "@/lib/i18n/server";
 // (/admin/product/{id}, /admin/product/new, /admin/category/…, /admin/order/{id}). Украинская локаль живёт
 // без префикса, а Next с Partial Prefetching угадывает маршрут по форме адреса: «/admin/products/{id}» совпал бы
 // с витринным /[lang]/products/[slug] (lang = admin), и предзагрузка запрашивала бы чужой сегмент (404).
+// Теперь [lang] закрыт (unstable_paramMatching в app/[lang]/layout.tsx) и роутер такие адреса не угадывает,
+// но единственное число оставлено: адреса записей не похожи на витринные и не зависят от этой настройки.
 export async function generateMetadata(): Promise<Metadata> {
   const { dict } = await getI18n();
   return {

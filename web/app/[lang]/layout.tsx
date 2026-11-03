@@ -27,6 +27,14 @@ export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
+// [lang] принимает только локали из generateStaticParams, остальное — 404 (аналог dynamicParams = false,
+// который с Cache Components недоступен). Это важно и для клиентского роутера: украинские адреса живут
+// без префикса (proxy переписывает «/catalog» → «/uk/catalog»), а роутер с Partial Prefetching угадывает
+// маршрут по форме адреса. Выучив на английских страницах шаблон «/[lang]/…», он принимал бы «/catalog»
+// за lang=catalog и запрашивал несуществующий сегмент (404 в консоли), например после смены языка.
+// Для закрытого параметра роутер не угадывает маршрут, а спрашивает сервер (проходит через proxy).
+export const unstable_paramMatching = { lang: "not-found" };
+
 const descriptions: Record<Locale, string> = {
   uk: "Інтернет-магазин hi-fi техніки: підсилювачі, акустика, програвачі, кабелі.",
   en: "Hi-fi equipment online store: amplifiers, speakers, turntables and cables.",
