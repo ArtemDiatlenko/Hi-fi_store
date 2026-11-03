@@ -26,6 +26,20 @@ services:
         value: demo-admin@hifistore.local
       - key: Seed__Admin__Password
         sync: false
+      # Почта (см. раздел «Почта» в README). Ссылки в письмах ведут на витрину.
+      # Без Email__Smtp__Host письма не отправляются, а пишутся в лог API.
+      - key: Store__PublicUrl
+        value: https://hifistore-web.onrender.com
+      - key: Store__OwnerEmail
+        sync: false
+      - key: Email__Smtp__Host
+        sync: false
+      - key: Email__Smtp__Username
+        sync: false
+      - key: Email__Smtp__Password
+        sync: false
+      - key: Email__From
+        sync: false
 
   - type: web
     name: hifistore-web
