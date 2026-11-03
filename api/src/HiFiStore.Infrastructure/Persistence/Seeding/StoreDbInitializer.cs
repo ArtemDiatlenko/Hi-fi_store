@@ -17,6 +17,8 @@ public static class StoreDbInitializer
     /// <list type="bullet">
     /// <item><c>Seed:Admin:Email</c> и <c>Seed:Admin:Password</c> — создать администратора, если его ещё нет.
     /// Пароль задавайте через user-secrets или переменные окружения, а не в appsettings.</item>
+    /// <item><c>Seed:Admin:ResetPassword</c> — если администратор уже есть, сменить ему пароль на <c>Seed:Admin:Password</c>
+    /// (и снять блокировку входа), когда пароли не совпадают. Для восстановления доступа без команды create-admin.</item>
     /// <item><c>Store:DemoCatalog</c> — заполнить каталог тестовыми данными, если товаров ещё нет; в уже заполненном
     /// каталоге — заменить у демо-товаров старые заглушки placehold.co иллюстрациями.</item>
     /// </list>
@@ -68,9 +70,22 @@ public static class StoreDbInitializer
             return;
         }
 
-        // Существующего пользователя не трогаем: выдать роль или сменить пароль — дело команды create-admin.
-        if (await accounts.FindByEmailAsync(email) is not null)
+        // Существующего пользователя по умолчанию не трогаем: выдать роль или сменить пароль — дело команды create-admin.
+        // Исключение — Seed:Admin:ResetPassword=true: способ восстановить доступ там, где команду не запустить
+        // (например, на бесплатном Render без shell). Пароль меняется, только если он отличается от текущего,
+        // поэтому забытый включённым флаг не сбрасывает пароль и сессии на каждом старте.
+        if (await accounts.FindByEmailAsync(email) is { } existing)
         {
+            if (configuration.GetValue<bool>("Seed:Admin:ResetPassword") && !await accounts.CheckPasswordAsync(existing, password))
+            {
+                var reset = await accounts.PromoteAsync(existing, password, ct);
+                if (!reset.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        "Не удалось сменить пароль администратора: " + string.Join("; ", reset.Result.Errors.Select(e => e.Description)));
+                }
+            }
+
             return;
         }
 
