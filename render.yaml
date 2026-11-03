@@ -1,0 +1,32 @@
+databases:
+  - name: hifistore-db
+    databaseName: hifistore
+    plan: free
+
+services:
+  - type: web
+    name: hifistore-api
+    runtime: docker
+    rootDir: api
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/catalog/products
+    preDeployCommand: dotnet HiFiStore.Api.dll migrate && dotnet HiFiStore.Api.dll create-admin --email demo-admin@hifistore.local
+    envVars:
+      - key: ConnectionStrings__Store
+        fromDatabase:
+          name: hifistore-db
+          property: connectionString
+      - key: HIFISTORE_ADMIN_PASSWORD
+        sync: false
+
+  - type: web
+    name: hifistore-web
+    runtime: node
+    rootDir: web
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: API_URL
+        sync: false
