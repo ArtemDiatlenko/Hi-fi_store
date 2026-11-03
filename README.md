@@ -13,9 +13,9 @@
 api/
   HiFiStore.slnx
   src/
-    HiFiStore.Api/             контроллеры, разбор фильтров, Program.cs
+    HiFiStore.Api/             контроллеры (витрина, аккаунт, админка), разбор фильтров, Program.cs
     HiFiStore.Domain/          сущности каталога
-    HiFiStore.Infrastructure/  EF Core, миграции, сервис каталога, Identity-инициализация, тестовые данные
+    HiFiStore.Infrastructure/  EF Core, миграции, сервисы каталога и админки, Identity-инициализация, тестовые данные
   tests/
     HiFiStore.Tests/           unit- и интеграционные тесты
 web/                           витрина на Next.js (каталог с фильтрами, карточка товара, вход/регистрация)
@@ -68,7 +68,7 @@ dotnet ef migrations add <Имя> --project src/HiFiStore.Infrastructure --start
 
 ```bash
 cd api
-dotnet test                                                       # unit-тесты разбора фильтров
+dotnet test                                                       # unit-тесты: разбор фильтров, slug
 HIFISTORE_TEST_CONNECTION='Host=localhost;Port=5432;Database=hifistore_test;Username=postgres;Password=postgres' \
   dotnet test                                                     # + интеграционные тесты с PostgreSQL
 ```
@@ -84,8 +84,9 @@ HIFISTORE_TEST_CONNECTION='Host=localhost;Port=5432;Database=hifistore_test;User
 | `GET /api/catalog/products` | Товары с фильтрами, сортировкой и пагинацией |
 | `GET /api/catalog/products/{slug}` | Карточка опубликованного товара |
 | `GET /api/catalog/facets?category=` | Значения и диапазоны для построения фильтров |
-| `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh` | Identity: регистрация и вход по bearer-токену |
+| `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh` | Identity: регистрация и вход по bearer-токену; новый пользователь получает роль `Customer` |
 | `GET /api/account/me` | Текущий пользователь и роли (нужен токен) |
+| `/api/admin/...` | Управление каталогом, только для роли `Admin` — см. [ниже](#административный-api) |
 
 Параметры списка товаров:
 
@@ -101,12 +102,45 @@ HIFISTORE_TEST_CONNECTION='Host=localhost;Port=5432;Database=hifistore_test;User
 Некорректные параметры возвращают `400` с описанием ошибок по именам параметров.
 Пустые значения (например, незаполненное поле формы) игнорируются.
 
+### Административный API
+
+Нужен bearer-токен пользователя с ролью `Admin` (`POST /api/auth/login`): без токена — `401`, с токеном без роли — `403`.
+
+| Метод и путь | Описание |
+| --- | --- |
+| `GET /api/admin/brands`, `GET /api/admin/brands/{id}` | Бренды с числом товаров |
+| `POST /api/admin/brands`, `PUT /api/admin/brands/{id}`, `DELETE /api/admin/brands/{id}` | Создание, изменение, удаление бренда |
+| `GET /api/admin/categories` | Плоский список разделов с `parentId` в порядке обхода дерева |
+| `GET /api/admin/categories/{id}` | Раздел с его характеристиками |
+| `POST /api/admin/categories`, `PUT /api/admin/categories/{id}`, `DELETE /api/admin/categories/{id}` | Создание, изменение и перенос раздела (`parentId`), удаление |
+| `POST /api/admin/categories/{id}/specs` | Добавить характеристику: `key`, `name`, `unit`, `valueType` (`Text`, `Number`, `Boolean`), `isFilterable`, `sortOrder` |
+| `GET`, `PUT`, `DELETE /api/admin/categories/{id}/specs/{specId}` | Получить, изменить, удалить характеристику |
+| `GET /api/admin/products` | Товары, включая неопубликованные: `q` (название или артикул), `categoryId` (с подразделами), `brandId`, `published`, `page`, `pageSize` |
+| `GET /api/admin/products/{id}` | Товар с характеристиками, изображениями и списком доступных ему характеристик |
+| `POST /api/admin/products`, `PUT /api/admin/products/{id}`, `DELETE /api/admin/products/{id}` | Создание (неопубликованным), изменение, удаление товара |
+| `PUT /api/admin/products/{id}/specs` | Заменить характеристики: `{"specs": {"power_w": 80, "bluetooth": true}}` |
+| `PUT /api/admin/products/{id}/images` | Заменить изображения: `{"images": [{"url": "...", "alt": "..."}]}`, порядок сохраняется |
+| `POST /api/admin/products/{id}/publish`, `POST /api/admin/products/{id}/unpublish` | Показать товар на витрине или скрыть |
+
+Правила и ошибки:
+
+- slug — строчные латинские буквы, цифры и дефисы. Если его не передать, при создании он формируется из названия
+  (кириллица транслитерируется: «Кварц Вращение 1» → `kvarts-vrashchenie-1`), а при изменении остаётся прежним;
+- цена и остаток не отрицательные, старая цена (если задана) больше текущей;
+- ключ характеристики товара должен принадлежать разделу товара или его предкам, значение — подходить по типу.
+  Ключи уникальны в ветке каталога (раздел, его предки и подразделы). При смене раздела у товара удаляются
+  значения характеристик, которых нет у нового раздела;
+- `400` — ошибки по полям (`errors.price`, `errors["specs.power_w"]`, `errors["images[0].url"]`), в том числе перенос
+  раздела в самого себя или в свой подраздел;
+- `409` — занятый slug или артикул; удаление бренда с товарами или раздела с подразделами или товарами; перенос раздела,
+  после которого ключи характеристик в ветке повторяются; смена типа характеристики, у которой уже есть значения.
+
 ## Известные ограничения
 
-- Пользователь, зарегистрированный через `/api/auth/register`, пока не получает роль `Customer`:
-  стандартный эндпоинт Identity её не назначает. Нужен свой обработчик регистрации или событие после создания.
-- Административных эндпоинтов (создание и редактирование товаров) пока нет; роль `Admin` выдаётся только при создании
-  администратора из настроек `Seed:Admin`.
+- Роль `Admin` выдаётся только при создании администратора из настроек `Seed:Admin`: эндпоинтов для управления
+  пользователями и ролями нет. Роли попадают в bearer-токен при выдаче, поэтому изменение ролей вступает в силу
+  после повторного входа или `POST /api/auth/refresh`.
+- Интерфейса администратора во фронте пока нет — каталогом управляют через `/api/admin`.
 - На карточке товара для несуществующего slug страница показывает «не найдено», но HTTP-статус 200:
   при потоковом рендеринге (Cache Components) статус уже отправлен к моменту `notFound()`.
 - Токен входа в фронте хранится в `localStorage` — для демо. Для продакшена лучше httpOnly-cookie.
