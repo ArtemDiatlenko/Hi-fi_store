@@ -205,6 +205,11 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
             query = query.Where(o => o.Status == status);
         }
 
+        if (filter.CustomerId is { } customerId)
+        {
+            query = query.Where(o => o.UserId == customerId);
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var term = filter.Search.Trim();

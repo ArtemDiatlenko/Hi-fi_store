@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HiFiStore.Api.Controllers;
 
-public sealed record MeResponse(Guid Id, string? Email, string? FullName, IReadOnlyList<string> Roles);
+public sealed record MeResponse(Guid Id, string? Email, string? FullName, IReadOnlyList<string> Roles, bool EmailConfirmed);
 
 /// <summary>
 /// Профиль текущего пользователя. Регистрация, вход и обновление токенов — стандартные
@@ -28,6 +28,6 @@ public sealed class AccountController(UserManager<ApplicationUser> users) : Cont
         }
 
         var roles = await users.GetRolesAsync(user);
-        return Ok(new MeResponse(user.Id, user.Email, user.FullName, roles.ToList()));
+        return Ok(new MeResponse(user.Id, user.Email, user.FullName, roles.ToList(), user.EmailConfirmed));
     }
 }

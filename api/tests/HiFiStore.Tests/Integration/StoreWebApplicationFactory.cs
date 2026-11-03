@@ -1,4 +1,6 @@
+using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Persistence;
+using Microsoft.AspNetCore.TestHost;
 using HiFiStore.Infrastructure.Persistence.Seeding;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -86,5 +88,14 @@ public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>,
         builder.UseSetting("Store:DemoCatalog", "true");
         builder.UseSetting("Seed:Admin:Email", AdminEmail);
         builder.UseSetting("Seed:Admin:Password", AdminPassword);
+        builder.UseSetting("Store:PublicUrl", PublicUrl);
+        builder.UseSetting("Store:OwnerEmail", OwnerEmail);
+        builder.ConfigureTestServices(services => services.AddSingleton<IEmailTransport>(Emails));
     }
+
+    public const string PublicUrl = "https://shop.test";
+    public const string OwnerEmail = "owner@test.local";
+
+    /// <summary>Письма, «отправленные» этим экземпляром API.</summary>
+    public CapturedEmails Emails { get; } = new();
 }

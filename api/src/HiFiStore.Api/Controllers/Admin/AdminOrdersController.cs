@@ -1,6 +1,7 @@
 using HiFiStore.Api.Orders;
 using HiFiStore.Domain.Orders;
 using HiFiStore.Infrastructure.Catalog;
+using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Orders;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +14,7 @@ public sealed record ChangeOrderStatusRequest(string? Status);
 /// Доступ и формат ошибок разбора запроса — общие для админки, см. <see cref="AdminControllerBase"/>.
 /// </summary>
 [Route("api/admin/orders")]
-public sealed class AdminOrdersController(IOrderService orders) : AdminControllerBase
+public sealed class AdminOrdersController(IOrderService orders, OrderNotifier notifier) : AdminControllerBase
 {
     /// <summary>Заказы, новые сверху. <c>status</c> — фильтр по статусу, <c>q</c> — номер, телефон, email или имя.</summary>
     [HttpGet]
@@ -59,6 +60,12 @@ public sealed class AdminOrdersController(IOrderService orders) : AdminControlle
         }
 
         var result = await orders.ChangeStatusAsync(id, status, ct);
+        if (result is ChangeStatusResult.Changed changedOrder)
+        {
+            // Письмо покупателю о новом статусе — в фоне.
+            notifier.StatusChanged(changedOrder.Order);
+        }
+
         return result switch
         {
             ChangeStatusResult.Changed changed => Ok(changed.Order),
