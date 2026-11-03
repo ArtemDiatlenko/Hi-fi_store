@@ -38,4 +38,4 @@ services:
       - key: NODE_VERSION
         value: "22"
       - key: API_URL
-        sync: false
+        value: https://hifistore-api.onrender.com
