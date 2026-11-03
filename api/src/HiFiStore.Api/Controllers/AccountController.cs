@@ -13,12 +13,9 @@ public sealed record MeResponse(Guid Id, string? Email, string? FullName, IReadO
 /// </summary>
 [ApiController]
 [Route("api/account")]
-[Authorize(AuthenticationSchemes = BearerScheme)]
+[Authorize(AuthenticationSchemes = AuthSchemes.IdentityBearer)]
 public sealed class AccountController(UserManager<ApplicationUser> users) : ControllerBase
 {
-    // Схема bearer-токенов, которую регистрирует AddIdentityApiEndpoints (= IdentityConstants.BearerScheme).
-    private const string BearerScheme = "Identity.Bearer";
-
     [HttpGet("me")]
     [ProducesResponseType<MeResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

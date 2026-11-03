@@ -12,14 +12,11 @@ namespace HiFiStore.Api.Controllers.Admin;
 /// Переводит результаты сервисов в HTTP: 400 (<see cref="ValidationProblemDetails"/>), 404, 409.
 /// </summary>
 [ApiController]
-[Authorize(AuthenticationSchemes = BearerScheme, Roles = Roles.Admin)]
+[Authorize(AuthenticationSchemes = AuthSchemes.IdentityBearer, Roles = Roles.Admin)]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public abstract class AdminControllerBase : ControllerBase, IActionFilter
 {
-    // Схема bearer-токенов, которую регистрирует AddIdentityApiEndpoints (= IdentityConstants.BearerScheme).
-    private const string BearerScheme = "Identity.Bearer";
-
     private const string BodyField = "body";
 
     /// <summary>
