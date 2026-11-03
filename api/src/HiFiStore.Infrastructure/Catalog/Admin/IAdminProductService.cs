@@ -23,7 +23,11 @@ public interface IAdminProductService
     /// </summary>
     Task<AdminResult<AdminProductDetails>> UpdateAsync(Guid id, ProductRequest request, CancellationToken ct = default);
 
-    /// <summary>Удаляет товар с изображениями и характеристиками; если на товар ссылаются другие записи — 409.</summary>
+    /// <summary>
+    /// Удаляет товар с изображениями и характеристиками. Заказы удалению не мешают: их позиции — снимок
+    /// (артикул, название, цена) без внешнего ключа на товар и остаются как были. 409 — только если на товар
+    /// ссылаются другие записи с внешним ключом.
+    /// </summary>
     Task<AdminResult> DeleteAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>

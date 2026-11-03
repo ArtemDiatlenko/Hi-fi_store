@@ -104,9 +104,9 @@ public sealed class AdminProductService(StoreDbContext db, TimeProvider time) : 
         }
         catch (DbUpdateException ex) when (DbErrors.IsForeignKeyViolation(ex))
         {
+            // Позиции заказов сюда не относятся: у них нет внешнего ключа на товар (см. OrderItemConfiguration).
             return AdminError.Conflict(
-                $"Нельзя удалить товар «{product.Name}»: на него ссылаются другие записи (например, заказы). " +
-                "Снимите товар с публикации.");
+                $"Нельзя удалить товар «{product.Name}»: на него ссылаются другие записи. Снимите товар с публикации.");
         }
 
         return AdminResult.Success;

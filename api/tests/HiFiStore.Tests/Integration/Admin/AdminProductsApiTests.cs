@@ -46,6 +46,35 @@ public sealed class AdminProductsApiTests(StoreWebApplicationFactory factory) : 
     }
 
     [SkippableFact]
+    public async Task Product_WithOrders_CanBeDeleted_OrderKeepsSnapshot()
+    {
+        await PrepareAsync();
+        var suffix = NewSuffix();
+        var branch = await CreateBranchAsync(suffix);
+        var id = (await PostAsync("/api/admin/products", ProductBody(branch, suffix))).GetProperty("id").GetGuid();
+        await PostAsync($"/api/admin/products/{id}/publish", null, HttpStatusCode.OK);
+
+        var placed = await OrderTestHelpers.PlaceOrderAsync(Anonymous, OrderTestHelpers.CheckoutBody((id, 2)));
+        var orderId = placed.GetProperty("order").GetProperty("id").GetGuid();
+
+        // Позиции заказа — снимок без внешнего ключа на товар, поэтому заказанный товар удаляется.
+        await DeleteAsync($"/api/admin/products/{id}");
+        await GetAsync($"/api/admin/products/{id}", HttpStatusCode.NotFound);
+
+        var order = await GetAsync($"/api/admin/orders/{orderId}");
+        var item = Assert.Single(order.GetProperty("items").EnumerateArray());
+        Assert.Equal(id, item.GetProperty("productId").GetGuid());
+        Assert.Equal($"TST-{suffix}", item.GetProperty("sku").GetString());
+        Assert.Equal($"Тестовый усилитель {suffix}", item.GetProperty("name").GetString());
+        Assert.Equal(1000m, item.GetProperty("unitPrice").GetDecimal());
+        Assert.Equal(2000m, order.GetProperty("total").GetDecimal());
+
+        // Отмена такого заказа проходит: остаток вернуть некуда, и это не ошибка.
+        var cancelled = await PutAsync($"/api/admin/orders/{orderId}/status", new { status = "Cancelled" });
+        Assert.Equal("Cancelled", cancelled.GetProperty("status").GetString());
+    }
+
+    [SkippableFact]
     public async Task Product_StaysHiddenFromCatalogUntilPublished()
     {
         await PrepareAsync();
