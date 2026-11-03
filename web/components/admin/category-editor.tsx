@@ -5,11 +5,11 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { use, useEffect, useRef, useState } from "react";
+import { type ReactNode, use, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { CategoryForm, categoryValues } from "@/components/admin/category-form";
 import { useConfirm } from "@/components/admin/confirm-dialog";
 import { SpecDefinitions } from "@/components/admin/spec-definitions";
-import { buttonClass, FormAlert, type FormProblem, LoadError, Notice, PageHeader, Section } from "@/components/admin/ui";
+import { buttonClass, FormAlert, type FormProblem, LoadError, Notice, PageHeader } from "@/components/admin/ui";
 import { ancestorsOf } from "@/lib/admin/categories";
 import { describeFailure } from "@/lib/admin/forms";
 import type { AdminCategory, AdminCategoryDetails } from "@/lib/admin/types";
@@ -18,6 +18,20 @@ import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
+import { workshopCopy } from "@/lib/i18n/workshop";
+import styles from "./category-pilot.module.css";
+
+function CategoryFrame({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const themeId = useId();
+  // Activity cleans up effects when a cached page is hidden, so its theme cannot leak to other routes.
+  useLayoutEffect(() => {
+    const shell = ref.current?.closest<HTMLElement>("[data-admin-shell]");
+    shell?.setAttribute("data-category-theme", themeId);
+    return () => { if (shell?.getAttribute("data-category-theme") === themeId) shell.removeAttribute("data-category-theme"); };
+  }, [themeId]);
+  return <div ref={ref} className={styles.editor} data-category-editor>{children}</div>;
+}
 
 export function CategoryCreate() {
   const { locale, dict } = useI18n();
@@ -28,10 +42,9 @@ export function CategoryCreate() {
   const parent = searchParams.get("parent") ?? "";
 
   return (
-    <>
+    <CategoryFrame>
       <PageHeader title={t.newTitle} back={{ href: localeHref(locale, "/admin/categories"), label: t.backToList }} />
       {categories.error ? <LoadError message={tpl(dict.admin.common.loadError, { status: categories.error.status })} onRetry={categories.reload} /> : null}
-      <Section title={t.mainSection}>
         <CategoryForm
           key={parent}
           categoryId={null}
@@ -39,8 +52,7 @@ export function CategoryCreate() {
           categories={categories.data ?? []}
           onSaved={(category) => router.push(localeHref(locale, `/admin/category/${category.id}?notice=created`))}
         />
-      </Section>
-    </>
+    </CategoryFrame>
   );
 }
 
@@ -134,9 +146,10 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
   const inheritedSpecs = inherited.filter((details) => details.specs.length > 0);
 
   return (
-    <>
+    <CategoryFrame>
+      <p className={styles.eyebrow}>{workshopCopy[locale].category.eyebrow}</p>
       <PageHeader
-        title={tpl(t.editTitle, { name: data.name })}
+        title={data.name}
         back={{ href: localeHref(locale, "/admin/categories"), label: t.backToList }}
         actions={
           <>
@@ -169,7 +182,6 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
       />
       <FormAlert ref={alertRef} problem={problem} />
 
-      <Section title={t.mainSection}>
         <CategoryForm
           key={JSON.stringify([data.name, data.slug, data.description, data.parentId, data.sortOrder])}
           categoryId={data.id}
@@ -182,11 +194,11 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
             setNotice(dict.admin.common.saved);
           }}
         />
-      </Section>
 
-      <Section title={dict.admin.specDefs.title} description={dict.admin.specDefs.hint}>
+      <section className={`${styles.panel} ${styles.specifications}`}>
+        <div className={styles.panelHeading}><h2>{dict.admin.specDefs.title}<span className={styles.count}>{data.specs.length}</span></h2><p>{workshopCopy[locale].category.specsHint}</p></div>
         {inheritedSpecs.length > 0 ? (
-          <div className="flex flex-col gap-2 rounded-lg bg-zinc-50 p-3 text-sm dark:bg-zinc-800/50">
+          <div className={styles.inherited}>
             <p className="font-medium">{dict.admin.specDefs.inherited}</p>
             <ul className="flex flex-col gap-1">
               {inheritedSpecs.flatMap((details) =>
@@ -217,9 +229,9 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
           }}
           onProblem={showProblem}
         />
-      </Section>
+      </section>
 
       {confirmElement}
-    </>
+    </CategoryFrame>
   );
 }

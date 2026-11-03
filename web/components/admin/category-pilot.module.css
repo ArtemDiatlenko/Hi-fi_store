@@ -1,0 +1,86 @@
+.editor { --ink: #293129; --quiet: #626c63; --line: #dce1d8; --olive: #485d3f; display: flex; flex-direction: column; gap: 22px; color: var(--ink); }
+:global([data-admin-shell][data-category-theme]):has(.editor) { background: #f3f5f0; color: #293129; color-scheme: light; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-content]) { max-width: 1280px; padding: 32px; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav]) { background: #fafbf8; border-color: #dce1d8; color: #4c564b; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] a) { color: #4c564b; border-radius: 3px; font-size: 12px; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] nav a) { min-height: 38px; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] a[aria-current="page"]) { background: #e6eddf; border-color: transparent; color: #34482c; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] [data-admin-logo]) { gap: 8px; font-size: 14px; margin-bottom: 16px; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-logo] > span:first-child) { background: #485d3f; color: white; border-radius: 4px; width: 30px; height: 30px; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-logo] > span:last-child) { background: none; border: 0; color: #697764; font-size: 8px; padding: 0; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] button) { color: #4c564b; border-color: #dce1d8; background: #f3f5f0; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] svg) { width: 17px; height: 17px; }
+:global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] p), :global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-nav] [role="group"] a) { color: #626c63; background: transparent; }
+.eyebrow { margin-bottom: -8px; color: var(--quiet); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.editor > header { gap: 10px; }
+.editor > header h1 { font-size: 28px; line-height: 1.2; font-weight: 550; letter-spacing: -.035em; }
+.editor > header > a { color: var(--quiet); font-size: 11px; text-decoration: none; }
+.editor > header > p { color: var(--quiet); font-size: 11px; }
+.editor > header button, .editor > header a { min-height: 34px; }
+.editor > header > div:last-child { color: var(--quiet); }
+.editor > header :global(.font-mono) { color: var(--quiet); }
+.categoryForm { display: flex; flex-direction: column; gap: 0; }
+.formColumns { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr); align-items: stretch; gap: 20px; }
+.panel { display: flex; min-width: 0; flex-direction: column; gap: 18px; border: 1px solid var(--line); border-radius: 4px; background: #fff; padding: 24px; }
+.panelHeading { border-bottom: 1px solid var(--line); padding-bottom: 15px; margin-bottom: 0; }
+.panelHeading h2 { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
+.panelHeading p { margin-top: 5px; color: var(--quiet); font-size: 11px; line-height: 1.6; }
+.basic { display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 15px; }
+.basic > .panelHeading, .basic > .required, .description { grid-column: 1 / -1; }
+.required { font-size: 10px; color: var(--quiet); margin-bottom: -9px; }
+.editor label { font-size: 11px; color: #3c483a; font-weight: 500; }
+.editor input:not([type="checkbox"]), .editor select, .editor textarea { border-radius: 3px; background: #fff; color: var(--ink); border-color: #cdd5c9; min-height: 38px; padding: 8px 10px; font-size: 13px; box-shadow: none; }
+.editor input[aria-invalid="true"], .editor select[aria-invalid="true"], .editor textarea[aria-invalid="true"] { border-color: #b42318; }
+.editor :global([aria-invalid="true"] ~ p) { color: #b42318; }
+.editor input[type="checkbox"] { accent-color: var(--olive); }
+.editor :global([id$="-hint"]) { color: var(--quiet); font-size: 10px; line-height: 1.6; }
+.editor input[name="slug"], .editor input[name="key"] { font-family: var(--font-geist-mono), monospace; font-size: 12px; }
+.editor textarea { resize: vertical; }
+.structure { background: #fafcf8; }
+.previewLink { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--olive); font-size: 11px; border-top: 1px solid var(--line); padding-top: 16px; margin-top: auto; }
+.saveBar { position: sticky; bottom: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; background: #fafcf8; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 4px 4px; }
+.saveBar > p { display: flex; align-items: center; gap: 8px; color: var(--quiet); font-size: 10px; }
+.saveBar > div { display: flex; gap: 10px; }
+.savedDot, .dirtyDot { width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: #6d805e; }
+.dirtyDot { background: #b66a20; }
+.editor button { border-radius: 3px; font-size: 11px; min-height: 36px; padding: 7px 13px; }
+.editor :global(button[type="submit"]) { background: var(--olive); color: #fff; border: 1px solid var(--olive); }
+.editor :global(button[type="submit"]:hover) { background: #35492d; }
+.editor button:disabled { opacity: .45; cursor: default; }
+.saveBar button[type="button"] { color: var(--quiet); background: transparent; border: 1px solid #d3dacd; }
+.editor > header button { color: #a33a30; background: transparent; border-color: #e4d1cf; }
+.editor > header > div a { background: #fff; border-color: #cdd5c9; color: #3c483a; border-radius: 3px; font-size: 11px; }
+.specifications { gap: 14px; }
+.count { display: inline-flex; min-width: 20px; height: 19px; align-items: center; justify-content: center; padding-inline: 5px; background: #edf1e8; color: #4c6142; font-size: 10px; border-radius: 3px; }
+.editor :global([data-spec-list] > ul) { gap: 0; }
+.editor :global([data-spec-list] > ul > li) { border: 0; border-bottom: 1px solid #e5e8e1; border-radius: 0; padding: 13px 0; }
+.editor :global([data-spec-list] > ul > li:first-child) { padding-top: 0; }
+.editor :global([data-spec-list] > ul > li span) { color: var(--quiet); }
+.editor :global([data-spec-list] > ul > li > div > div > span:first-child) { color: var(--ink); font-size: 12px; }
+.editor :global([data-spec-list] > ul > li > div > div > span:last-child) { font-size: 10px; }
+.editor :global([data-spec-list] button[type="button"]) { background: transparent; border-color: transparent; color: var(--olive); padding-inline: 9px; }
+.editor :global([data-spec-list] button[aria-label^="Видалити"]), .editor :global([data-spec-list] button[aria-label^="Delete"]) { color: #a33a30; }
+.editor :global([data-spec-create]) { border: 0; border-radius: 0; padding: 0; }
+.editor :global([data-spec-create] > summary) { display: inline-flex; align-items: center; min-height: 36px; border: 1px solid #cdd5c9; padding: 7px 12px; border-radius: 3px; color: var(--olive); font-size: 11px; list-style: none; }
+.editor :global([data-spec-create] > summary::-webkit-details-marker) { display: none; }
+.editor :global([data-spec-create][open] > div) { border-top: 1px solid var(--line); margin-top: 16px; }
+.editor :global([data-spec-create] h3) { font-size: 12px; }
+.inherited { padding: 12px; background: #f3f6ef; border-left: 2px solid #a6b49b; font-size: 11px; }
+.inherited p, .inherited span, .inherited a { color: var(--quiet); }
+.inherited > p { font-weight: 500; margin-bottom: 8px; }
+.editor :focus-visible { outline-color: var(--olive); }
+@media (min-width: 1024px) { :global([data-admin-shell][data-category-theme]):has(.editor) { grid-template-columns: 210px minmax(0, 1fr); } }
+@media (max-width: 1100px) { .formColumns { grid-template-columns: minmax(0, 1.3fr) minmax(230px, 1fr); } .panel { padding: 20px; } }
+@media (max-width: 700px) {
+  :global([data-admin-shell][data-category-theme]):has(.editor) :global([data-admin-content]) { padding: 22px 16px; }
+  .formColumns { grid-template-columns: 1fr; gap: 14px; }
+  .panel { padding: 18px; gap: 15px; }
+  .basic { grid-template-columns: 1fr; }
+  .editor input:not([type="checkbox"]), .editor textarea, .editor select { font-size: 16px; min-height: 44px; }
+  .editor button { min-height: 44px; }
+  .editor { gap: 18px; }
+  .editor > header h1 { font-size: 24px; }
+  .saveBar { position: static; padding: 12px; flex-wrap: wrap; }
+  .saveBar > div { margin-left: auto; }
+  .saveBar > p { width: 100%; }
+}

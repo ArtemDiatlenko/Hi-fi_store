@@ -139,12 +139,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <AdminSessionProvider value={session!}>
-      <div className="flex min-h-dvh flex-1 flex-col bg-zinc-50 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] dark:bg-zinc-950">
+      <div data-admin-shell className="flex min-h-dvh flex-1 flex-col bg-zinc-50 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] dark:bg-zinc-950">
         <Suspense fallback={<AdminNav activePath={null} email={gate.me.email} />}>
           <ActiveAdminNav email={gate.me.email} />
         </Suspense>
         <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
-          <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+          <div data-admin-content className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
             <UnsavedChangesProvider>{children}</UnsavedChangesProvider>
           </div>
         </main>
@@ -166,7 +166,7 @@ function GateScreen({ children }: { children: ReactNode }) {
 
 function AdminLogo({ href, brand, badge }: { href: string; brand: string; badge: string }) {
   return (
-    <Link href={href} className="inline-flex min-w-0 items-center gap-2.5 rounded-md text-base font-semibold tracking-tight">
+    <Link data-admin-logo href={href} className="inline-flex min-w-0 items-center gap-2.5 rounded-md text-base font-semibold tracking-tight">
       <span aria-hidden="true" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-amber-400 dark:bg-amber-400 dark:text-zinc-950">
         <LogoMark className="h-6 w-6" />
       </span>
@@ -289,7 +289,7 @@ function AdminNav({ activePath, email }: { activePath: string | null; email: str
   return (
     <>
       {/* Десктоп: боковая панель во всю высоту */}
-      <aside className="sticky top-0 hidden h-dvh flex-col gap-6 overflow-y-auto border-r border-zinc-200 bg-white px-4 py-6 lg:flex dark:border-zinc-800 dark:bg-zinc-900/40">
+      <aside data-admin-nav className="sticky top-0 hidden h-dvh flex-col gap-6 overflow-y-auto border-r border-zinc-200 bg-white px-4 py-6 lg:flex dark:border-zinc-800 dark:bg-zinc-900/40">
         <div className="px-1">
           <AdminLogo href={localeHref(locale, "/admin")} brand={dict.common.brand} badge={dict.admin.nav.badge} />
         </div>
@@ -300,7 +300,7 @@ function AdminNav({ activePath, email }: { activePath: string | null; email: str
       </aside>
 
       {/* Телефоны и планшеты: верхняя панель и раскрывающееся меню */}
-      <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 backdrop-blur lg:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
+      <header data-admin-nav className="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 backdrop-blur lg:hidden dark:border-zinc-800 dark:bg-zinc-950/95">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
           <AdminLogo href={localeHref(locale, "/admin")} brand={dict.common.brand} badge={dict.admin.nav.badge} />
           <button
