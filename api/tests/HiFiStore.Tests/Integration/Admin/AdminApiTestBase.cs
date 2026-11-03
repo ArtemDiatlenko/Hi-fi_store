@@ -19,8 +19,7 @@ public abstract class AdminApiTestBase(StoreWebApplicationFactory factory) : ICl
 
     protected async Task PrepareAsync()
     {
-        Skip.IfNot(StoreWebApplicationFactory.IsConfigured, "Задайте HIFISTORE_TEST_CONNECTION, чтобы запускать интеграционные тесты.");
-        await Factory.EnsureDatabaseAsync();
+        await Factory.PrepareAsync();
         Admin = await Factory.CreateAdminClientAsync();
     }
 

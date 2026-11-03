@@ -11,11 +11,20 @@ namespace HiFiStore.Tests.Integration;
 /// Поднимает API с реальным PostgreSQL. Строка подключения берётся из переменной
 /// <c>HIFISTORE_TEST_CONNECTION</c>; без неё интеграционные тесты пропускаются.
 /// База пересоздаётся один раз на запуск тестов и заполняется демо-каталогом.
+/// <para>
+/// Каждый класс тестов получает свой экземпляр фабрики (<c>IClassFixture</c>), и классы идут параллельно,
+/// а база у всех общая. Поэтому подготовка базы — общая на процесс (статические флаг и блокировка), и
+/// xUnit выполняет её при создании фикстуры (<see cref="IAsyncLifetime.InitializeAsync"/>), то есть до первого
+/// теста любого класса: ни один тест не обратится к базе, пока другой класс её пересоздаёт.
+/// Тесты вызывают <see cref="PrepareAsync"/> — он пропускает тест без настроенной базы.
+/// </para>
 /// </summary>
-public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>
+public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public const string AdminEmail = "admin@test.local";
     public const string AdminPassword = "Admin-test-2026";
+
+    private const string SkipReason = "Задайте HIFISTORE_TEST_CONNECTION, чтобы запускать интеграционные тесты.";
 
     private static readonly SemaphoreSlim InitLock = new(1, 1);
     private static bool _initialized;
@@ -24,15 +33,17 @@ public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>
 
     public static bool IsConfigured => !string.IsNullOrWhiteSpace(ConnectionString);
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    /// <summary>
+    /// Пропускает тест, если база для интеграционных тестов не настроена, и дожидается её подготовки.
+    /// Вызывайте в начале каждого интеграционного теста.
+    /// </summary>
+    public async Task PrepareAsync()
     {
-        builder.UseEnvironment("Testing");
-        builder.UseSetting("ConnectionStrings:Store", ConnectionString);
-        builder.UseSetting("Store:DemoCatalog", "true");
-        builder.UseSetting("Seed:Admin:Email", AdminEmail);
-        builder.UseSetting("Seed:Admin:Password", AdminPassword);
+        Skip.IfNot(IsConfigured, SkipReason);
+        await EnsureDatabaseAsync();
     }
 
+    /// <summary>Пересоздаёт базу и заполняет её — один раз на процесс; остальные вызовы ждут и выходят.</summary>
     public async Task EnsureDatabaseAsync()
     {
         await InitLock.WaitAsync();
@@ -55,5 +66,25 @@ public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>
         {
             InitLock.Release();
         }
+    }
+
+    async Task IAsyncLifetime.InitializeAsync()
+    {
+        if (IsConfigured)
+        {
+            await EnsureDatabaseAsync();
+        }
+    }
+
+    // Сам хост освобождает xUnit через IDisposable фабрики.
+    Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseEnvironment("Testing");
+        builder.UseSetting("ConnectionStrings:Store", ConnectionString);
+        builder.UseSetting("Store:DemoCatalog", "true");
+        builder.UseSetting("Seed:Admin:Email", AdminEmail);
+        builder.UseSetting("Seed:Admin:Password", AdminPassword);
     }
 }

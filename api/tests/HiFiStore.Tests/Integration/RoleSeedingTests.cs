@@ -13,7 +13,7 @@ public sealed class RoleSeedingTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task Roles_ComeFromMigration_AndRegistrationUsesThem()
     {
-        await PrepareAsync();
+        await factory.PrepareAsync();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<StoreDbContext>();
 
@@ -33,7 +33,7 @@ public sealed class RoleSeedingTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task SeedIdentityRolesMigration_AdoptsRoleCreatedBeforeIt()
     {
-        await PrepareAsync();
+        await factory.PrepareAsync();
         var email = await factory.CreateClient().RegisterNewUserAsync();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<StoreDbContext>();
@@ -65,11 +65,5 @@ public sealed class RoleSeedingTests(StoreWebApplicationFactory factory) : IClas
         Assert.True(await db.Roles.AnyAsync(r => r.Id == adminId && r.NormalizedName == "ADMIN"));
 
         await transaction.RollbackAsync();
-    }
-
-    private async Task PrepareAsync()
-    {
-        Skip.IfNot(StoreWebApplicationFactory.IsConfigured, "Задайте HIFISTORE_TEST_CONNECTION, чтобы запускать интеграционные тесты.");
-        await factory.EnsureDatabaseAsync();
     }
 }

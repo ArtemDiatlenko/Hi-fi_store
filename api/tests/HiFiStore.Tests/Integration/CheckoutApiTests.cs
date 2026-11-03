@@ -13,7 +13,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task Guest_CreatesOrder_WithCatalogPrices_AndDecreasesStock()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 5, price: 1234.50m);
 
         // Цены и сумма от клиента игнорируются: сервер берёт их из каталога.
@@ -51,7 +51,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task OrderNumbers_AreUnique_AndGrow()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 10);
 
         var first = await PlaceOrderAsync(_client, CheckoutBody((product.Id, 1)));
@@ -64,7 +64,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task InvalidData_ReturnsRussianFieldErrors_AndKeepsStock()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 5);
 
         var response = await PostOrderAsync(_client, new
@@ -97,7 +97,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task EmptyCart_IsRejected()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
 
         var body = CheckoutBody();
         var response = await PostOrderAsync(_client, body);
@@ -110,7 +110,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task Courier_RequiresAddress_Pickup_DoesNotNeedCity()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 5);
 
         var courier = CheckoutBody((product.Id, 1));
@@ -137,7 +137,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task UnpublishedOrUnknownProduct_IsRejected()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var draft = await CreateProductAsync(factory, stock: 5, published: false);
 
         var response = await PostOrderAsync(_client, CheckoutBody((draft.Id, 1), (Guid.NewGuid(), 1)));
@@ -152,7 +152,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task NotEnoughStock_Returns409_NamingTheItems()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var scarce = await CreateProductAsync(factory, stock: 1);
         var plenty = await CreateProductAsync(factory, stock: 10);
 
@@ -173,7 +173,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task ParallelOrders_DoNotOversell()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 3);
 
         var responses = await Task.WhenAll(Enumerable.Range(0, 12)
@@ -192,7 +192,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task ConcurrentOrders_ForLastItem_OnlyOneSucceeds()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 1);
 
         await using var locker = new NpgsqlConnection(StoreWebApplicationFactory.ConnectionString);
@@ -221,7 +221,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task ByToken_ReturnsConfirmation_NumberAndWrongTokenDoNot()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 5);
         var placed = await PlaceOrderAsync(_client, CheckoutBody((product.Id, 1)));
         var token = placed.GetProperty("token").GetString()!;
@@ -241,7 +241,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task ExpiredOrInvalidToken_Returns401_InsteadOfGuestOrder()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 5);
 
         var response = await PostOrderAsync(_client, CheckoutBody((product.Id, 1)), token: "not-a-valid-token");
@@ -253,7 +253,7 @@ public sealed class CheckoutApiTests(StoreWebApplicationFactory factory) : IClas
     [SkippableFact]
     public async Task CartQuote_UsesCatalogPrices_AndFlagsProblems()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var available = await CreateProductAsync(factory, stock: 5, price: 500m);
         var scarce = await CreateProductAsync(factory, stock: 1, price: 300m);
         var draft = await CreateProductAsync(factory, stock: 5, published: false);

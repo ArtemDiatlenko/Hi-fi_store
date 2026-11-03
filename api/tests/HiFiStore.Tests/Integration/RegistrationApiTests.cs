@@ -12,7 +12,7 @@ public sealed class RegistrationApiTests(StoreWebApplicationFactory factory) : I
     [SkippableFact]
     public async Task Register_AssignsCustomerRole()
     {
-        await PrepareAsync();
+        await factory.PrepareAsync();
 
         var email = await _client.RegisterNewUserAsync();
         var token = await _client.LoginAsync(email, HttpClientAuthExtensions.CustomerPassword);
@@ -25,7 +25,7 @@ public sealed class RegistrationApiTests(StoreWebApplicationFactory factory) : I
     [SkippableFact]
     public async Task Register_InvalidPassword_ReturnsValidationProblemAndCreatesNoUser()
     {
-        await PrepareAsync();
+        await factory.PrepareAsync();
         var email = $"weak-{Guid.NewGuid():N}@test.local";
 
         var response = await _client.PostAsJsonAsync("/api/auth/register", new { email, password = "short" });
@@ -38,7 +38,7 @@ public sealed class RegistrationApiTests(StoreWebApplicationFactory factory) : I
     [SkippableFact]
     public async Task Register_DuplicateEmail_KeepsSingleCustomerRole()
     {
-        await PrepareAsync();
+        await factory.PrepareAsync();
         var email = await _client.RegisterNewUserAsync();
 
         var duplicate = await _client.PostAsJsonAsync(
@@ -48,12 +48,6 @@ public sealed class RegistrationApiTests(StoreWebApplicationFactory factory) : I
         var token = await _client.LoginAsync(email, HttpClientAuthExtensions.CustomerPassword);
         var me = await GetMeAsync(token);
         Assert.Equal(["Customer"], me.GetProperty("roles").EnumerateArray().Select(r => r.GetString()));
-    }
-
-    private async Task PrepareAsync()
-    {
-        Skip.IfNot(StoreWebApplicationFactory.IsConfigured, "Задайте HIFISTORE_TEST_CONNECTION, чтобы запускать интеграционные тесты.");
-        await factory.EnsureDatabaseAsync();
     }
 
     private async Task<JsonElement> GetMeAsync(string token)

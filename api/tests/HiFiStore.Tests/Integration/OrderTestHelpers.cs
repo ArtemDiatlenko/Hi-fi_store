@@ -16,19 +16,6 @@ public sealed record TestProduct(Guid Id, string Name, decimal Price);
 /// </summary>
 internal static class OrderTestHelpers
 {
-    public const string CustomerPassword = "Buyer-test-2026";
-
-    /// <summary>
-    /// Пропускает тест без <c>HIFISTORE_TEST_CONNECTION</c> и дожидается подготовки базы.
-    /// Вызывать до первого запроса: база пересоздаётся один раз на запуск, и запрос до этого
-    /// попал бы на удаляемую базу.
-    /// </summary>
-    public static async Task PrepareAsync(StoreWebApplicationFactory factory)
-    {
-        Skip.IfNot(StoreWebApplicationFactory.IsConfigured, "Задайте HIFISTORE_TEST_CONNECTION, чтобы запускать интеграционные тесты.");
-        await factory.EnsureDatabaseAsync();
-    }
-
     public static async Task<TestProduct> CreateProductAsync(
         StoreWebApplicationFactory factory, int stock, decimal price = 1000m, bool published = true)
     {
@@ -100,16 +87,15 @@ internal static class OrderTestHelpers
         return json;
     }
 
+    /// <summary>Регистрирует покупателя (роль <c>Customer</c>) и возвращает его bearer-токен и email.</summary>
     public static async Task<(string Token, string Email)> RegisterCustomerAsync(HttpClient client)
     {
-        var email = $"buyer-{Guid.NewGuid():N}@test.local";
-        var registered = await client.PostAsJsonAsync("/api/auth/register", new { email, password = CustomerPassword });
-        registered.EnsureSuccessStatusCode();
-        return (await LoginAsync(client, email, CustomerPassword), email);
+        var email = await client.RegisterNewUserAsync("buyer");
+        return (await client.LoginAsync(email, HttpClientAuthExtensions.CustomerPassword), email);
     }
 
     public static Task<string> LoginAdminAsync(HttpClient client) =>
-        LoginAsync(client, StoreWebApplicationFactory.AdminEmail, StoreWebApplicationFactory.AdminPassword);
+        client.LoginAsync(StoreWebApplicationFactory.AdminEmail, StoreWebApplicationFactory.AdminPassword);
 
     public static async Task<HttpResponseMessage> SendAsync(
         HttpClient client, HttpMethod method, string url, string? token, object? body = null)
@@ -126,12 +112,5 @@ internal static class OrderTestHelpers
         }
 
         return await client.SendAsync(request);
-    }
-
-    private static async Task<string> LoginAsync(HttpClient client, string email, string password)
-    {
-        var login = await client.PostAsJsonAsync("/api/auth/login", new { email, password });
-        login.EnsureSuccessStatusCode();
-        return (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accessToken").GetString()!;
     }
 }

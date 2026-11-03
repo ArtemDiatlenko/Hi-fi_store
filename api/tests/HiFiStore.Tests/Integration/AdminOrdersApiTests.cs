@@ -12,7 +12,7 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
     [SkippableFact]
     public async Task AdminEndpoints_RequireAdminRole()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var (customer, _) = await RegisterCustomerAsync(_client);
         var id = Guid.NewGuid();
 
@@ -31,7 +31,7 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
     [SkippableFact]
     public async Task List_FiltersByStatus_AndSearchesByNumberPhoneEmail()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var admin = await LoginAdminAsync(_client);
         var product = await CreateProductAsync(factory, stock: 10);
         var unique = Random.Shared.Next(1000000, 9999999).ToString();
@@ -63,7 +63,7 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
     [SkippableFact]
     public async Task List_InvalidFilter_ReturnsValidationProblem()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var admin = await LoginAdminAsync(_client);
 
         var response = await SendAsync(_client, HttpMethod.Get, "/api/admin/orders?status=Lost&pageSize=1000", admin);
@@ -77,7 +77,7 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
     [SkippableFact]
     public async Task StatusChanges_FollowTheWorkflow()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var admin = await LoginAdminAsync(_client);
         var product = await CreateProductAsync(factory, stock: 5);
         var id = await PlaceOrderIdAsync(product.Id, 1);
@@ -108,7 +108,7 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
     [SkippableFact]
     public async Task Cancel_ReturnsItemsToStock_ExactlyOnce()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var admin = await LoginAdminAsync(_client);
         var product = await CreateProductAsync(factory, stock: 5);
         var other = await CreateProductAsync(factory, stock: 3);
@@ -130,7 +130,7 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
     [SkippableFact]
     public async Task ParallelCancels_ReturnStockOnce()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var admin = await LoginAdminAsync(_client);
         var product = await CreateProductAsync(factory, stock: 4);
         var id = await PlaceOrderIdAsync(product.Id, 3);

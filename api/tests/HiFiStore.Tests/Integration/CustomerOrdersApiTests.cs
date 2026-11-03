@@ -12,7 +12,7 @@ public sealed class CustomerOrdersApiTests(StoreWebApplicationFactory factory) :
     [SkippableFact]
     public async Task LoggedInCheckout_LinksOrderToAccount()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 5, price: 700m);
         var (token, _) = await RegisterCustomerAsync(_client);
 
@@ -36,7 +36,7 @@ public sealed class CustomerOrdersApiTests(StoreWebApplicationFactory factory) :
     [SkippableFact]
     public async Task AccountOrders_RequireAuthentication()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await _client.GetAsync("/api/account/orders")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await _client.GetAsync($"/api/account/orders/{Guid.NewGuid()}")).StatusCode);
@@ -45,7 +45,7 @@ public sealed class CustomerOrdersApiTests(StoreWebApplicationFactory factory) :
     [SkippableFact]
     public async Task AccountOrders_ShowOnlyOwnOrders()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var product = await CreateProductAsync(factory, stock: 10);
         var (alice, _) = await RegisterCustomerAsync(_client);
         var (bob, _) = await RegisterCustomerAsync(_client);
@@ -66,7 +66,7 @@ public sealed class CustomerOrdersApiTests(StoreWebApplicationFactory factory) :
     [SkippableFact]
     public async Task AccountOrders_Paging_IsValidated()
     {
-        await PrepareAsync(factory);
+        await factory.PrepareAsync();
         var (token, _) = await RegisterCustomerAsync(_client);
 
         var response = await SendAsync(_client, HttpMethod.Get, "/api/account/orders?page=0&pageSize=500", token);

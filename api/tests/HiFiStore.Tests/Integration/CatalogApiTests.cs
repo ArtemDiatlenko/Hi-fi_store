@@ -11,7 +11,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Categories_ReturnTreeWithChildren()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var tree = await GetJsonAsync("/api/catalog/categories");
 
@@ -22,7 +22,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_CategoryIncludesDescendantsAndHidesUnpublished()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var page = await GetJsonAsync("/api/catalog/products?category=amplifiers&pageSize=100");
 
@@ -34,7 +34,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_NumericSpecRange_FiltersInclusively()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var page = await GetJsonAsync("/api/catalog/products?category=amplifiers&spec.power_w.min=50&spec.power_w.max=150&sort=name");
 
@@ -44,7 +44,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_TextSpecValuesCombineWithOr()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var page = await GetJsonAsync("/api/catalog/products?category=tube-amplifiers&spec.tube_type=EL34,6V6&sort=name");
 
@@ -54,7 +54,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_BooleanSpecWithStockFilter()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var page = await GetJsonAsync("/api/catalog/products?spec.bluetooth=true&inStock=true&sort=name");
 
@@ -64,7 +64,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_SortByPriceDescending()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var page = await GetJsonAsync("/api/catalog/products?category=turntables&sort=price_desc");
 
@@ -75,7 +75,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_Pagination_ReturnsRequestedPage()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var page = await GetJsonAsync("/api/catalog/products?sort=name&page=2&pageSize=5");
 
@@ -87,7 +87,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_InvalidParameters_ReturnValidationProblem()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var response = await _client.GetAsync("/api/catalog/products?pageSize=500&sort=random");
 
@@ -101,7 +101,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Products_UnknownCategory_ReturnsNotFound()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var response = await _client.GetAsync("/api/catalog/products?category=does-not-exist");
 
@@ -111,7 +111,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Product_Published_ReturnsSpecsAndImages()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var product = await GetJsonAsync("/api/catalog/products/aurora-i-80");
 
@@ -125,7 +125,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Product_Unpublished_ReturnsNotFound()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var response = await _client.GetAsync("/api/catalog/products/vega-se-300-draft");
 
@@ -135,7 +135,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Facets_ExposeNumericRangeAndTextValues()
     {
-        Prepare();
+        await factory.PrepareAsync();
 
         var facets = await GetJsonAsync("/api/catalog/facets?category=amplifiers");
 
@@ -150,8 +150,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Account_Me_RequiresAuthentication()
     {
-        Prepare();
-        await factory.EnsureDatabaseAsync();
+        await factory.PrepareAsync();
 
         var response = await _client.GetAsync("/api/account/me");
 
@@ -161,8 +160,7 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
     [SkippableFact]
     public async Task Account_Me_ReturnsRolesForAdmin()
     {
-        Prepare();
-        await factory.EnsureDatabaseAsync();
+        await factory.PrepareAsync();
 
         var login = await _client.PostAsJsonAsync("/api/auth/login",
             new { email = StoreWebApplicationFactory.AdminEmail, password = StoreWebApplicationFactory.AdminPassword });
@@ -179,12 +177,8 @@ public sealed class CatalogApiTests(StoreWebApplicationFactory factory) : IClass
         Assert.Contains("Admin", me.GetProperty("roles").EnumerateArray().Select(r => r.GetString()));
     }
 
-    private static void Prepare() =>
-        Skip.IfNot(StoreWebApplicationFactory.IsConfigured, "Задайте HIFISTORE_TEST_CONNECTION, чтобы запускать интеграционные тесты.");
-
     private async Task<JsonElement> GetJsonAsync(string url)
     {
-        await factory.EnsureDatabaseAsync();
         var response = await _client.GetAsync(url);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<JsonElement>();
