@@ -1,6 +1,8 @@
 // Типы и клиент для ASP.NET Core API (см. api/src/HiFiStore.Api/Controllers).
 // Используется только на сервере (Server Components); браузер ходит через rewrite /api/*.
 
+import type { OrderDetails } from "@/lib/orders";
+
 const API_URL = process.env.API_URL ?? "http://localhost:5166";
 
 export type ProductCondition = "New" | "Used" | "Demo";
@@ -129,6 +131,11 @@ export function getProducts(query: URLSearchParams): Promise<PagedResult<Product
 
 export function getProduct(slug: string): Promise<ProductDetails | null> {
   return getJson<ProductDetails>(`/api/catalog/products/${encodeURIComponent(slug)}`);
+}
+
+/** Заказ по публичному токену со страницы подтверждения; <c>null</c>, если токен неверный. */
+export function getOrderByToken(token: string): Promise<OrderDetails | null> {
+  return getJson<OrderDetails>(`/api/orders/by-token/${encodeURIComponent(token)}`);
 }
 
 export function getFacets(categorySlug?: string): Promise<CatalogFacets | null> {

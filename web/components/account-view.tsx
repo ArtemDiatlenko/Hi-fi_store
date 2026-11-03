@@ -91,6 +91,9 @@ export function AccountView() {
         <dt className="text-zinc-500">Роли</dt>
         <dd>{me.roles.length > 0 ? me.roles.join(", ") : "—"}</dd>
       </dl>
+      <Link href="/account/orders" className="w-fit underline">
+        Мои заказы
+      </Link>
       <button
         type="button"
         onClick={logout}
