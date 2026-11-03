@@ -76,6 +76,16 @@ HIFISTORE_TEST_CONNECTION='Host=localhost;Port=5432;Database=hifistore_test;User
 Интеграционные тесты пересоздают базу из `HIFISTORE_TEST_CONNECTION` и заполняют её демо-каталогом.
 Без этой переменной они пропускаются, а не проходят молча. Используйте отдельную базу, не рабочую.
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) запускается на push в `main` и на каждый pull request в любую ветку,
+так что проверяются и PR, открытые поверх других PR. Новый запуск для той же ветки или PR отменяет предыдущий.
+
+- **`api`** — .NET 10 в `api/`: `dotnet restore`, `dotnet build -c Release`, `dotnet test -c Release`.
+  PostgreSQL 17 поднимается service-контейнером, `HIFISTORE_TEST_CONNECTION` указывает на него, поэтому
+  интеграционные тесты выполняются. Если хотя бы один тест пропущен (Skipped), job падает.
+- **`web`** — Node.js 22 в `web/`: `npm ci`, `npm run lint`, `npm run build`. Запущенный API для сборки не нужен.
+
 ## API
 
 | Метод и путь | Описание |

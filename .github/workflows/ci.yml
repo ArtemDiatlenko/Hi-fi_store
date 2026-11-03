@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  # Без фильтра по веткам: проверяются и PR, открытые поверх других PR.
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API (.NET)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Test
+        env:
+          # Интеграционные тесты пересоздают эту базу в service-контейнере.
+          HIFISTORE_TEST_CONNECTION: "Host=localhost;Port=5432;Database=hifistore_test;Username=postgres;Password=postgres"
+        run: dotnet test -c Release --no-build --logger trx --results-directory "$RUNNER_TEMP/test-results"
+
+      # Интеграционные тесты помечены SkippableFact и без базы молча пропускаются.
+      # В CI пропуск означает, что они не проверены, поэтому считаем его ошибкой.
+      - name: Fail on skipped tests
+        run: |
+          shopt -s nullglob
+          results=("$RUNNER_TEMP"/test-results/*.trx)
+          if [ ${#results[@]} -eq 0 ]; then
+            echo "::error::No test results (.trx) found"
+            exit 1
+          fi
+          skipped=$(grep -ho 'testName="[^"]*"[^>]*outcome="NotExecuted"' "${results[@]}" | sed -E 's/^testName="([^"]*)".*/\1/' || true)
+          if [ -n "$skipped" ]; then
+            echo "::error::Some tests were skipped, integration tests must run in CI"
+            echo "$skipped"
+            exit 1
+          fi
+          echo "No skipped tests."
+
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # Сборке не нужен запущенный API: данные запрашиваются только при рендеринге запроса.
+      - name: Build
+        run: npm run build
