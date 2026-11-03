@@ -1,27 +1,24 @@
 using HiFiStore.Api.Orders;
 using HiFiStore.Domain.Orders;
 using HiFiStore.Infrastructure.Catalog;
-using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Orders;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HiFiStore.Api.Controllers;
+namespace HiFiStore.Api.Controllers.Admin;
 
 public sealed record ChangeOrderStatusRequest(string? Status);
 
-/// <summary>Управление заказами для роли <c>Admin</c>: список с фильтрами, карточка, смена статуса.</summary>
-[ApiController]
+/// <summary>
+/// Управление заказами для роли <c>Admin</c>: список с фильтрами, карточка, смена статуса.
+/// Доступ и формат ошибок разбора запроса — общие для админки, см. <see cref="AdminControllerBase"/>.
+/// </summary>
 [Route("api/admin/orders")]
-[Authorize(AuthenticationSchemes = AuthSchemes.IdentityBearer, Roles = Roles.Admin)]
-public sealed class AdminOrdersController(IOrderService orders) : ControllerBase
+public sealed class AdminOrdersController(IOrderService orders) : AdminControllerBase
 {
     /// <summary>Заказы, новые сверху. <c>status</c> — фильтр по статусу, <c>q</c> — номер, телефон, email или имя.</summary>
     [HttpGet]
     [ProducesResponseType<PagedResult<AdminOrderSummary>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> List(CancellationToken ct)
     {
         if (!OrderQueryParser.TryParseAdminFilter(Request.Query, out var filter, out var errors))

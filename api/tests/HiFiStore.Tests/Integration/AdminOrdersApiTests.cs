@@ -101,6 +101,12 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
         var unknownStatus = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{id}/status", admin, new { status = "Lost" });
         Assert.Equal(HttpStatusCode.BadRequest, unknownStatus.StatusCode);
 
+        // Ошибка разбора тела — в общем формате админки: по имени поля, а не «$.status».
+        var wrongType = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{id}/status", admin, new { status = 5 });
+        Assert.Equal(HttpStatusCode.BadRequest, wrongType.StatusCode);
+        var wrongTypeErrors = (await wrongType.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("errors");
+        Assert.Equal(["status"], wrongTypeErrors.EnumerateObject().Select(e => e.Name));
+
         var unknownOrder = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{Guid.NewGuid()}/status", admin, new { status = "Confirmed" });
         Assert.Equal(HttpStatusCode.NotFound, unknownOrder.StatusCode);
     }
