@@ -20,6 +20,8 @@ services:
           property: connectionString
       - key: Store__AutoMigrate
         value: "true"
+      - key: Store__DemoCatalog
+        value: "true"
       - key: Seed__Admin__Email
         value: demo-admin@hifistore.local
       - key: Seed__Admin__Password
