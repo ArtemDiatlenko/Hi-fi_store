@@ -12,11 +12,7 @@ builder.Services.AddStoreInfrastructure(builder.Configuration);
 
 // Identity: регистрация, вход по bearer-токену, подтверждение и сброс пароля — из коробки.
 builder.Services
-    .AddIdentityApiEndpoints<ApplicationUser>(options =>
-    {
-        options.Password.RequiredLength = 8;
-        options.User.RequireUniqueEmail = true;
-    })
+    .AddIdentityApiEndpoints<ApplicationUser>(StoreIdentity.ConfigureOptions)
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<StoreDbContext>();
 

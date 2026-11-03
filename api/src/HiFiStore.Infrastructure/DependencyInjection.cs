@@ -1,5 +1,6 @@
 using HiFiStore.Infrastructure.Catalog;
 using HiFiStore.Infrastructure.Catalog.Admin;
+using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Orders;
 using HiFiStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,9 @@ public static class DependencyInjection
         services.AddScoped<IAdminBrandService, AdminBrandService>();
         services.AddScoped<IAdminCategoryService, AdminCategoryService>();
         services.AddScoped<IAdminProductService, AdminProductService>();
+
+        // Учётные записи администраторов (create-admin, Seed:Admin). UserManager регистрирует Identity в API-проекте.
+        services.AddScoped<AdminAccountService>();
 
         return services;
     }

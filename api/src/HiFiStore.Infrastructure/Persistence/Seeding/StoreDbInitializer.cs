@@ -29,7 +29,7 @@ public static class StoreDbInitializer
         await db.Database.MigrateAsync(ct);
 
         await EnsureRolesAsync(provider.GetRequiredService<RoleManager<IdentityRole<Guid>>>());
-        await EnsureAdminAsync(provider.GetRequiredService<UserManager<ApplicationUser>>(), configuration);
+        await EnsureAdminAsync(provider.GetRequiredService<AdminAccountService>(), configuration, ct);
 
         if (configuration.GetValue<bool>("Store:DemoCatalog") && !await db.Products.AnyAsync(ct))
         {
@@ -50,7 +50,7 @@ public static class StoreDbInitializer
         }
     }
 
-    private static async Task EnsureAdminAsync(UserManager<ApplicationUser> users, IConfiguration configuration)
+    private static async Task EnsureAdminAsync(AdminAccountService accounts, IConfiguration configuration, CancellationToken ct)
     {
         var email = configuration["Seed:Admin:Email"];
         var password = configuration["Seed:Admin:Password"];
@@ -59,26 +59,17 @@ public static class StoreDbInitializer
             return;
         }
 
-        if (await users.FindByEmailAsync(email) is not null)
+        // Существующего пользователя не трогаем: выдать роль или сменить пароль — дело команды create-admin.
+        if (await accounts.FindByEmailAsync(email) is not null)
         {
             return;
         }
 
-        var admin = new ApplicationUser
-        {
-            UserName = email,
-            Email = email,
-            EmailConfirmed = true,
-            FullName = "Администратор",
-        };
-
-        var created = await users.CreateAsync(admin, password);
+        var created = await accounts.CreateAsync(email, password, ct);
         if (!created.Succeeded)
         {
             throw new InvalidOperationException(
                 "Не удалось создать администратора: " + string.Join("; ", created.Errors.Select(e => e.Description)));
         }
-
-        await users.AddToRoleAsync(admin, Roles.Admin);
     }
 }
