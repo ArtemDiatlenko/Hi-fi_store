@@ -29,7 +29,7 @@ export function MobileMenu({ categories }: { categories: Promise<CategoryNode[]>
   useFocusTrap(open, panelRef, close);
 
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}

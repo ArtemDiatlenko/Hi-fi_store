@@ -34,17 +34,17 @@ export function Logo({ href, label, brand, tone = "auto" }: { href: string; labe
  * админ-панель определяются в браузере по токену (AccountNav).
  *
  * Раскладка: телефоны — логотип, корзина, меню, под ними поиск; планшеты — поиск в строке;
- * десктоп (lg) — меню разделов, поиск, аккаунт, корзина и язык.
+ * десктоп (xl) — меню разделов, поиск, аккаунт, корзина и язык.
  */
 export async function SiteHeader({ categories }: { categories: Promise<CategoryNode[]> }) {
   const { locale, dict } = await getI18n();
 
   return (
     <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 lg:h-[4.5rem] lg:gap-4">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 xl:h-[4.5rem] xl:gap-4">
         <Logo href={localeHref(locale, "/")} label={dict.header.homeLink} brand={dict.common.brand} />
 
-        <nav aria-label={dict.header.categoriesMenu} className="hidden lg:block">
+        <nav aria-label={dict.header.categoriesMenu} className="hidden xl:block">
           <Suspense
             fallback={
               <Link href={localeHref(locale, "/catalog")} className={catalogTriggerClass}>
@@ -56,15 +56,15 @@ export async function SiteHeader({ categories }: { categories: Promise<CategoryN
           </Suspense>
         </nav>
 
-        <div className="hidden lg:block">
+        <div className="hidden xl:block">
           <Link href={localeHref(locale, "/consultation")} className={catalogTriggerClass}>
             {dict.header.consultation}
           </Link>
         </div>
 
-        <SearchForm locale={locale} dict={dict} id="site-search" className="hidden min-w-0 flex-1 md:block lg:max-w-xl" />
+        <SearchForm locale={locale} dict={dict} id="site-search" className="hidden min-w-0 flex-1 md:block xl:max-w-xl" />
 
-        <nav aria-label={dict.header.menu} className="ml-auto hidden items-center gap-1 lg:flex">
+        <nav aria-label={dict.header.menu} className="ml-auto hidden items-center gap-1 xl:flex">
           <AccountNav variant="desktop" />
           <span className="px-2">
             <CartLink />
@@ -74,7 +74,7 @@ export async function SiteHeader({ categories }: { categories: Promise<CategoryN
           </Suspense>
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-0 lg:hidden">
+        <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-0 xl:hidden">
           <CartLink />
           <MobileMenu categories={categories} />
         </div>
