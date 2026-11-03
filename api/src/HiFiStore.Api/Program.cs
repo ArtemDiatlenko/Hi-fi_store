@@ -1,10 +1,18 @@
 using System.Text.Json.Serialization;
+using HiFiStore.Api.Cli;
 using HiFiStore.Api.Identity;
 using HiFiStore.Infrastructure;
 using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Persistence;
 using HiFiStore.Infrastructure.Persistence.Seeding;
 using Microsoft.AspNetCore.Identity;
+
+// «migrate», «create-admin» и т. п. — команды обслуживания: выполняются без запуска веб-сервера (см. StoreCli).
+var command = CommandLine.Parse(args);
+if (command is not CliCommand.RunWebApp)
+{
+    return await StoreCli.RunAsync(command, Console.Out, Console.Error);
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,7 +54,8 @@ app.MapControllers();
 app.MapGroup("/api/auth").MapIdentityApi<ApplicationUser>().WithTags("Auth")
     .AddEndpointFilterFactory(CustomerRoleOnRegistration.Create);
 
-app.Run();
+await app.RunAsync();
+return ExitCodes.Success;
 
 // Нужно для WebApplicationFactory в интеграционных тестах.
 public partial class Program
