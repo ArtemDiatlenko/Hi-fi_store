@@ -22,6 +22,8 @@ public sealed class AdminAccountService(StoreDbContext db, UserManager<Applicati
 
     public Task<ApplicationUser?> FindByEmailAsync(string email) => users.FindByEmailAsync(email);
 
+    public Task<bool> CheckPasswordAsync(ApplicationUser user, string password) => users.CheckPasswordAsync(user, password);
+
     /// <summary>
     /// Создаёт пользователя с подтверждённым email и ролью <see cref="Roles.Admin"/>. Пароль проверяется
     /// правилами Identity; при ошибке возвращаются её описания, а пользователь не создаётся.
