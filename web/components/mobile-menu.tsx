@@ -130,8 +130,8 @@ function MobileCategories({ categories, onNavigate }: { categories: Promise<Cate
   }
 
   return (
-    <section aria-labelledby="mobile-menu-categories" className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
-      <h2 id="mobile-menu-categories" className="mb-2 px-2 text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+    <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
+      <h2 className="mb-2 px-2 text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
         {dict.header.categoriesMenu}
       </h2>
       <ul className="flex flex-col gap-1">
@@ -159,6 +159,6 @@ function MobileCategories({ categories, onNavigate }: { categories: Promise<Cate
           </li>
         ))}
       </ul>
-    </section>
+    </div>
   );
 }

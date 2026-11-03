@@ -15,7 +15,8 @@ const mobileLink =
 /**
  * Ссылки аккаунта в шапке: «Увійти» для гостя, «Акаунт» для вошедшего и «Адмін-панель» — только
  * при роли Admin (по GET /api/account/me). Пока статус неизвестен (сервер, гидратация, запрос),
- * на десктопе резервируем место, чтобы шапка не прыгала.
+ * на десктопе резервируем место, чтобы шапка не прыгала. Админ-панель — отдельный раздел за входом,
+ * поэтому её не предзагружаем с каждой страницы витрины (prefetch={false}).
  */
 export function AccountNav({ variant, onNavigate }: { variant: "desktop" | "mobile"; onNavigate?: () => void }) {
   const { locale, dict } = useI18n();
@@ -37,6 +38,7 @@ export function AccountNav({ variant, onNavigate }: { variant: "desktop" | "mobi
         {admin ? (
           <Link
             href={localeHref(locale, "/admin")}
+            prefetch={false}
             className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-amber-600/40 bg-amber-50 px-3 text-sm font-medium text-amber-900 hover:bg-amber-100 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200 dark:hover:bg-amber-400/20"
           >
             <ShieldIcon className="h-5 w-5" />
@@ -61,7 +63,7 @@ export function AccountNav({ variant, onNavigate }: { variant: "desktop" | "mobi
       </li>
       {admin ? (
         <li>
-          <Link href={localeHref(locale, "/admin")} onClick={onNavigate} className={`${mobileLink} text-amber-800 dark:text-amber-300`}>
+          <Link href={localeHref(locale, "/admin")} prefetch={false} onClick={onNavigate} className={`${mobileLink} text-amber-800 dark:text-amber-300`}>
             <ShieldIcon className="h-5 w-5" />
             {dict.header.admin}
           </Link>

@@ -37,11 +37,11 @@ export function LanguageSwitcherFallback() {
           prefetch={false}
           hrefLang={target}
           lang={target}
-          aria-label={names[target]}
           aria-current={target === locale ? "true" : undefined}
           className={itemClass(target === locale)}
         >
           {shortLabel[target]}
+          <span className="sr-only"> — {names[target]}</span>
         </Link>
       ))}
     </div>
@@ -77,7 +77,6 @@ export function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             prefetch={false}
             hrefLang={target}
             lang={target}
-            aria-label={names[target]}
             aria-current={active ? "true" : undefined}
             onClick={(event) => {
               if (!active) {
@@ -90,6 +89,7 @@ export function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             className={itemClass(active)}
           >
             {shortLabel[target]}
+            <span className="sr-only"> — {names[target]}</span>
           </Link>
         );
       })}
