@@ -11,6 +11,13 @@
 
 import type { Locale } from "@/lib/i18n/config";
 
+/** Раздел информационной страницы: заголовок, абзацы и (необязательно) маркированный список. */
+export interface InfoSection {
+  title: string;
+  body: string[];
+  list?: string[];
+}
+
 const uk = {
   common: {
     brand: "Hi-Fi Store",
@@ -36,9 +43,31 @@ const uk = {
     cart: "Кошик",
     cartWithCount: "Кошик: {count} {word}",
     cartCountLabel: "Товарів у кошику: {count}",
+    homeLink: "Hi-Fi Store — на головну",
+    categories: "Каталог",
+    categoriesMenu: "Розділи каталогу",
+    allProducts: "Усі товари",
+    newArrivals: "Новинки",
+    searchLabel: "Пошук товарів",
+    searchPlaceholder: "Пошук товарів…",
+    searchSubmit: "Знайти",
+    admin: "Адмін-панель",
   },
   footer: {
     tagline: "Hi-Fi Store — демоверсія каталогу",
+    about: "Підсилювачі, акустика, програвачі та кабелі для домашньої hi-fi системи — нова, демо та вживана техніка.",
+    catalogTitle: "Каталог",
+    customersTitle: "Покупцям",
+    contactsTitle: "Контакти",
+    allContacts: "Усі контакти",
+    phone: "Телефон",
+    email: "Email",
+    sampleBadge: "Зразок",
+    sampleNote: "Контакти-заглушки: замініть на дані магазину.",
+  },
+  breadcrumbs: {
+    label: "Навігаційний ланцюжок",
+    home: "Головна",
   },
   catalog: {
     title: "Каталог",
@@ -73,6 +102,10 @@ const uk = {
     boolAny: "Не важливо",
     boolYes: "Так",
     boolNo: "Ні",
+    searchTitle: "Пошук: «{q}»",
+    emptyTitle: "Нічого не знайдено",
+    resetFilters: "Скинути фільтри",
+    browseAll: "Переглянути весь каталог",
   },
   conditions: {
     New: "Новий",
@@ -97,6 +130,18 @@ const uk = {
     boolYes: "Так",
     boolNo: "Ні",
     emptyValue: "—",
+    inStockShort: "У наявності",
+    oldPrice: "Стара ціна:",
+    discount: "−{percent}%",
+    discountLabel: "Знижка {percent}%",
+    gallery: "Зображення товару",
+    showImage: "Показати зображення {n} з {total}",
+    imageOf: "Зображення {n} з {total}",
+    prevImage: "Попереднє зображення",
+    nextImage: "Наступне зображення",
+    noImage: "Немає зображення",
+    relatedTitle: "Схожі товари",
+    relatedAll: "Усі товари розділу",
   },
   cart: {
     title: "Кошик",
@@ -279,6 +324,130 @@ const uk = {
     title: "Сторінку не знайдено",
     backToCatalog: "Повернутися до каталогу",
   },
+  home: {
+    metaTitle: "Hi-Fi Store — підсилювачі, акустика, програвачі та кабелі",
+    metaDescription:
+      "Інтернет-магазин hi-fi техніки: підсилювачі, акустика, програвачі вінілу та кабелі. Нова, демо та вживана техніка, доставка Новою поштою по Україні.",
+    heroEyebrow: "Hi-fi техніка для дому",
+    heroTitle: "Почуйте музику такою, якою її записали",
+    heroText:
+      "Підсилювачі, акустика, програвачі вінілу та кабелі — нові, демо та вживані. Допоможемо зібрати систему, що звучить саме так, як вам подобається.",
+    heroCta: "Перейти до каталогу",
+    heroSecondary: "Новинки",
+    categoriesTitle: "Розділи каталогу",
+    categoriesAll: "Весь каталог",
+    unavailable: "Не вдалося завантажити каталог. Спробуйте оновити сторінку трохи пізніше.",
+    newTitle: "Новинки",
+    newText: "Останні надходження до каталогу.",
+    newAll: "Усі новинки",
+    saleTitle: "Знижки",
+    saleText: "Техніка зі зниженою ціною — поки є в наявності.",
+    brandsTitle: "Бренди",
+    brandsText: "Оберіть виробника — покажемо всі його товари.",
+    whyTitle: "Чому Hi-Fi Store",
+    learnMore: "Докладніше",
+    deliveryTitle: "Доставка Новою поштою",
+    deliveryText: "У відділення, поштомат або кур’єром по всій Україні. Самовивіз — за домовленістю з менеджером.",
+    paymentTitle: "Оплата під час отримання",
+    paymentText: "Накладений платіж або безготівковий рахунок — передоплата на сайті не потрібна.",
+    warrantyTitle: "Гарантія",
+    warrantyText: "Нова техніка — з гарантією виробника. Умови для демо та вживаних пристроїв підкажемо до покупки.",
+    consultTitle: "Консультація",
+    consultText: "Допоможемо підібрати компоненти під вашу кімнату, бюджет і музику — до покупки й після неї.",
+  },
+  info: {
+    navLabel: "Інформація для покупців",
+    sampleBadge: "Зразок тексту",
+    sampleNotice: "Це шаблонний текст. Замініть його на умови вашого магазину перед запуском.",
+    delivery: {
+      title: "Доставка та оплата",
+      description: "Як доставляємо замовлення Новою поштою та як їх можна оплатити.",
+      intro:
+        "Доставляємо замовлення по всій Україні службою «Нова пошта». Після оформлення менеджер зателефонує, щоб підтвердити наявність, спосіб доставки та оплати.",
+      sections: [
+        {
+          title: "Способи доставки",
+          body: [],
+          list: [
+            "У відділення або поштомат Нової пошти — вкажіть місто та номер відділення під час оформлення.",
+            "Кур’єром Нової пошти — доставка за вашою адресою.",
+            "Самовивіз із магазину — адресу та час менеджер повідомить після підтвердження замовлення.",
+          ],
+        },
+        {
+          title: "Вартість і терміни",
+          body: [
+            "Вартість доставки не входить у суму замовлення й розраховується за тарифами перевізника.",
+            "Терміни залежать від міста отримувача та графіка перевізника — менеджер уточнить їх під час підтвердження.",
+          ],
+        },
+        {
+          title: "Оплата",
+          body: ["Онлайн-оплати на сайті поки немає: спосіб оплати ви обираєте під час оформлення."],
+          list: [
+            "Під час отримання — накладений платіж у відділенні чи кур’єру або оплата під час самовивозу.",
+            "Безготівковий розрахунок — надішлемо рахунок після підтвердження замовлення.",
+          ],
+        },
+        {
+          title: "Отримання посилки",
+          body: [
+            "Огляньте посилку під час отримання: перевірте цілісність упаковки та комплектність. Якщо щось пошкоджено, складіть акт із працівником перевізника й повідомте нам.",
+          ],
+        },
+      ] as InfoSection[],
+    },
+    returns: {
+      title: "Повернення та гарантія",
+      description: "Як повернути або обміняти товар і як працює гарантія.",
+      intro:
+        "Якщо товар не підійшов або виявився несправним, зв’яжіться з нами — допоможемо з поверненням, обміном чи гарантійним обслуговуванням.",
+      sections: [
+        {
+          title: "Повернення та обмін",
+          body: [
+            "Повернення й обмін здійснюються відповідно до законодавства України про захист прав споживачів.",
+            "Товар має зберегти товарний вигляд, комплектність і оригінальну упаковку.",
+          ],
+        },
+        {
+          title: "Як оформити повернення",
+          body: [],
+          list: [
+            "Зв’яжіться з менеджером і назвіть номер замовлення.",
+            "Узгодьте спосіб і адресу відправлення товару.",
+            "Після отримання й перевірки товару повернемо кошти або обміняємо його.",
+          ],
+        },
+        {
+          title: "Гарантія",
+          body: [
+            "На нову техніку діє гарантія виробника. Умови гарантії на демо- та вживані пристрої уточнюйте в менеджера до покупки.",
+            "Якщо пристрій перестав працювати, зверніться до нас — підкажемо, як передати його на діагностику.",
+          ],
+        },
+      ] as InfoSection[],
+    },
+    contacts: {
+      title: "Контакти",
+      description: "Як зв’язатися з магазином: телефон, email і консультація з підбору техніки.",
+      intro: "Маєте запитання щодо техніки, замовлення чи доставки? Зателефонуйте або напишіть нам.",
+      sections: [
+        {
+          title: "Консультація",
+          body: [
+            "Допоможемо підібрати підсилювач, акустику чи кабелі під вашу кімнату, бюджет і музичні вподобання.",
+          ],
+        },
+        {
+          title: "Питання щодо замовлення",
+          body: [
+            "Статус замовлення можна перевірити за посиланням зі сторінки підтвердження або в особистому кабінеті. В інших випадках назвіть менеджеру номер замовлення.",
+          ],
+        },
+      ] as InfoSection[],
+    },
+  },
 };
 
 // Форма словника: en має збігатися з uk ключ-у-ключ (значення — звичайні рядки, не літерали).
@@ -308,9 +477,31 @@ const en: Dictionary = {
     cart: "Cart",
     cartWithCount: "Cart: {count} {word}",
     cartCountLabel: "Items in cart: {count}",
+    homeLink: "Hi-Fi Store — home page",
+    categories: "Catalog",
+    categoriesMenu: "Catalog sections",
+    allProducts: "All products",
+    newArrivals: "New arrivals",
+    searchLabel: "Search products",
+    searchPlaceholder: "Search products…",
+    searchSubmit: "Search",
+    admin: "Admin panel",
   },
   footer: {
     tagline: "Hi-Fi Store — demo catalog",
+    about: "Amplifiers, speakers, turntables and cables for your home hi-fi system — new, demo and pre-owned equipment.",
+    catalogTitle: "Catalog",
+    customersTitle: "For customers",
+    contactsTitle: "Contacts",
+    allContacts: "All contacts",
+    phone: "Phone",
+    email: "Email",
+    sampleBadge: "Sample",
+    sampleNote: "Placeholder contacts: replace them with the store's details.",
+  },
+  breadcrumbs: {
+    label: "Breadcrumb",
+    home: "Home",
   },
   catalog: {
     title: "Catalog",
@@ -345,6 +536,10 @@ const en: Dictionary = {
     boolAny: "Any",
     boolYes: "Yes",
     boolNo: "No",
+    searchTitle: "Search: “{q}”",
+    emptyTitle: "Nothing found",
+    resetFilters: "Reset filters",
+    browseAll: "Browse the whole catalog",
   },
   conditions: {
     New: "New",
@@ -369,6 +564,18 @@ const en: Dictionary = {
     boolYes: "Yes",
     boolNo: "No",
     emptyValue: "—",
+    inStockShort: "In stock",
+    oldPrice: "Was:",
+    discount: "−{percent}%",
+    discountLabel: "{percent}% off",
+    gallery: "Product images",
+    showImage: "Show image {n} of {total}",
+    imageOf: "Image {n} of {total}",
+    prevImage: "Previous image",
+    nextImage: "Next image",
+    noImage: "No image",
+    relatedTitle: "Related products",
+    relatedAll: "All products in this section",
   },
   cart: {
     title: "Cart",
@@ -549,6 +756,129 @@ const en: Dictionary = {
     code: "Error 404",
     title: "Page not found",
     backToCatalog: "Back to catalog",
+  },
+  home: {
+    metaTitle: "Hi-Fi Store — amplifiers, speakers, turntables and cables",
+    metaDescription:
+      "Hi-fi equipment online store: amplifiers, speakers, turntables and cables. New, demo and pre-owned equipment, delivery across Ukraine by Nova Poshta.",
+    heroEyebrow: "Hi-fi equipment for your home",
+    heroTitle: "Hear music the way it was recorded",
+    heroText:
+      "Amplifiers, speakers, turntables and cables — new, demo and pre-owned. We will help you build a system that sounds exactly the way you like.",
+    heroCta: "Go to catalog",
+    heroSecondary: "New arrivals",
+    categoriesTitle: "Catalog sections",
+    categoriesAll: "Whole catalog",
+    unavailable: "Could not load the catalog. Please refresh the page a little later.",
+    newTitle: "New arrivals",
+    newText: "The latest additions to the catalog.",
+    newAll: "All new arrivals",
+    saleTitle: "On sale",
+    saleText: "Equipment at a reduced price — while stock lasts.",
+    brandsTitle: "Brands",
+    brandsText: "Pick a manufacturer to see all of its products.",
+    whyTitle: "Why Hi-Fi Store",
+    learnMore: "Learn more",
+    deliveryTitle: "Nova Poshta delivery",
+    deliveryText: "To a branch, a parcel locker or by courier across Ukraine. Pickup is arranged with a manager.",
+    paymentTitle: "Pay on delivery",
+    paymentText: "Cash on delivery or bank transfer — no prepayment on the website required.",
+    warrantyTitle: "Warranty",
+    warrantyText:
+      "New equipment comes with the manufacturer's warranty. We will explain the terms for demo and pre-owned units before you buy.",
+    consultTitle: "Consultation",
+    consultText: "We will help you pick components for your room, budget and music — before and after the purchase.",
+  },
+  info: {
+    navLabel: "Customer information",
+    sampleBadge: "Sample text",
+    sampleNotice: "This is template text. Replace it with your store's terms before launch.",
+    delivery: {
+      title: "Delivery and payment",
+      description: "How we deliver orders by Nova Poshta and how you can pay for them.",
+      intro:
+        "We deliver orders across Ukraine with Nova Poshta. After you place an order, a manager will call to confirm availability, delivery and payment.",
+      sections: [
+        {
+          title: "Delivery methods",
+          body: [],
+          list: [
+            "To a Nova Poshta branch or parcel locker — enter the city and branch number at checkout.",
+            "Nova Poshta courier — delivery to your address.",
+            "Pickup from the store — a manager will share the address and time after confirming the order.",
+          ],
+        },
+        {
+          title: "Cost and timing",
+          body: [
+            "Delivery is not included in the order total and is charged at the carrier's rates.",
+            "Timing depends on the destination city and the carrier's schedule — a manager will confirm it with you.",
+          ],
+        },
+        {
+          title: "Payment",
+          body: ["Online payment is not available on the website yet: you choose the payment method at checkout."],
+          list: [
+            "On delivery — cash on delivery at the branch or to the courier, or payment at pickup.",
+            "Bank transfer — we will send an invoice after confirming the order.",
+          ],
+        },
+        {
+          title: "Receiving the parcel",
+          body: [
+            "Inspect the parcel when you receive it: check that the packaging is intact and the contents are complete. If anything is damaged, file a report with the carrier's staff and let us know.",
+          ],
+        },
+      ] as InfoSection[],
+    },
+    returns: {
+      title: "Returns and warranty",
+      description: "How to return or exchange a product and how the warranty works.",
+      intro:
+        "If a product does not suit you or turns out to be faulty, contact us — we will help with a return, an exchange or warranty service.",
+      sections: [
+        {
+          title: "Returns and exchanges",
+          body: [
+            "Returns and exchanges are handled in accordance with Ukrainian consumer protection law.",
+            "The product must keep its original condition, completeness and packaging.",
+          ],
+        },
+        {
+          title: "How to return a product",
+          body: [],
+          list: [
+            "Contact a manager and give your order number.",
+            "Agree on how and where to send the product.",
+            "Once we receive and check the product, we will refund or exchange it.",
+          ],
+        },
+        {
+          title: "Warranty",
+          body: [
+            "New equipment is covered by the manufacturer's warranty. Ask a manager about the warranty terms for demo and pre-owned units before you buy.",
+            "If a device stops working, contact us — we will explain how to send it for diagnostics.",
+          ],
+        },
+      ] as InfoSection[],
+    },
+    contacts: {
+      title: "Contacts",
+      description: "How to reach the store: phone, email and equipment consultation.",
+      intro: "Have a question about equipment, an order or delivery? Call or write to us.",
+      sections: [
+        {
+          title: "Consultation",
+          body: ["We will help you choose an amplifier, speakers or cables for your room, budget and musical taste."],
+        },
+        {
+          title: "Order questions",
+          body: [
+            "You can check the order status via the link from the confirmation page or in your account. Otherwise, give a manager your order number.",
+          ],
+        },
+      ] as InfoSection[],
+    },
   },
 };
 
