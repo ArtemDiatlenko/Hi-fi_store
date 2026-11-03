@@ -7,6 +7,7 @@ import { Breadcrumbs, type Crumb } from "@/components/breadcrumbs";
 import { ArrowRightIcon } from "@/components/icons";
 import { discountPercent, ProductCard } from "@/components/product-card";
 import { ProductGallery } from "@/components/product-gallery";
+import { ProductMaterials } from "@/components/product-materials";
 import {
   type CategoryNode,
   getCategories,
@@ -16,6 +17,7 @@ import {
   type ProductSpecValue,
 } from "@/lib/api";
 import { categoryPath, findCategoryPath } from "@/lib/categories";
+import { getDemoMaterials } from "@/lib/demo-content";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
 import { localeHref } from "@/lib/i18n/routing";
@@ -83,6 +85,8 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
     { label: product.name },
   ];
   const discount = discountPercent(product.price, product.oldPrice);
+  // Демо-наполнение (огляд, відео, догляд, відгуки) — пока у товаров нет своих материалов, см. lib/demo-content.ts.
+  const materials = getDemoMaterials(product);
 
   return (
     <div className="flex flex-col gap-8 lg:gap-10">
@@ -153,6 +157,8 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
           </section>
         </div>
       </article>
+
+      {materials ? <ProductMaterials materials={materials} /> : null}
 
       <Suspense fallback={null}>
         <RelatedProducts product={product} />

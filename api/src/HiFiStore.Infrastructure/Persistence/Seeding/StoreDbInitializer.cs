@@ -17,7 +17,8 @@ public static class StoreDbInitializer
     /// <list type="bullet">
     /// <item><c>Seed:Admin:Email</c> и <c>Seed:Admin:Password</c> — создать администратора, если его ещё нет.
     /// Пароль задавайте через user-secrets или переменные окружения, а не в appsettings.</item>
-    /// <item><c>Store:DemoCatalog</c> — заполнить каталог тестовыми данными, если товаров ещё нет.</item>
+    /// <item><c>Store:DemoCatalog</c> — заполнить каталог тестовыми данными, если товаров ещё нет; в уже заполненном
+    /// каталоге — заменить у демо-товаров старые заглушки placehold.co иллюстрациями.</item>
     /// </list>
     /// </summary>
     public static async Task InitializeAsync(IServiceProvider services, IConfiguration configuration, CancellationToken ct = default)
@@ -31,9 +32,17 @@ public static class StoreDbInitializer
         await EnsureRolesAsync(provider.GetRequiredService<RoleManager<IdentityRole<Guid>>>());
         await EnsureAdminAsync(provider.GetRequiredService<AdminAccountService>(), configuration, ct);
 
-        if (configuration.GetValue<bool>("Store:DemoCatalog") && !await db.Products.AnyAsync(ct))
+        if (configuration.GetValue<bool>("Store:DemoCatalog"))
         {
-            await DemoCatalog.SeedAsync(db, ct);
+            if (!await db.Products.AnyAsync(ct))
+            {
+                await DemoCatalog.SeedAsync(db, ct);
+            }
+            else
+            {
+                // Уже заполненный демо-каталог: заменить старые заглушки placehold.co иллюстрациями.
+                await DemoCatalog.UpgradeLegacyImagesAsync(db, ct);
+            }
         }
     }
 

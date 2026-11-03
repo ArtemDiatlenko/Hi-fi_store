@@ -50,3 +50,13 @@ export function formatNumber(value: number, locale: Locale): string {
 export function formatDateTime(iso: string, locale: Locale): string {
   return dateTimeFormatter(locale).format(new Date(iso));
 }
+
+const dateFormatters: Partial<Record<Locale, Intl.DateTimeFormat>> = {};
+
+/** Дата без времени: «12 жовтня 2026 р.». */
+export function formatDate(iso: string, locale: Locale): string {
+  return (dateFormatters[locale] ??= new Intl.DateTimeFormat(intlLocale[locale], {
+    dateStyle: "long",
+    timeZone: STORE_TIME_ZONE,
+  })).format(new Date(iso));
+}
