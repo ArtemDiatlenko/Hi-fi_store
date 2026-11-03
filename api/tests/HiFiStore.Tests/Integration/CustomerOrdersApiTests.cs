@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using HiFiStore.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using static HiFiStore.Tests.Integration.OrderTestHelpers;
 
 namespace HiFiStore.Tests.Integration;
@@ -31,6 +34,34 @@ public sealed class CustomerOrdersApiTests(StoreWebApplicationFactory factory) :
         var details = await GetJsonAsync($"/api/account/orders/{Id(first)}", token);
         Assert.Equal(first.GetProperty("order").GetProperty("number").GetInt64(), details.GetProperty("number").GetInt64());
         Assert.Equal(product.Name, details.GetProperty("items")[0].GetProperty("name").GetString());
+    }
+
+    /// <summary>
+    /// Роль <c>Customer</c> выдаётся при регистрации, но оформление и «Мои заказы» её не требуют: достаточно входа.
+    /// Иначе пользователи без роли (созданные до её появления или не через регистрацию) не смогли бы заказывать.
+    /// </summary>
+    [SkippableFact]
+    public async Task LoggedInCheckout_DoesNotRequireCustomerRole()
+    {
+        await factory.PrepareAsync();
+        var product = await CreateProductAsync(factory, stock: 5);
+        var email = $"no-role-{Guid.NewGuid():N}@test.local";
+        using (var scope = factory.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var created = await users.CreateAsync(
+                new ApplicationUser { UserName = email, Email = email }, HttpClientAuthExtensions.CustomerPassword);
+            Assert.True(created.Succeeded, string.Join("; ", created.Errors.Select(e => e.Description)));
+        }
+
+        var token = await _client.LoginAsync(email, HttpClientAuthExtensions.CustomerPassword);
+        var me = await GetJsonAsync("/api/account/me", token);
+        Assert.Empty(me.GetProperty("roles").EnumerateArray());
+
+        var placed = await PlaceOrderAsync(_client, CheckoutBody((product.Id, 1)), token);
+
+        var list = await GetJsonAsync("/api/account/orders", token);
+        Assert.Equal(Id(placed), Assert.Single(list.GetProperty("items").EnumerateArray()).GetProperty("id").GetGuid());
     }
 
     [SkippableFact]
