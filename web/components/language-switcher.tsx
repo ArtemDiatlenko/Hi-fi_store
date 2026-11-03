@@ -34,13 +34,14 @@ export function LanguageSwitcherFallback() {
         <Link
           key={target}
           href={addLocalePrefix("/", target)}
+          prefetch={false}
           hrefLang={target}
           lang={target}
-          aria-label={names[target]}
           aria-current={target === locale ? "true" : undefined}
           className={itemClass(target === locale)}
         >
           {shortLabel[target]}
+          <span className="sr-only"> — {names[target]}</span>
         </Link>
       ))}
     </div>
@@ -52,6 +53,10 @@ export function LanguageSwitcherFallback() {
  * href указывает на базовый путь (работает без JS и при открытии в новой вкладке);
  * при обычном клике перехватываем переход и добавляем текущую query-строку, поэтому
  * фильтры каталога сохраняются. useSearchParams не используем — шапка остаётся статической.
+ *
+ * prefetch={false}: язык меняют редко, а предзагружать страницу на другом языке с каждой страницы
+ * незачем. (Угадывание украинских адресов без префикса как lang=catalog, из-за которого раньше были
+ * 404 в консоли, исключено на уровне маршрута: [lang] закрыт в app/[lang]/layout.tsx.)
  */
 export function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
   const { locale, dict } = useI18n();
@@ -68,9 +73,9 @@ export function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
           <Link
             key={target}
             href={switchLocaleHref(pathname, "", target)}
+            prefetch={false}
             hrefLang={target}
             lang={target}
-            aria-label={names[target]}
             aria-current={active ? "true" : undefined}
             onClick={(event) => {
               if (!active) {
@@ -83,6 +88,7 @@ export function LanguageSwitcher({ onNavigate }: { onNavigate?: () => void }) {
             className={itemClass(active)}
           >
             {shortLabel[target]}
+            <span className="sr-only"> — {names[target]}</span>
           </Link>
         );
       })}

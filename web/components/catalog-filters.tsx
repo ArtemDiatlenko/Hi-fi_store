@@ -51,7 +51,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
         <label htmlFor="sort" className="font-medium">
           {dict.catalog.sort}
         </label>
-        <select id="sort" name="sort" defaultValue={query.get("sort") ?? "newest"} className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900">
+        <select id="sort" name="sort" defaultValue={query.get("sort") ?? "newest"} className="min-h-11 rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900">
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -64,14 +64,14 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
         <label htmlFor="q" className="font-medium">
           {dict.catalog.search}
         </label>
-        <input id="q" name="q" type="search" defaultValue={query.get("q") ?? ""} className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900" />
+        <input id="q" name="q" type="search" defaultValue={query.get("q") ?? ""} className="min-h-11 rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900" />
       </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="category" className="font-medium">
           {dict.catalog.section}
         </label>
-        <select id="category" name="category" defaultValue={selectedCategory} className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900">
+        <select id="category" name="category" defaultValue={selectedCategory} className="min-h-11 rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900">
           <option value="">{dict.catalog.allSections}</option>
           {flattenCategories(categories).map((option) => (
             <option key={option.slug} value={option.slug}>
@@ -91,7 +91,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
             min={0}
             placeholder={facets.minPrice !== null ? String(Math.floor(facets.minPrice)) : dict.catalog.from}
             defaultValue={query.get("minPrice") ?? ""}
-            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            className="min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             aria-label={dict.catalog.priceFrom}
           />
           <span aria-hidden="true">–</span>
@@ -101,7 +101,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
             min={0}
             placeholder={facets.maxPrice !== null ? String(Math.ceil(facets.maxPrice)) : dict.catalog.to}
             defaultValue={query.get("maxPrice") ?? ""}
-            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            className="min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             aria-label={dict.catalog.priceTo}
           />
         </div>
@@ -111,7 +111,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
         <legend className="mb-2 font-medium">{dict.catalog.condition}</legend>
         {facets.conditions.map((condition) => (
           <label key={condition} className="flex min-h-11 items-center gap-2">
-            <input type="checkbox" name="condition" value={condition} defaultChecked={selectedConditions.includes(condition)} className="h-4 w-4" />
+            <input type="checkbox" name="condition" value={condition} defaultChecked={selectedConditions.includes(condition)} className="h-4 w-4 accent-zinc-900 dark:accent-amber-400" />
             {dict.conditions[condition]}
           </label>
         ))}
@@ -122,7 +122,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
           <legend className="mb-2 font-medium">{dict.catalog.brand}</legend>
           {facets.brands.map((brand) => (
             <label key={brand.slug} className="flex min-h-11 items-center gap-2">
-              <input type="checkbox" name="brand" value={brand.slug} defaultChecked={selectedBrands.includes(brand.slug)} className="h-4 w-4" />
+              <input type="checkbox" name="brand" value={brand.slug} defaultChecked={selectedBrands.includes(brand.slug)} className="h-4 w-4 accent-zinc-900 dark:accent-amber-400" />
               {brand.name}
             </label>
           ))}
@@ -130,7 +130,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
       ) : null}
 
       <label className="flex min-h-11 items-center gap-2">
-        <input type="checkbox" name="inStock" value="true" defaultChecked={query.get("inStock") === "true"} className="h-4 w-4" />
+        <input type="checkbox" name="inStock" value="true" defaultChecked={query.get("inStock") === "true"} className="h-4 w-4 accent-zinc-900 dark:accent-amber-400" />
         {dict.catalog.inStockOnly}
       </label>
 
@@ -139,7 +139,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
       ))}
 
       <div className="flex items-center gap-3">
-        <button type="submit" className="min-h-11 rounded-md bg-zinc-900 px-4 py-2 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+        <button type="submit" className="min-h-11 rounded-full bg-zinc-900 px-5 py-2 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
           {dict.catalog.apply}
         </button>
         <Link href={catalogPath} className="text-zinc-600 underline dark:text-zinc-400">
@@ -164,7 +164,7 @@ function SpecFilterField({ spec, query, dict }: { spec: SpecFacet; query: URLSea
             step="any"
             placeholder={spec.min !== null ? String(spec.min) : dict.catalog.from}
             defaultValue={query.get(`spec.${spec.key}.min`) ?? ""}
-            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            className="min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             aria-label={tpl(dict.catalog.specFrom, { name: spec.name })}
           />
           <span aria-hidden="true">–</span>
@@ -174,7 +174,7 @@ function SpecFilterField({ spec, query, dict }: { spec: SpecFacet; query: URLSea
             step="any"
             placeholder={spec.max !== null ? String(spec.max) : dict.catalog.to}
             defaultValue={query.get(`spec.${spec.key}.max`) ?? ""}
-            className="min-h-11 w-full rounded-md border px-2 py-2 dark:bg-zinc-900"
+            className="min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             aria-label={tpl(dict.catalog.specTo, { name: spec.name })}
           />
         </div>
@@ -189,7 +189,7 @@ function SpecFilterField({ spec, query, dict }: { spec: SpecFacet; query: URLSea
         <legend className="mb-2 font-medium">{title}</legend>
         {(spec.values ?? []).map((value) => (
           <label key={value} className="flex min-h-11 items-center gap-2">
-            <input type="checkbox" name={`spec.${spec.key}`} value={value} defaultChecked={selected.includes(value)} className="h-4 w-4" />
+            <input type="checkbox" name={`spec.${spec.key}`} value={value} defaultChecked={selected.includes(value)} className="h-4 w-4 accent-zinc-900 dark:accent-amber-400" />
             {value}
           </label>
         ))}
@@ -206,7 +206,7 @@ function SpecFilterField({ spec, query, dict }: { spec: SpecFacet; query: URLSea
         id={`spec-${spec.key}`}
         name={`spec.${spec.key}`}
         defaultValue={query.get(`spec.${spec.key}`) ?? ""}
-        className="min-h-11 rounded-md border px-2 py-2 dark:bg-zinc-900"
+        className="min-h-11 rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
       >
         <option value="">{dict.catalog.boolAny}</option>
         <option value="true">{dict.catalog.boolYes}</option>
