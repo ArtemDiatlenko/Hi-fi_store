@@ -112,7 +112,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <div className="mx-auto w-full max-w-sm">
-      <h1 className="mb-6 text-2xl font-semibold">{isRegister ? dict.auth.registerTitle : dict.auth.loginTitle}</h1>
+      <h1 className="mb-6 text-4xl leading-tight font-light">{isRegister ? dict.auth.registerTitle : dict.auth.loginTitle}</h1>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm">
           {dict.auth.email}
@@ -143,7 +143,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <button
           type="submit"
           disabled={pending}
-          className="min-h-11 rounded-md bg-zinc-900 px-4 py-2 font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
+          className="stage-button"
         >
           {pending ? dict.auth.pleaseWait : isRegister ? dict.auth.register : dict.auth.login}
         </button>

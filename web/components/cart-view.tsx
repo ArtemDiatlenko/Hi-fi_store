@@ -22,7 +22,7 @@ export function CartView() {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-start gap-4">
-        <h1 className="text-2xl font-semibold">{dict.cart.title}</h1>
+        <h1 className="text-[2rem] leading-tight font-light">{dict.cart.title}</h1>
         <p className="text-zinc-600 dark:text-zinc-400">{dict.cart.empty}</p>
         <Link href={localeHref(locale, "/catalog")} className="underline">
           {dict.cart.goToCatalog}
@@ -39,7 +39,7 @@ export function CartView() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
       <section aria-labelledby="cart-title" className="flex flex-col gap-4">
-        <h1 id="cart-title" className="text-2xl font-semibold">
+        <h1 id="cart-title" className="text-[2rem] leading-tight font-light">
           {dict.cart.title}
         </h1>
 
@@ -60,7 +60,7 @@ export function CartView() {
       </section>
 
       <aside aria-labelledby="cart-summary-title" className="flex h-fit flex-col gap-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800 lg:sticky lg:top-6">
-        <h2 id="cart-summary-title" className="text-lg font-medium">
+        <h2 id="cart-summary-title" className="text-2xl leading-tight font-normal">
           {dict.cart.summaryTitle}
         </h2>
         <dl className="flex flex-col gap-2 text-sm">
@@ -83,7 +83,7 @@ export function CartView() {
         {canCheckout ? (
           <Link
             href={localeHref(locale, "/checkout")}
-            className="min-h-11 rounded-md bg-zinc-900 px-4 py-3 text-center font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+            className="stage-button w-full text-center"
           >
             {dict.cart.checkout}
           </Link>

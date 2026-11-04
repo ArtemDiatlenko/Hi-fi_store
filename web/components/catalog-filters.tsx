@@ -139,7 +139,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
       ))}
 
       <div className="flex items-center gap-3">
-        <button type="submit" className="min-h-11 rounded-full bg-zinc-900 px-5 py-2 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white">
+        <button type="submit" className="stage-button">
           {dict.catalog.apply}
         </button>
         <Link href={catalogPath} className="text-zinc-600 underline dark:text-zinc-400">

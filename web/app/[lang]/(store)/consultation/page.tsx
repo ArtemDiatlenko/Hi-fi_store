@@ -24,7 +24,7 @@ export default async function ConsultationPage() {
         <span aria-hidden="true" className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-950 text-amber-400 dark:bg-amber-400/15 dark:text-amber-300">
           <HeadsetIcon className="h-6 w-6" />
         </span>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t.title}</h1>
+        <h1 className="text-4xl leading-tight font-light sm:text-5xl">{t.title}</h1>
         <p className="leading-relaxed text-zinc-700 dark:text-zinc-300">{t.lead}</p>
         <ul className="flex flex-col gap-2 text-sm text-zinc-700 dark:text-zinc-300">
           {t.points.map((point) => (

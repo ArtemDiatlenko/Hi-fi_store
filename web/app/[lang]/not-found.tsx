@@ -10,7 +10,7 @@ export default async function NotFound() {
     <StoreChrome>
       <div className="flex flex-col items-center gap-4 py-20 text-center">
         <p className="text-sm text-zinc-500">{dict.notFound.code}</p>
-        <h1 className="text-2xl font-semibold">{dict.notFound.title}</h1>
+        <h1 className="text-[2rem] leading-tight font-light">{dict.notFound.title}</h1>
         <Link href={localeHref(locale, "/catalog")} className="underline">
           {dict.notFound.backToCatalog}
         </Link>

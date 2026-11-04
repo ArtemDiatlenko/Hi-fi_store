@@ -13,12 +13,12 @@ import { localeHref } from "@/lib/i18n/routing";
 
 const inputClass = "min-h-11 rounded-md border px-3 py-2 dark:bg-zinc-900";
 const submitClass =
-  "min-h-11 rounded-md bg-zinc-900 px-4 py-2 font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900";
+  "stage-button";
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{title}</h1>
+      <h1 className="text-[2rem] leading-tight font-light">{title}</h1>
       {children}
     </div>
   );

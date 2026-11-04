@@ -12,16 +12,20 @@ import type { CategoryNode } from "@/lib/api";
 import { localeHref } from "@/lib/i18n/routing";
 import { getI18n } from "@/lib/i18n/server";
 
-/** Логотип-ссылка на главную. Используется в шапке и подвале. */
-export function Logo({ href, label, brand, tone = "auto" }: { href: string; label: string; brand: string; tone?: "auto" | "dark" }) {
+/** Логотип-ссылка на главную. Используется в шапке и подвале: знак «светится», как разогретая лампа. */
+export function Logo({ href, label, brand }: { href: string; label: string; brand: string }) {
   return (
-    <Link href={href} aria-label={label} className="inline-flex shrink-0 items-center gap-2.5 rounded-md text-lg font-semibold tracking-tight">
-      <span
-        className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
-          tone === "dark" ? "bg-amber-400 text-zinc-950" : "bg-zinc-950 text-amber-400 dark:bg-amber-400 dark:text-zinc-950"
-        }`}
-      >
-        <LogoMark className="h-6 w-6" />
+    <Link
+      href={href}
+      aria-label={label}
+      className="group/logo inline-flex shrink-0 items-center gap-2.5 rounded-sm font-display text-2xl leading-none tracking-wide text-zinc-100"
+    >
+      <span className="relative inline-flex h-9 w-9 items-center justify-center text-amber-400">
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 rounded-full bg-amber-400/25 blur-md transition-opacity duration-700 motion-safe:animate-breathe group-hover/logo:bg-amber-400/40"
+        />
+        <LogoMark className="relative h-7 w-7" />
       </span>
       <span>{brand}</span>
     </Link>
@@ -35,12 +39,17 @@ export function Logo({ href, label, brand, tone = "auto" }: { href: string; labe
  *
  * Раскладка: телефоны — логотип, корзина, меню, под ними поиск; планшеты — поиск в строке;
  * десктоп (xl) — меню разделов, поиск, аккаунт, корзина и язык.
+ *
+ * Шапка «липкая» и полупрозрачная; после первых пикселей прокрутки фон плотнеет (scroll-driven
+ * анимация .stage-header). При переходах между страницами она остаётся на месте (viewTransitionName).
  */
 export async function SiteHeader({ categories }: { categories: Promise<CategoryNode[]> }) {
   const { locale, dict } = await getI18n();
 
   return (
-    <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <header className="sticky top-0 z-40 isolate" style={{ viewTransitionName: "site-header" }}>
+      {/* Фон шапки — отдельным слоем: размытие на самой шапке «заперло» бы выезжающее меню внутри неё. */}
+      <div aria-hidden="true" className="stage-header absolute inset-0 -z-10 border-b border-white/5 bg-zinc-950/60 backdrop-blur-xl" />
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 xl:h-[4.5rem] xl:gap-4">
         <Logo href={localeHref(locale, "/")} label={dict.header.homeLink} brand={dict.common.brand} />
 

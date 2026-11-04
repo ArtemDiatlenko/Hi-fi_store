@@ -102,7 +102,7 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
       <header className="flex flex-col gap-4 lg:col-span-2">
         <Breadcrumbs items={crumbs} dict={dict} />
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+          <h1 className="text-4xl leading-tight font-light sm:text-5xl">{title}</h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400" aria-live="polite">
             {tpl(dict.catalog.found, { count: products.totalCount })}
           </p>
@@ -145,7 +145,7 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
               {hasFilters || q ? (
                 <Link
                   href={resetHref}
-                  className="inline-flex min-h-11 items-center rounded-full bg-zinc-900 px-5 font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+                  className="stage-button"
                 >
                   {dict.catalog.resetFilters}
                 </Link>
@@ -161,15 +161,16 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
             </div>
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-12 min-[420px]:grid-cols-2 xl:grid-cols-3">
             {products.items.map((product) => (
-              <li key={product.id}>
+              <li key={product.id} className="stage-reveal">
                 <ProductCard
                   product={product}
                   locale={locale}
                   dict={dict}
                   headingLevel={3}
                   sizes="(min-width: 1280px) 25vw, (min-width: 420px) 50vw, 100vw"
+                  morph
                 />
               </li>
             ))}

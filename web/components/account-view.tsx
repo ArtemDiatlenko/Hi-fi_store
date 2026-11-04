@@ -125,7 +125,7 @@ export function AccountView() {
   const { me } = state;
   return (
     <div className="flex max-w-lg flex-col gap-6">
-      <h1 className="text-2xl font-semibold">{dict.account.title}</h1>
+      <h1 className="text-[2rem] leading-tight font-light">{dict.account.title}</h1>
       {me.email && !me.emailConfirmed ? <ResendConfirmation email={me.email} /> : null}
       <dl className="grid grid-cols-[8rem_1fr] gap-y-3 text-sm">
         <dt className="text-zinc-500">{dict.account.email}</dt>

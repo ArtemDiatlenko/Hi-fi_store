@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
 /*
- * Палитра витрины: графитовые нейтральные (zinc) и латунно-янтарный акцент — как подсветка
- * стрелочных индикаторов на hi-fi технике. Светлая и тёмная темы следуют prefers-color-scheme.
- * Контраст акцента: amber-700 на белом ≈ 5:1, amber-400 на zinc-950 ≈ 12:1 (WCAG AA для текста).
+ * Две оболочки — две палитры.
+ *
+ * Админка: графитовые нейтральные (zinc) и латунно-янтарный акцент, светлая и тёмная темы по
+ * prefers-color-scheme. Контраст акцента: amber-700 на белом ≈ 5:1, amber-400 на zinc-950 ≈ 12:1.
+ *
+ * Витрина («Сцена»): всегда тёмная — чёрная сцена, на которой стоит аппарат, и тёплое свечение
+ * ламп как единственный цветной акцент. Оболочка витрины помечена классом .stage (StoreChrome).
+ * Внутри неё переопределены шкалы zinc и amber, поэтому существующие утилиты (bg-zinc-900,
+ * text-amber-400…) сами берут цвета сцены, а вариант dark: включён всегда, независимо от системы.
  */
 :root {
   --background: #fafafa; /* zinc-50 */
@@ -13,6 +19,16 @@
   color-scheme: light dark;
 }
 
+/* dark: — по системной теме, а внутри витрины — всегда. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    @slot;
+  }
+  &:where(.stage, .stage *) {
+    @slot;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -20,6 +36,22 @@
   --color-focus-ring: var(--focus-ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Шрифты витрины: заголовки с засечками и спокойный гротеск для текста. */
+  --font-display: var(--font-stage-display), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-stage-body), var(--font-geist-sans), system-ui, sans-serif;
+  /* Цвета сцены — для новых классов витрины (bg-stage, text-glow…). */
+  --color-stage: var(--stage-bg);
+  --color-surface: var(--stage-surface);
+  --color-ink: var(--stage-ink);
+  --color-muted: var(--stage-muted);
+  --color-line: var(--stage-line);
+  --color-glow: var(--stage-glow);
+}
+
+@theme {
+  --animate-rise: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-breathe: breathe 6s ease-in-out infinite;
+  --animate-flicker-in: flicker-in 1.6s ease-out both;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +61,69 @@
     --accent: #fbbf24; /* amber-400 */
     --focus-ring: #fbbf24;
   }
+}
+
+/* ── Витрина: палитра сцены ─────────────────────────────────────────────────────────────── */
+
+.stage {
+  --stage-bg: #0b0b0d;
+  --stage-surface: #141416;
+  --stage-ink: #ece7df;
+  --stage-muted: #9a958e; /* на #0b0b0d ≈ 6.6:1 */
+  --stage-line: #26252a;
+  --stage-glow: #ffb15c; /* на #0b0b0d ≈ 10:1 */
+
+  /* Тёплая графитовая шкала вместо холодного zinc. */
+  --color-zinc-50: #f7f3ed;
+  --color-zinc-100: #ece7df;
+  --color-zinc-200: #ddd7ce;
+  --color-zinc-300: #c9c3b9;
+  --color-zinc-400: #9a958e;
+  --color-zinc-500: #77726c;
+  --color-zinc-600: #57534e;
+  --color-zinc-700: #38363b;
+  --color-zinc-800: #26252a;
+  --color-zinc-900: #141416;
+  --color-zinc-950: #0b0b0d;
+
+  /* Свечение лампы вместо янтаря. */
+  --color-amber-50: #fff6eb;
+  --color-amber-100: #ffe9cc;
+  --color-amber-200: #ffd6a3;
+  --color-amber-300: #ffc685;
+  --color-amber-400: #ffb15c;
+  --color-amber-500: #f59a3c;
+  --color-amber-600: #d97e22;
+  --color-amber-700: #b8651a;
+  --color-amber-800: #8a4a14;
+  --color-amber-900: #5e320d;
+
+  /* Сцена строже: углы почти прямые, «пилюли» остаются только у меток. */
+  --radius-md: 0.25rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.375rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.625rem;
+
+  --background: var(--stage-bg);
+  --foreground: var(--stage-ink);
+  --accent: var(--stage-glow);
+  --focus-ring: var(--stage-glow);
+
+  color-scheme: dark;
+  background: var(--stage-bg);
+  color: var(--stage-ink);
+  font-family: var(--font-body);
+  /* Свечение за аппаратами шире самих карточек: обрезаем по краю экрана. clip, а не hidden, —
+     чтобы не создавать контейнер прокрутки и не ломать липкую шапку. */
+  overflow-x: clip;
+}
+
+/* Фон под оболочкой витрины (видно при «пружинящей» прокрутке). */
+html:has(.stage),
+html:has(.stage) body {
+  background: #0b0b0d;
+  color-scheme: dark;
 }
 
 body {
@@ -47,6 +142,298 @@ body {
     background: #fde68a; /* amber-200 */
     color: #18181b;
   }
+
+  .stage ::selection {
+    background: #ffb15c;
+    color: #120c05;
+  }
+
+  /* Заголовки витрины — шрифтом с засечками; вес и размер задают утилиты. */
+  .stage :is(h1, h2) {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .stage :is(input, select, textarea) {
+    color-scheme: dark;
+  }
+}
+
+/* ── Витрина: приёмы «сцены» ───────────────────────────────────────────────────────────── */
+
+@layer components {
+  /* Отражение аппарата на чёрном полу. Где box-reflect нет (Firefox), остаётся пятно света. */
+  .stage-reflect {
+    -webkit-box-reflect: below 0 linear-gradient(transparent 58%, rgb(255 255 255 / 0.2));
+  }
+
+  /* Короткое отражение — для карточек в сетке: видна только нижняя полоска аппарата. */
+  .stage-reflect-short {
+    -webkit-box-reflect: below 0 linear-gradient(transparent 76%, rgb(255 255 255 / 0.16));
+  }
+
+  /* Виньетка: края снимка растворяются в черноте сцены, рамка фото не читается. */
+  .stage-vignette {
+    mask-image: radial-gradient(80% 92% at 50% 44%, #000 66%, transparent 100%);
+  }
+
+  /* Тёплый свет за аппаратом — радиальное пятно, «дышит» как разогретые лампы. */
+  .stage-glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(40% 42% at 50% 34%, rgb(255 160 70 / 0.16), transparent 70%);
+  }
+
+  /* Пол сцены: мягкое пятно света под аппаратом. */
+  .stage-floor {
+    position: absolute;
+    inset-inline: 10%;
+    bottom: -6%;
+    height: 18%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(255 177 92 / 0.12), transparent 70%);
+    filter: blur(6px);
+  }
+
+  /* Тонкая сетка «линий сцены»: ячейки делят линии, пустые места в последнем ряду не закрашиваются. */
+  .stage-grid {
+    border-top: 1px solid var(--stage-line);
+    border-left: 1px solid var(--stage-line);
+  }
+  .stage-grid > * {
+    border-right: 1px solid var(--stage-line);
+    border-bottom: 1px solid var(--stage-line);
+  }
+
+  /* Главная кнопка: «разогревается» свечением при наведении. */
+  .stage-button {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.125rem;
+    padding-inline: 1.625rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+    background: var(--stage-glow);
+    color: #120c05;
+    box-shadow: 0 0 0 0 rgb(255 177 92 / 0);
+    transition:
+      box-shadow 0.4s ease,
+      background-color 0.3s ease,
+      transform 0.3s ease;
+  }
+  .stage-button:hover {
+    background: #ffc685;
+    box-shadow: 0 0 2rem 0 rgb(255 177 92 / 0.35);
+  }
+  .stage-button:active {
+    transform: translateY(1px);
+  }
+  .stage-button:disabled {
+    opacity: 0.6;
+    box-shadow: none;
+  }
+
+  .stage-button-ghost {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.125rem;
+    padding-inline: 1.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    letter-spacing: 0.04em;
+    border: 1px solid #3a3840;
+    color: var(--stage-ink);
+    transition:
+      border-color 0.3s ease,
+      color 0.3s ease,
+      background-color 0.3s ease;
+  }
+  .stage-button-ghost:hover {
+    border-color: var(--stage-glow);
+    color: var(--stage-glow);
+    background: rgb(255 177 92 / 0.04);
+  }
+
+  /* Надстрочник: маленькие разреженные капители цвета лампы. */
+  .stage-kicker {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--stage-glow);
+  }
+
+  /* Ссылка с подчёркиванием, которое «прорисовывается» при наведении. */
+  .stage-link {
+    background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 1px;
+    transition:
+      background-size 0.35s ease,
+      color 0.2s ease;
+  }
+  .stage-link:hover {
+    background-size: 100% 1px;
+    color: var(--stage-glow);
+  }
+}
+
+/* ── Анимации ──────────────────────────────────────────────────────────────────────────── */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+/* Лампы разогреваются: свет загорается с лёгким мерцанием. */
+@keyframes flicker-in {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.55;
+  }
+  24% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  48% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes header-settle {
+  to {
+    background-color: rgb(11 11 13 / 0.82);
+    border-color: #26252a;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /*
+   * Появление блоков при прокрутке — средствами CSS (scroll-driven animations), без JS.
+   * Где браузер их не умеет, блоки просто видны сразу.
+   */
+  @supports (animation-timeline: view()) {
+    .stage-reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+
+    /* Шапка «уплотняется» после первых 120 px прокрутки. */
+    .stage-header {
+      animation: header-settle linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 120px;
+    }
+  }
+}
+
+/* ── Переходы между страницами (React ViewTransition) ──────────────────────────────────── */
+
+::view-transition {
+  pointer-events: none;
+}
+
+/* Страница витрины: старая уходит быстро, новая проявляется мягко и чуть снизу. */
+::view-transition-old(.page-out) {
+  animation: 160ms ease-in both vt-fade reverse;
+}
+::view-transition-new(.page-in) {
+  animation:
+    360ms ease-out 120ms both vt-fade,
+    480ms cubic-bezier(0.2, 0.7, 0.2, 1) 120ms both vt-rise;
+}
+
+/* Фото товара «перелетает» из карточки в каталоге на страницу товара. */
+::view-transition-group(.product-morph) {
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+::view-transition-image-pair(.product-morph) {
+  animation-name: vt-soften;
+}
+
+/* Шапка стоит на месте, пока контент меняется. */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vt-rise {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes vt-soften {
+  35% {
+    filter: blur(2px);
+  }
 }
 
 /* Уважаем системную настройку «уменьшить движение»: глушим анимации и плавную прокрутку. */
@@ -58,5 +445,48 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* Выезжающие панели и выпадающие меню витрины. */
+@theme {
+  --animate-drawer: drawer-in 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade: fade-in 0.3s ease-out both;
+  --animate-pop: pop-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
