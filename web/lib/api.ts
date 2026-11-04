@@ -102,9 +102,33 @@ export class ApiValidationError extends Error {
   }
 }
 
+/** Ответы шлюза, которые Render отдаёт, пока спящий API просыпается. */
+const TRANSIENT_STATUSES = new Set([502, 503, 504]);
+const RETRY_DELAYS_MS = [1_000, 3_000, 6_000];
+
+/**
+ * fetch с повтором при временных сбоях: сетевая ошибка или 502/503/504.
+ * На бесплатном Render API засыпает и просыпается до минуты, без повтора витрина показывает ошибку.
+ */
+async function fetchWithRetry(url: string): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch(url);
+      if (!TRANSIENT_STATUSES.has(response.status) || attempt >= RETRY_DELAYS_MS.length) {
+        return response;
+      }
+    } catch (error) {
+      if (attempt >= RETRY_DELAYS_MS.length) {
+        throw error;
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
+  }
+}
+
 async function getJson<T>(path: string, query?: URLSearchParams): Promise<T | null> {
   const url = `${API_URL}${path}${query && query.size > 0 ? `?${query.toString()}` : ""}`;
-  const response = await fetch(url);
+  const response = await fetchWithRetry(url);
 
   if (response.status === 404) {
     return null;
