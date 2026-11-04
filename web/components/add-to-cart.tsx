@@ -23,7 +23,7 @@ export function AddToCart({ productId, stock }: Props) {
 
   if (stock <= 0) {
     return (
-      <button type="button" disabled className="min-h-11 w-full rounded-md bg-zinc-200 px-6 py-3 font-medium text-zinc-500 sm:w-fit dark:bg-zinc-800">
+      <button type="button" disabled className="min-h-12 w-full rounded-sm border border-zinc-800 px-6 py-3 font-medium text-zinc-500 sm:w-fit">
         {dict.product.outOfStock}
       </button>
     );
@@ -35,22 +35,22 @@ export function AddToCart({ productId, stock }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
       <button
         type="button"
         onClick={add}
         disabled={!canAdd}
-        className="min-h-11 w-full rounded-md bg-zinc-900 px-6 py-3 font-medium text-white disabled:opacity-60 sm:w-fit dark:bg-zinc-100 dark:text-zinc-900"
+        className="stage-button w-full sm:w-fit sm:min-w-56"
       >
         {inCart > 0 ? dict.product.addMore : dict.product.addToCart}
       </button>
-      <p role="status" aria-live="polite" className="text-sm text-zinc-600 dark:text-zinc-400">
+      <p role="status" aria-live="polite" className="text-sm text-zinc-400 empty:hidden motion-safe:animate-fade">
         {inCart > 0 ? (
           <>
             {added ? dict.product.added : null}
             {tpl(dict.product.inCart, { count: inCart })}
             {inCart >= limit ? ` ${dict.product.allStockInCart}` : null}{" "}
-            <Link href={localeHref(locale, "/cart")} className="underline">
+            <Link href={localeHref(locale, "/cart")} className="text-amber-400 underline underline-offset-4">
               {dict.product.goToCart}
             </Link>
           </>

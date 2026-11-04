@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { ImageIcon } from "@/components/icons";
 import type { ProductListItem } from "@/lib/api";
 import type { Locale } from "@/lib/i18n/config";
@@ -7,6 +8,7 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
 import { formatPrice } from "@/lib/format";
+import { productMorphName } from "@/lib/view-transitions";
 
 /** Скидка в процентах (округлённая), если старая цена больше текущей; иначе null. */
 export function discountPercent(price: number, oldPrice: number | null): number | null {
@@ -25,11 +27,18 @@ interface Props {
   headingLevel?: 2 | 3;
   /** Подсказка браузеру о ширине карточки в сетке. */
   sizes?: string;
+  /**
+   * Фото «перелетает» на страницу товара при переходе (общий ViewTransition с галереей).
+   * Имя перехода должно быть уникальным на странице, поэтому выключайте там, где товар
+   * может встретиться дважды (например, «Знижки» рядом с «Новинками»).
+   */
+  morph?: boolean;
 }
 
 /**
- * Карточка товара. Вся карточка кликабельна через «растянутую» ссылку на названии — одна ссылка
- * на товар (без дублей для скринридера), фокус с клавиатуры подсвечивает всю карточку.
+ * Карточка товара: аппарат на чёрной сцене с отражением, при наведении за ним загорается тёплый свет.
+ * Вся карточка кликабельна через «растянутую» ссылку на названии — одна ссылка на товар (без дублей
+ * для скринридера), фокус с клавиатуры подсвечивает всю карточку.
  */
 export function ProductCard({
   product,
@@ -37,27 +46,43 @@ export function ProductCard({
   dict,
   headingLevel = 2,
   sizes = "(min-width: 1024px) 25vw, (min-width: 768px) 33vw, (min-width: 420px) 50vw, 100vw",
+  morph = false,
 }: Props) {
   const href = localeHref(locale, `/products/${product.slug}`);
   const Heading = headingLevel === 2 ? "h2" : "h3";
   const discount = discountPercent(product.price, product.oldPrice);
 
+  const image = product.imageUrl ? (
+    <Image
+      src={product.imageUrl}
+      alt=""
+      fill
+      sizes={sizes}
+      className="stage-vignette object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.04]"
+    />
+  ) : (
+    <div className="flex h-full items-center justify-center text-zinc-600">
+      <ImageIcon className="h-10 w-10" />
+    </div>
+  );
+
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-[border-color,box-shadow] duration-200 has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-focus-ring hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-900/5 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:shadow-black/30">
-      <div className="relative aspect-4/3 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt=""
-            fill
-            sizes={sizes}
-            className="object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.03]"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-zinc-400 dark:text-zinc-600">
-            <ImageIcon className="h-10 w-10" />
-          </div>
-        )}
+    <article className="group relative isolate flex h-full flex-col rounded-sm has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-focus-ring has-[a:focus-visible]:ring-offset-8 has-[a:focus-visible]:ring-offset-zinc-950">
+      {/* Под фото — короткое отражение на «полу» сцены. */}
+      <div className="relative mb-[6%]">
+        <div
+          aria-hidden="true"
+          className="absolute -inset-[12%] -z-10 bg-[radial-gradient(50%_50%_at_50%_45%,rgb(255_160_70/0.22),transparent_70%)] opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+        />
+        <div className="stage-reflect-short relative aspect-4/3 overflow-hidden bg-zinc-950">
+          {morph && product.imageUrl ? (
+            <ViewTransition name={productMorphName(product.slug)} share="product-morph" default="none">
+              <div className="absolute inset-0">{image}</div>
+            </ViewTransition>
+          ) : (
+            image
+          )}
+        </div>
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           {discount !== null ? (
             <span className="rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold text-zinc-950">
@@ -66,43 +91,42 @@ export function ProductCard({
             </span>
           ) : null}
           {product.condition !== "New" ? (
-            <span className="rounded-full bg-zinc-950/80 px-2 py-0.5 text-xs font-medium text-white">
+            <span className="rounded-full border border-white/10 bg-zinc-950/80 px-2 py-0.5 text-xs font-medium text-zinc-200 backdrop-blur">
               {dict.conditions[product.condition]}
             </span>
           ) : null}
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 p-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400">{product.brand.name}</p>
-        <Heading className="text-base font-medium leading-snug">
+      <div className="flex flex-1 flex-col gap-1">
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-zinc-400">{product.brand.name}</p>
+        <Heading className="font-display text-xl leading-tight font-normal sm:text-[1.375rem]">
           <Link
             href={href}
-            className="rounded-sm outline-none after:absolute after:inset-0 after:content-[''] group-hover:text-accent"
+            className="rounded-sm outline-none transition-colors duration-300 after:absolute after:inset-0 after:content-[''] group-hover:text-amber-400"
           >
             {product.name}
           </Link>
         </Heading>
-        <div className="mt-auto flex flex-wrap items-baseline gap-x-2 gap-y-1 pt-3">
-          <span className="text-lg font-semibold tabular-nums">{formatPrice(product.price, locale)}</span>
-          {product.oldPrice !== null ? (
-            <span className="text-sm text-zinc-600 tabular-nums line-through dark:text-zinc-400">
-              <span className="sr-only">{dict.product.oldPrice} </span>
-              {formatPrice(product.oldPrice, locale)}
-            </span>
-          ) : null}
+        <span aria-hidden="true" className="mt-1 h-px w-8 bg-amber-400/50 transition-[width,background-color] duration-500 group-hover:w-16 group-hover:bg-amber-400" />
+        <div className="mt-auto flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-3">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className="text-base font-semibold tabular-nums text-zinc-100">{formatPrice(product.price, locale)}</span>
+            {product.oldPrice !== null ? (
+              <span className="text-sm text-zinc-400 tabular-nums line-through">
+                <span className="sr-only">{dict.product.oldPrice} </span>
+                {formatPrice(product.oldPrice, locale)}
+              </span>
+            ) : null}
+          </div>
+          <p className={`flex items-center gap-1.5 text-xs ${product.inStock ? "text-emerald-400" : "text-zinc-400"}`}>
+            <span
+              aria-hidden="true"
+              className={`h-1.5 w-1.5 rounded-full ${product.inStock ? "bg-emerald-400 shadow-[0_0_6px_rgb(52_211_153/0.8)]" : "bg-zinc-500"}`}
+            />
+            {product.inStock ? dict.product.inStockShort : dict.product.outOfStock}
+          </p>
         </div>
-        <p
-          className={`flex items-center gap-1.5 text-xs ${
-            product.inStock ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-600 dark:text-zinc-400"
-          }`}
-        >
-          <span
-            aria-hidden="true"
-            className={`h-1.5 w-1.5 rounded-full ${product.inStock ? "bg-emerald-600 dark:bg-emerald-400" : "bg-zinc-400"}`}
-          />
-          {product.inStock ? dict.product.inStockShort : dict.product.outOfStock}
-        </p>
       </div>
     </article>
   );

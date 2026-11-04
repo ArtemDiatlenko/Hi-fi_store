@@ -11,11 +11,15 @@ const shortLabel: Record<Locale, string> = { uk: "УКР", en: "ENG" };
 const groupClass =
   "inline-flex overflow-hidden rounded-md border border-zinc-300 text-xs font-semibold dark:border-zinc-700";
 
+// На витрине (.stage) активный язык подсвечен цветом лампы, а не светлой плашкой; в админке всё по-прежнему.
+const stageActive = "in-[.stage]:bg-amber-400/10! in-[.stage]:text-amber-400!";
+const stageIdle = "in-[.stage]:bg-transparent! in-[.stage]:text-zinc-400! in-[.stage]:hover:text-zinc-100!";
+
 function itemClass(active: boolean): string {
-  return `flex min-h-11 min-w-11 items-center justify-center px-3 ${
+  return `flex min-h-11 min-w-11 items-center justify-center px-3 transition-colors ${
     active
-      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-      : "bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+      ? `bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 ${stageActive}`
+      : `bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 ${stageIdle}`
   }`;
 }
 

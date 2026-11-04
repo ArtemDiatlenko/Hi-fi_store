@@ -88,7 +88,7 @@ export function AccountOrderList() {
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{dict.account.ordersTitle}</h1>
+        <h1 className="text-[2rem] leading-tight font-light">{dict.account.ordersTitle}</h1>
         <Link href={localeHref(locale, "/account")} className="text-sm underline">
           {dict.account.profile}
         </Link>
@@ -171,7 +171,7 @@ export function AccountOrder({ params }: { params: Promise<{ id: string }> }) {
 
       {state.status === "loading" ? <p className="text-sm text-zinc-500">{dict.account.loading}</p> : null}
       {state.status === "anonymous" ? <Anonymous locale={locale} dict={dict} /> : null}
-      {state.status === "not-found" ? <h1 className="text-2xl font-semibold">{dict.account.orderNotFound}</h1> : null}
+      {state.status === "not-found" ? <h1 className="text-[2rem] leading-tight font-light">{dict.account.orderNotFound}</h1> : null}
       {state.status === "error" ? (
         <p role="alert" className="text-sm text-red-600">
           {errorMessage(state.httpStatus, dict)}
@@ -180,7 +180,7 @@ export function AccountOrder({ params }: { params: Promise<{ id: string }> }) {
 
       {state.status === "ready" ? (
         <>
-          <h1 className="text-2xl font-semibold">{tpl(dict.account.orderNumber, { number: state.data.number })}</h1>
+          <h1 className="text-[2rem] leading-tight font-light">{tpl(dict.account.orderNumber, { number: state.data.number })}</h1>
           <OrderDetailsView order={state.data} locale={locale} dict={dict} />
         </>
       ) : null}

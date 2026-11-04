@@ -25,7 +25,7 @@ export function CartLink() {
       {/* aria-live: об изменении числа товаров сообщается скринридеру */}
       <span aria-live="polite" aria-atomic="true" className="contents">
         {count > 0 ? (
-          <span className="min-w-6 rounded-full bg-zinc-900 px-1.5 text-center text-xs font-semibold leading-6 text-white dark:bg-zinc-100 dark:text-zinc-900">
+          <span className="min-w-6 rounded-full bg-zinc-900 px-1.5 text-center text-xs font-semibold leading-6 text-white dark:bg-amber-400 dark:text-zinc-950 dark:shadow-[0_0_10px_rgb(255_177_92/0.5)]">
             {count}
           </span>
         ) : null}

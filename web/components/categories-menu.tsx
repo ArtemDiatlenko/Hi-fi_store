@@ -118,7 +118,7 @@ export function CategoriesMenu({ categories }: { categories: Promise<CategoryNod
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
         onKeyDown={onButtonKeyDown}
-        className={`${catalogTriggerClass} aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-900`}
+        className={`${catalogTriggerClass} aria-expanded:text-amber-400`}
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
           <path d="M4 7h16M4 12h16M4 17h10" />
@@ -132,7 +132,7 @@ export function CategoriesMenu({ categories }: { categories: Promise<CategoryNod
         ref={panelRef}
         hidden={!open}
         onKeyDown={onPanelKeyDown}
-        className="absolute left-0 top-full z-50 mt-2 w-[min(60rem,calc(100vw-12rem))] rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl shadow-zinc-900/10 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-black/50"
+        className="absolute left-0 top-full z-50 mt-3 w-[min(60rem,calc(100vw-12rem))] rounded-2xl border border-zinc-800 bg-zinc-950/95 p-7 shadow-2xl shadow-black/60 backdrop-blur-xl motion-safe:animate-pop"
       >
         <div className="mb-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-zinc-200 pb-4 text-sm dark:border-zinc-800">
           <Link

@@ -17,6 +17,8 @@ export interface DemoReview {
 }
 
 export interface DemoMaterials {
+  /** «Чим цей апарат особливий» — короткие пункты для рассказа мастера на странице товара. */
+  highlights: string[];
   video: { title: string; duration: string; poster: string | null };
   review: string[];
   setup: string[];
@@ -40,6 +42,12 @@ function texts(kind: Kind, name: string): Omit<DemoMaterials, "video" | "reviews
   switch (kind) {
     case "integrated":
       return {
+        highlights: [
+          "Кожен екземпляр щонайменше дві години слухають на стенді з різними колонками.",
+          "Нейтральне звучання з щільним басом — без прикрас і «пісочку» на верхах.",
+          "Пасує до поличної й підлогової акустики з чутливістю від 86 дБ.",
+          "Два роки гарантії на електроніку, далі — сервіс за собівартістю деталей.",
+        ],
         videoTitle: `${name}: огляд і перше ввімкнення`,
         duration: "7:42",
         review: [
@@ -68,6 +76,12 @@ function texts(kind: Kind, name: string): Omit<DemoMaterials, "video" | "reviews
       };
     case "tube":
       return {
+        highlights: [
+          "Вихідні трансформатори майстер мотає сам під цю схему.",
+          "Жива, об’ємна середина: голоси звучать так, ніби виконавець у кімнаті.",
+          "Захисна решітка ламп знімається — ставте її, якщо вдома діти чи тварини.",
+          "Підібрані пари ламп на заміну завжди є в майстерні.",
+        ],
         videoTitle: `${name}: як я його збираю — від шасі до першого звуку`,
         duration: "14:05",
         review: [
@@ -97,6 +111,12 @@ function texts(kind: Kind, name: string): Omit<DemoMaterials, "video" | "reviews
     case "bookshelf":
     case "floor":
       return {
+        highlights: [
+          "Корпуси клеяться й шліфуються вручну.",
+          "Динаміки підібрані парами за вимірами — різниця між каналами не більше 0,5 дБ.",
+          kind === "floor" ? "Повноцінний бас без сабвуфера навіть у великій кімнаті." : "Бас глибший, ніж чекаєш від такого розміру.",
+          "Корпус можна замовити в шпоні іншої породи або у фарбі.",
+        ],
         videoTitle: `${name}: розміщення в кімнаті та прослуховування`,
         duration: "9:18",
         review: [
@@ -129,6 +149,12 @@ function texts(kind: Kind, name: string): Omit<DemoMaterials, "video" | "reviews
       };
     case "turntable":
       return {
+        highlights: [
+          "Важкий корпус гасить вібрації — програвач можна ставити поруч із колонками.",
+          "Звукознімач уже встановлено й відрегульовано на стенді.",
+          "Стабільна швидкість, без «пливучості» на довгих нотах фортепіано.",
+          "Запасний пасик — у комплекті.",
+        ],
         videoTitle: `${name}: налаштування тонарма за 10 хвилин`,
         duration: "10:27",
         review: [
@@ -157,6 +183,12 @@ function texts(kind: Kind, name: string): Omit<DemoMaterials, "video" | "reviews
       };
     case "cable":
       return {
+        highlights: [
+          "Паяється вручну срібловмісним припоєм.",
+          "Кожен кабель перевіряють на стенді: опір, ємність, цілісність екрана.",
+          "Позолочені контакти не окислюються роками.",
+          "Будь-яка довжина від 0,3 до 5 м без доплати.",
+        ],
         videoTitle: `${name}: з чого зроблений кабель і як його паяють`,
         duration: "5:31",
         review: [
