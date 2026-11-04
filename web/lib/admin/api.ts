@@ -20,14 +20,16 @@ export interface RequestOptions {
 
 export async function sendRequest<T>(path: string, token: string, options: RequestOptions = {}): Promise<ApiOutcome<T>> {
   const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
-  if (options.body !== undefined) {
+  // FormData (загрузка файлов) браузер отправляет как multipart сам, с нужной границей в Content-Type.
+  const isForm = options.body instanceof FormData;
+  if (options.body !== undefined && !isForm) {
     headers["Content-Type"] = "application/json";
   }
   try {
     const response = await fetch(path, {
       method: options.method ?? "GET",
       headers,
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body: isForm ? (options.body as FormData) : options.body !== undefined ? JSON.stringify(options.body) : undefined,
       signal: options.signal,
       cache: "no-store",
     });

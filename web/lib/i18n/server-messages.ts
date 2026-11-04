@@ -199,6 +199,20 @@ const ADMIN_EXACT: Record<string, Translations> = {
     en: "Expected an http(s) URL or a path from the site root, e.g. /images/amp.png.",
   },
   "Ожидается идентификатор (GUID).": { uk: "Потрібен ідентифікатор (GUID).", en: "An identifier (GUID) is expected." },
+  // Загрузка фото (POST /api/admin/media/images).
+  "Выберите файл изображения.": { uk: "Оберіть файл зображення.", en: "Choose an image file." },
+  "Поддерживаются изображения JPEG, PNG и WebP.": {
+    uk: "Підтримуються зображення JPEG, PNG і WebP.",
+    en: "JPEG, PNG and WebP images are supported.",
+  },
+  "Отправьте файл в поле «file» (multipart/form-data).": {
+    uk: "Надішліть файл у полі «file» (multipart/form-data).",
+    en: "Send the file in the “file” field (multipart/form-data).",
+  },
+  "Не удалось прочитать файл. Попробуйте загрузить его ещё раз.": {
+    uk: "Не вдалося прочитати файл. Спробуйте завантажити його ще раз.",
+    en: "Could not read the file. Try uploading it again.",
+  },
   // Заказы.
   "Такой переход статуса невозможен.": {
     uk: "Такий перехід статусу неможливий.",
@@ -227,6 +241,14 @@ const ADMIN_PATTERNS: {
     test: /^Не длиннее (\d+) символов\.$/,
     names: ["n"],
     translations: { uk: "Не довше {n} символів.", en: "No longer than {n} characters." },
+  },
+  {
+    test: /^Файл больше (\d+) МБ\. Уменьшите фото или сохраните его с меньшим качеством\.$/,
+    names: ["n"],
+    translations: {
+      uk: "Файл більший за {n} МБ. Зменште фото або збережіть його з нижчою якістю.",
+      en: "The file is larger than {n} MB. Make the photo smaller or save it at a lower quality.",
+    },
   },
   {
     test: /^Не больше (\d+) изображений\.$/,

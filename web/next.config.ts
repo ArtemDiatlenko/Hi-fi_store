@@ -12,7 +12,11 @@ const nextConfig: NextConfig = {
     remotePatterns: REMOTE_IMAGE_HOSTS.map((hostname) => ({ protocol: "https" as const, hostname })),
   },
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }];
+    return [
+      { source: "/api/:path*", destination: `${apiUrl}/api/:path*` },
+      // Загруженные фото товаров: API отдаёт их из хранилища (диск или S3), адрес в базе от хранилища не зависит.
+      { source: "/media/:path*", destination: `${apiUrl}/media/:path*` },
+    ];
   },
   turbopack: {
     rules: {

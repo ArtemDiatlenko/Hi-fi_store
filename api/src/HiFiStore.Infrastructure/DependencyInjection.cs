@@ -3,6 +3,7 @@ using HiFiStore.Infrastructure.Catalog.Admin;
 using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Inquiries;
+using HiFiStore.Infrastructure.Media;
 using HiFiStore.Infrastructure.Orders;
 using HiFiStore.Infrastructure.Persistence;
 using Microsoft.AspNetCore.DataProtection;
@@ -66,6 +67,37 @@ public static class DependencyInjection
 
         services.AddScoped<OrderNotifier>();
 
+        AddMedia(services, configuration);
+
         return services;
+    }
+
+    /// <summary>Хранилище загруженных файлов: Disk (по умолчанию) или S3 — см. <see cref="MediaOptions"/>.</summary>
+    private static void AddMedia(IServiceCollection services, IConfiguration configuration)
+    {
+        var media = configuration.GetSection(MediaOptions.Section).Get<MediaOptions>() ?? new MediaOptions();
+        if (media.MaxImageBytes <= 0)
+        {
+            throw new InvalidOperationException("Media:MaxImageBytes должен быть больше нуля.");
+        }
+
+        services.AddSingleton(media);
+        services.AddScoped<ProductImageUploader>();
+
+        switch (media.Provider?.Trim().ToLowerInvariant())
+        {
+            case "s3":
+                S3MediaStorage.Validate(media.S3);
+                services.TryAddSingleton<IMediaStorage>(_ => new S3MediaStorage(media.S3));
+                break;
+            case "disk" or "" or null:
+                // Относительный путь — от каталога приложения (content root), а не от папки сборки bin/.
+                var contentRoot = configuration["contentRoot"] ?? Directory.GetCurrentDirectory();
+                var root = Path.IsPathRooted(media.Disk.Path) ? media.Disk.Path : Path.Combine(contentRoot, media.Disk.Path);
+                services.TryAddSingleton<IMediaStorage>(_ => new DiskMediaStorage(root));
+                break;
+            default:
+                throw new InvalidOperationException("Media:Provider должен быть Disk или S3.");
+        }
     }
 }
