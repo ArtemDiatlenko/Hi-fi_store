@@ -4,7 +4,7 @@
 // Порядок меняется кнопками «вгору/вниз» (доступны с клавиатуры), фокус остаётся на перемещённом
 // изображении, а живой регион сообщает новую позицию. Первое изображение — главное.
 
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, useLayoutEffect, useRef, useState } from "react";
 import { AdminThumb, useDebouncedValue } from "@/components/admin/thumb";
 import { buttonClass, Field, FormAlert, type FormProblem } from "@/components/admin/ui";
 import { type FieldErrors, focusFirstInvalid } from "@/lib/admin/api";
@@ -62,6 +62,12 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
   const uploading = rows.some((row) => row.uploading);
+  // Актуальный список для действий после загрузки (замыкание uploadFiles видит состояние на момент вызова).
+  const rowsRef = useRef(rows);
+  // useLayoutEffect срабатывает раньше обычных эффектов, в том числе эффекта useAfterCommit.
+  useLayoutEffect(() => {
+    rowsRef.current = rows;
+  });
   useUnsavedChanges(
     rows.length !== product.images.length ||
       rows.some((row, index) => row.url !== product.images[index].url || row.alt !== (product.images[index].alt ?? "")),
@@ -174,6 +180,17 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
       }),
     );
     setAnnouncement(tpl(t.uploadedCount, { n: done }));
+
+    // Загруженное фото сразу привязываем к товару: иначе легко опубликовать товар, забыв нажать «Зберегти».
+    // Если в списке есть незаполненные строки (адрес вводят вручную), сохранение остаётся за администратором.
+    if (done > 0) {
+      afterCommit(() => {
+        const current = rowsRef.current;
+        if (current.length > 0 && current.every((row) => !row.uploading && row.url.trim() !== "")) {
+          formRef.current?.requestSubmit();
+        }
+      });
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
