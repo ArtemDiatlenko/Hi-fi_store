@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using System.Text.RegularExpressions;
 using HiFiStore.Domain.Inquiries;
 using HiFiStore.Infrastructure.Orders;
@@ -102,7 +103,7 @@ public static partial class InquiryValidator
             return false;
         }
 
-        inquiry = new ValidatedInquiry(topic, name!, phone, email, contact, message!, budget, slug);
+        inquiry = new ValidatedInquiry(topic, name!, phone, email, contact, message!, budget, slug, ContentLocales.Resolve(request.Locale));
         return true;
     }
 

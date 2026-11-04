@@ -174,6 +174,8 @@ export function CheckoutForm() {
       address: method === "NovaPoshtaCourier" ? values.address : null,
       paymentMethod: values.paymentMethod,
       comment: values.comment,
+      // Язык витрины: на нём придут письма о заказе.
+      locale,
     };
 
     try {

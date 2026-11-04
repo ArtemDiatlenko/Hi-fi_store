@@ -484,6 +484,13 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasDefaultValue("uk");
+
                     b.Property<string>("ManagerNote")
                         .HasMaxLength(3000)
                         .HasColumnType("character varying(3000)");

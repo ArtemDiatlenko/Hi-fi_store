@@ -138,6 +138,7 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
           productSlug: productRemoved ? null : productParam,
           consent: form.get("consent") === "on",
           website: form.get("website"),
+          locale,
         }),
       });
       if (response.ok) {

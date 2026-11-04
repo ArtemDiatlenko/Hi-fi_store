@@ -124,6 +124,7 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
             PublicTokenHash = tokenHash,
             Status = OrderStatus.New,
             UserId = userId,
+            Locale = checkout.Locale,
             CustomerName = checkout.FullName,
             CustomerPhone = checkout.Phone,
             CustomerEmail = checkout.Email,
@@ -160,7 +161,8 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
-        return new PlaceOrderResult.Placed(new CheckoutResponse(token, ToDetails(order)));
+        // Покупателю (ответ и письмо) — названия на его языке; в заказе остаётся снимок на основном.
+        return new PlaceOrderResult.Placed(new CheckoutResponse(token, await LocalizeItemsAsync(ToDetails(order), checkout.Locale, ct)));
     }
 
     public async Task<OrderDetails?> GetByTokenAsync(string token, string locale = ContentLocales.Base, CancellationToken ct = default)
@@ -400,7 +402,8 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         order.Total,
         order.CreatedAt,
         order.UpdatedAt,
-        order.TrackingNumber);
+        order.TrackingNumber,
+        order.Locale);
 
     private static AdminOrderDetails ToAdminDetails(Order order) => new(
         order.Id,
@@ -417,7 +420,8 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         order.CreatedAt,
         order.UpdatedAt,
         order.TrackingNumber,
-        order.ManagerNote);
+        order.ManagerNote,
+        order.Locale);
 
     private static OrderCustomerDto ToCustomer(Order order) =>
         new(order.CustomerName, order.CustomerPhone, order.CustomerEmail);
