@@ -86,7 +86,7 @@ async function ProductView({ params }: { params: Promise<{ slug: string }> }) {
   ];
   const discount = discountPercent(product.price, product.oldPrice);
   // Демо-наполнение (огляд, відео, догляд, відгуки) — пока у товаров нет своих материалов, см. lib/demo-content.ts.
-  const materials = getDemoMaterials(product);
+  const materials = getDemoMaterials(product, locale);
 
   return (
     <div className="flex flex-col">

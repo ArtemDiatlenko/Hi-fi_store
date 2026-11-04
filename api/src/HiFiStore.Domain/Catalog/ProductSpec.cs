@@ -19,4 +19,7 @@ public class ProductSpec
     public decimal? NumberValue { get; set; }
 
     public bool? BoolValue { get; set; }
+
+    /// <summary>Переводы текстового значения.</summary>
+    public List<ProductSpecTranslation> Translations { get; set; } = [];
 }

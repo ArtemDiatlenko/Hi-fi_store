@@ -18,6 +18,7 @@ import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
+import { CategoryTranslationEditor } from "@/components/admin/translation-editors";
 
 export function CategoryCreate() {
   const { locale, dict } = useI18n();
@@ -216,6 +217,13 @@ export function CategoryEditor({ params }: { params: Promise<{ id: string }> }) 
             category.reload();
           }}
           onProblem={showProblem}
+        />
+      </Section>
+
+      <Section title={dict.admin.translations.categoryTitle} description={dict.admin.translations.categoryHint}>
+        <CategoryTranslationEditor
+          categoryId={data.id}
+          version={JSON.stringify([data.name, data.description, data.specs.map((spec) => [spec.key, spec.name, spec.unit])])}
         />
       </Section>
 

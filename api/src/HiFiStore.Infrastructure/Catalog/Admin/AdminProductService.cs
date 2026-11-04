@@ -116,7 +116,7 @@ public sealed class AdminProductService(StoreDbContext db, TimeProvider time) : 
         Guid id, SetProductSpecsRequest request, CancellationToken ct = default)
     {
         var product = await db.Products
-            .Include(p => p.Specs)
+            .Include(p => p.Specs).ThenInclude(s => s.Translations)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
         if (product is null)
         {
@@ -186,6 +186,12 @@ public sealed class AdminProductService(StoreDbContext db, TimeProvider time) : 
             {
                 spec = new ProductSpec { ProductId = product.Id, SpecDefinitionId = definitionId };
                 db.ProductSpecs.Add(spec);
+            }
+
+            // Основное значение поменялось — его переводы описывают уже другое значение.
+            if (spec.TextValue != value.Text)
+            {
+                spec.Translations.Clear();
             }
 
             spec.TextValue = value.Text;

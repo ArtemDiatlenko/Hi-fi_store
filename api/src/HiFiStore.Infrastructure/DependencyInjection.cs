@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminBrandService, AdminBrandService>();
         services.AddScoped<IAdminCategoryService, AdminCategoryService>();
         services.AddScoped<IAdminProductService, AdminProductService>();
+        services.AddScoped<AdminTranslationService>();
 
         // Учётные записи администраторов (create-admin, Seed:Admin). UserManager регистрирует Identity в API-проекте.
         services.AddScoped<AdminAccountService>();

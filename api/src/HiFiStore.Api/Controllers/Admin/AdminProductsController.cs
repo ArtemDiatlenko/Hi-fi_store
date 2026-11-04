@@ -10,7 +10,7 @@ namespace HiFiStore.Api.Controllers.Admin;
 /// только после <c>POST .../publish</c>.
 /// </summary>
 [Route("api/admin/products")]
-public sealed class AdminProductsController(IAdminProductService products) : AdminControllerBase
+public sealed class AdminProductsController(IAdminProductService products, AdminTranslationService translations) : AdminControllerBase
 {
     /// <summary>Параметры: <c>q</c>, <c>categoryId</c>, <c>brandId</c>, <c>published</c>, <c>page</c>, <c>pageSize</c>.</summary>
     [HttpGet]
@@ -83,4 +83,22 @@ public sealed class AdminProductsController(IAdminProductService products) : Adm
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Unpublish(Guid id, CancellationToken ct) =>
         FromResult(await products.SetPublishedAsync(id, false, ct), Ok);
+
+    /// <summary>Перевод товара на язык <c>locale</c> (например, <c>en</c>) рядом с основным текстом.</summary>
+    [HttpGet("{id:guid}/translations/{locale}")]
+    [ProducesResponseType<ProductTranslationDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTranslation(Guid id, string locale, CancellationToken ct) =>
+        FromResult(await translations.GetProductAsync(id, locale, ct), Ok);
+
+    /// <summary>
+    /// Сохраняет перевод названия, описаний и текстовых характеристик. Пустое название удаляет перевод товара,
+    /// пустое значение характеристики — её перевод.
+    /// </summary>
+    [HttpPut("{id:guid}/translations/{locale}")]
+    [ProducesResponseType<ProductTranslationDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetTranslation(Guid id, string locale, ProductTranslationRequest request, CancellationToken ct) =>
+        FromResult(await translations.SetProductAsync(id, locale, request, ct), Ok);
 }

@@ -109,3 +109,52 @@ internal sealed class ProductSpecConfiguration : IEntityTypeConfiguration<Produc
         builder.HasIndex(s => new { s.SpecDefinitionId, s.TextValue });
     }
 }
+
+internal sealed class ProductTranslationConfiguration : IEntityTypeConfiguration<ProductTranslation>
+{
+    public void Configure(EntityTypeBuilder<ProductTranslation> builder)
+    {
+        builder.HasKey(t => new { t.ProductId, t.Locale });
+        builder.Property(t => t.Locale).HasMaxLength(8);
+        builder.Property(t => t.Name).HasMaxLength(300);
+        builder.Property(t => t.ShortDescription).HasMaxLength(500);
+        builder.HasOne<Product>().WithMany(p => p.Translations).HasForeignKey(t => t.ProductId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class CategoryTranslationConfiguration : IEntityTypeConfiguration<CategoryTranslation>
+{
+    public void Configure(EntityTypeBuilder<CategoryTranslation> builder)
+    {
+        builder.HasKey(t => new { t.CategoryId, t.Locale });
+        builder.Property(t => t.Locale).HasMaxLength(8);
+        builder.Property(t => t.Name).HasMaxLength(200);
+        builder.HasOne<Category>().WithMany(c => c.Translations).HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class SpecDefinitionTranslationConfiguration : IEntityTypeConfiguration<SpecDefinitionTranslation>
+{
+    public void Configure(EntityTypeBuilder<SpecDefinitionTranslation> builder)
+    {
+        builder.HasKey(t => new { t.SpecDefinitionId, t.Locale });
+        builder.Property(t => t.Locale).HasMaxLength(8);
+        builder.Property(t => t.Name).HasMaxLength(200);
+        builder.Property(t => t.Unit).HasMaxLength(32);
+        builder.HasOne<SpecDefinition>().WithMany(d => d.Translations).HasForeignKey(t => t.SpecDefinitionId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class ProductSpecTranslationConfiguration : IEntityTypeConfiguration<ProductSpecTranslation>
+{
+    public void Configure(EntityTypeBuilder<ProductSpecTranslation> builder)
+    {
+        builder.HasKey(t => new { t.ProductId, t.SpecDefinitionId, t.Locale });
+        builder.Property(t => t.Locale).HasMaxLength(8);
+        builder.Property(t => t.TextValue).HasMaxLength(500);
+        builder.HasOne<ProductSpec>()
+            .WithMany(s => s.Translations)
+            .HasForeignKey(t => new { t.ProductId, t.SpecDefinitionId })
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

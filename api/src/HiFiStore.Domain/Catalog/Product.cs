@@ -40,6 +40,9 @@ public class Product
 
     public List<ProductSpec> Specs { get; set; } = [];
 
+    /// <summary>Переводы названия и описаний (см. <see cref="ContentLocales"/>).</summary>
+    public List<ProductTranslation> Translations { get; set; } = [];
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
