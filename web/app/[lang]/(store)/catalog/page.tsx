@@ -161,7 +161,7 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
             </div>
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-x-6 gap-y-12 min-[420px]:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12 xl:grid-cols-3">
             {products.items.map((product) => (
               <li key={product.id} className="stage-reveal">
                 <ProductCard
@@ -169,7 +169,7 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
                   locale={locale}
                   dict={dict}
                   headingLevel={3}
-                  sizes="(min-width: 1280px) 25vw, (min-width: 420px) 50vw, 100vw"
+                  sizes="(min-width: 1280px) 25vw, 50vw"
                   morph
                 />
               </li>

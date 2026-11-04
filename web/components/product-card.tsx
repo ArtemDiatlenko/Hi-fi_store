@@ -83,15 +83,15 @@ export function ProductCard({
             image
           )}
         </div>
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1 sm:left-3 sm:top-3 sm:gap-1.5">
           {discount !== null ? (
-            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold text-zinc-950">
+            <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-zinc-950 sm:px-2 sm:text-xs">
               <span aria-hidden="true">{tpl(dict.product.discount, { percent: discount })}</span>
               <span className="sr-only">{tpl(dict.product.discountLabel, { percent: discount })}</span>
             </span>
           ) : null}
           {product.condition !== "New" ? (
-            <span className="rounded-full border border-white/10 bg-zinc-950/80 px-2 py-0.5 text-xs font-medium text-zinc-200 backdrop-blur">
+            <span className="rounded-full border border-white/10 bg-zinc-950/80 px-1.5 py-0.5 text-[0.6875rem] font-medium text-zinc-200 backdrop-blur sm:px-2 sm:text-xs">
               {dict.conditions[product.condition]}
             </span>
           ) : null}
@@ -99,8 +99,8 @@ export function ProductCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-1">
-        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-zinc-400">{product.brand.name}</p>
-        <Heading className="font-display text-xl leading-tight font-normal sm:text-[1.375rem]">
+        <p className="truncate text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-zinc-400 sm:text-[0.6875rem] sm:tracking-[0.2em]">{product.brand.name}</p>
+        <Heading className="font-display text-lg leading-tight font-normal break-words sm:text-[1.375rem]">
           <Link
             href={href}
             className="rounded-sm outline-none transition-colors duration-300 after:absolute after:inset-0 after:content-[''] group-hover:text-amber-400"
@@ -109,11 +109,11 @@ export function ProductCard({
           </Link>
         </Heading>
         <span aria-hidden="true" className="mt-1 h-px w-8 bg-amber-400/50 transition-[width,background-color] duration-500 group-hover:w-16 group-hover:bg-amber-400" />
-        <div className="mt-auto flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-3">
+        <div className="mt-auto flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-2 sm:pt-3">
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <span className="text-base font-semibold tabular-nums text-zinc-100">{formatPrice(product.price, locale)}</span>
+            <span className="text-sm font-semibold tabular-nums text-zinc-100 sm:text-base">{formatPrice(product.price, locale)}</span>
             {product.oldPrice !== null ? (
-              <span className="text-sm text-zinc-400 tabular-nums line-through">
+              <span className="text-xs text-zinc-400 tabular-nums line-through sm:text-sm">
                 <span className="sr-only">{dict.product.oldPrice} </span>
                 {formatPrice(product.oldPrice, locale)}
               </span>
