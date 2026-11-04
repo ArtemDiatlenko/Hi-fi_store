@@ -189,6 +189,10 @@ const ADMIN_EXACT: Record<string, Translations> = {
     uk: "Вкажіть адресу та опис зображення.",
     en: "Enter the image URL and description.",
   },
+  "Номер ТТН: от 4 до 40 цифр или латинских букв, например 20450000000000.": {
+    uk: "Номер ТТН: від 4 до 40 цифр або латинських літер, наприклад 20450000000000.",
+    en: "Tracking number: 4 to 40 digits or Latin letters, e.g. 20450000000000.",
+  },
   "Укажите номер с кодом страны, например +380 67 123 45 67.": {
     uk: "Вкажіть номер із кодом країни, наприклад +380 67 123 45 67.",
     en: "Enter the number with the country code, e.g. +380 67 123 45 67.",

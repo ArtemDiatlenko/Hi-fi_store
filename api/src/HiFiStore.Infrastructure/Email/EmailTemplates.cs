@@ -86,6 +86,12 @@ public static class EmailTemplates
             [
                 Paragraph($"Вітаємо, {order.Customer.FullName}!"),
                 Paragraph($"Ваше замовлення №{order.Number} {text}"),
+                order.Status == OrderStatus.Shipped && order.TrackingNumber is { } tracking
+                    ? Paragraph($"Номер ТТН: {tracking}")
+                    : Block.Empty,
+                order.Status == OrderStatus.Shipped && OrderTracking.NovaPoshtaTrackingUrl(order.TrackingNumber) is { } trackingUrl
+                    ? Button("Відстежити посилку", trackingUrl)
+                    : Block.Empty,
                 link is null ? Block.Empty : Button("Переглянути замовлення", link),
             ]);
     }

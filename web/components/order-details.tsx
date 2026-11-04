@@ -6,7 +6,7 @@ import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import { tpl } from "@/lib/i18n/util";
-import { type OrderDetails, type OrderStatus } from "@/lib/orders";
+import { novaPoshtaTrackingUrl, type OrderDetails, type OrderStatus } from "@/lib/orders";
 import { formatPhone } from "@/lib/phone";
 
 const statusStyles: Record<OrderStatus, string> = {
@@ -99,6 +99,24 @@ export function OrderDetailsView({ order, locale, dict }: { order: OrderDetails;
               <dt className="text-zinc-500">{dict.order.payment}</dt>
               <dd>{dict.payment[order.paymentMethod].label}</dd>
             </div>
+            {order.trackingNumber ? (
+              <div>
+                <dt className="text-zinc-500">{dict.order.trackingNumber}</dt>
+                <dd className="flex flex-wrap items-baseline gap-x-3">
+                  <span className="font-mono tabular-nums">{order.trackingNumber}</span>
+                  {novaPoshtaTrackingUrl(order.trackingNumber) ? (
+                    <a
+                      href={novaPoshtaTrackingUrl(order.trackingNumber)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      {dict.order.trackParcel}
+                    </a>
+                  ) : null}
+                </dd>
+              </div>
+            ) : null}
           </dl>
         </section>
 

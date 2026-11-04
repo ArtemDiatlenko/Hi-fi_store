@@ -30,5 +30,13 @@ public interface IOrderService
     /// Меняет статус, если переход разрешён <see cref="OrderWorkflow"/>. При отмене возвращает товары
     /// на склад — ровно один раз, даже при параллельных запросах.
     /// </summary>
-    Task<ChangeStatusResult> ChangeStatusAsync(Guid orderId, OrderStatus status, CancellationToken ct = default);
+    /// <param name="trackingNumber">ТТН при отправке (уже проверенный, см. <see cref="OrderTracking"/>).</param>
+    Task<ChangeStatusResult> ChangeStatusAsync(
+        Guid orderId, OrderStatus status, string? trackingNumber = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// Сохраняет ТТН и заметку менеджера (значения уже проверены). <c>null</c> — заказа нет.
+    /// </summary>
+    Task<UpdateAdminInfoResult?> UpdateAdminInfoAsync(
+        Guid orderId, string? trackingNumber, string? managerNote, CancellationToken ct = default);
 }

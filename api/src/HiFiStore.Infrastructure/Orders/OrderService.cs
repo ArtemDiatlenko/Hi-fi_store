@@ -261,7 +261,8 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         return order is null ? null : ToAdminDetails(order);
     }
 
-    public async Task<ChangeStatusResult> ChangeStatusAsync(Guid orderId, OrderStatus status, CancellationToken ct = default)
+    public async Task<ChangeStatusResult> ChangeStatusAsync(
+        Guid orderId, OrderStatus status, string? trackingNumber = null, CancellationToken ct = default)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
 
@@ -286,7 +287,12 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         var expected = current.Value;
         var updated = await db.Orders
             .Where(o => o.Id == orderId && o.Status == expected)
-            .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, status).SetProperty(o => o.UpdatedAt, now), ct);
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(o => o.Status, status)
+                    .SetProperty(o => o.UpdatedAt, now)
+                    // ТТН вносится при отправке; пустое значение не стирает уже записанный номер.
+                    .SetProperty(o => o.TrackingNumber, o => trackingNumber ?? o.TrackingNumber),
+                ct);
 
         if (updated == 0)
         {
@@ -322,6 +328,25 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         return new ChangeStatusResult.Changed(ToAdminDetails(order!));
     }
 
+    public async Task<UpdateAdminInfoResult?> UpdateAdminInfoAsync(
+        Guid orderId, string? trackingNumber, string? managerNote, CancellationToken ct = default)
+    {
+        var order = await db.Orders.FirstOrDefaultAsync(o => o.Id == orderId, ct);
+        if (order is null)
+        {
+            return null;
+        }
+
+        var trackingChanged = order.TrackingNumber != trackingNumber;
+        order.TrackingNumber = trackingNumber;
+        order.ManagerNote = managerNote;
+        order.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        var saved = await LoadAsync(db.Orders.Where(o => o.Id == orderId), ct);
+        return new UpdateAdminInfoResult(ToAdminDetails(saved!), trackingChanged);
+    }
+
     private async Task<List<StockShortage>> DescribeShortagesAsync(List<CartLine> failed, CancellationToken ct)
     {
         var failedIds = failed.Select(l => l.ProductId).ToList();
@@ -352,7 +377,8 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         ToItems(order),
         order.Total,
         order.CreatedAt,
-        order.UpdatedAt);
+        order.UpdatedAt,
+        order.TrackingNumber);
 
     private static AdminOrderDetails ToAdminDetails(Order order) => new(
         order.Id,
@@ -367,7 +393,9 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         ToItems(order),
         order.Total,
         order.CreatedAt,
-        order.UpdatedAt);
+        order.UpdatedAt,
+        order.TrackingNumber,
+        order.ManagerNote);
 
     private static OrderCustomerDto ToCustomer(Order order) =>
         new(order.CustomerName, order.CustomerPhone, order.CustomerEmail);

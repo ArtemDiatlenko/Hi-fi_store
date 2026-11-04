@@ -116,7 +116,8 @@ public sealed record OrderDetails(
     IReadOnlyList<OrderItemDto> Items,
     decimal Total,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string? TrackingNumber);
 
 /// <summary>Результат оформления. <see cref="Token"/> — ключ к странице подтверждения, показывается один раз.</summary>
 public sealed record CheckoutResponse(string Token, OrderDetails Order);
@@ -150,7 +151,12 @@ public sealed record AdminOrderDetails(
     IReadOnlyList<OrderItemDto> Items,
     decimal Total,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string? TrackingNumber,
+    string? ManagerNote);
+
+/// <summary>Служебные поля заказа, которые менеджер может поправить в любой момент. Пусто — очистить.</summary>
+public sealed record OrderAdminInfoRequest(string? TrackingNumber, string? ManagerNote);
 
 public sealed record StockShortage(Guid ProductId, string Name, int Requested, int Available);
 
