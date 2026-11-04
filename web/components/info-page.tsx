@@ -42,7 +42,7 @@ export async function InfoPage({ page }: { page: InfoPageKey }) {
                     aria-current={active ? "page" : undefined}
                     className={`flex min-h-11 items-center rounded-full border px-4 text-sm lg:rounded-lg lg:border-0 lg:px-3 ${
                       active
-                        ? "border-zinc-900 bg-zinc-900 font-medium text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                        ? "border-zinc-900 bg-zinc-900 font-medium text-white dark:border-amber-400/60 dark:bg-amber-400/10 dark:text-amber-400"
                         : "border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
                     }`}
                   >
@@ -56,7 +56,7 @@ export async function InfoPage({ page }: { page: InfoPageKey }) {
 
         <article className="flex max-w-3xl flex-col gap-8">
           <header className="flex flex-col gap-4">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{content.title}</h1>
+            <h1 className="text-4xl leading-tight font-light sm:text-5xl">{content.title}</h1>
             <p
               role="note"
               className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100"
@@ -102,7 +102,7 @@ export async function InfoPage({ page }: { page: InfoPageKey }) {
 
           {content.sections.map((section) => (
             <section key={section.title} className="flex flex-col gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-              <h2 className="text-xl font-semibold">{section.title}</h2>
+              <h2 className="text-[1.75rem] leading-tight font-normal">{section.title}</h2>
               {section.body.map((paragraph) => (
                 <p key={paragraph} className="leading-relaxed text-zinc-700 dark:text-zinc-300">
                   {paragraph}

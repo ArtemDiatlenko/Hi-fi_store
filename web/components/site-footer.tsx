@@ -9,8 +9,8 @@ import { localeHref } from "@/lib/i18n/routing";
 import { getI18n } from "@/lib/i18n/server";
 import { STORE_CONTACTS, telHref } from "@/lib/site";
 
-const linkClass = "rounded-sm text-zinc-400 hover:text-white hover:underline";
-const headingClass = "text-sm font-semibold uppercase tracking-wider text-zinc-100";
+const linkClass = "stage-link rounded-sm text-zinc-400";
+const headingClass = "stage-kicker";
 
 /**
  * Подвал: о магазине, разделы каталога (потоково, из того же промиса, что и шапка), информация
@@ -29,13 +29,15 @@ export async function SiteFooter({ categories }: { categories: Promise<CategoryN
   ];
 
   return (
-    <footer className="mt-16 bg-zinc-950 text-zinc-300 [color-scheme:dark]">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:py-16">
+    <footer className="relative isolate mt-20 overflow-hidden border-t border-zinc-800 bg-zinc-950 text-zinc-300">
+      {/* Последний отсвет сцены у нижнего края страницы. */}
+      <div aria-hidden="true" className="absolute inset-x-0 -top-40 -z-10 h-80 bg-[radial-gradient(50%_50%_at_50%_50%,rgb(255_160_70/0.07),transparent_70%)]" />
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:py-20">
         <div className="flex flex-col gap-4">
-          <span className="text-white">
-            <Logo href={localeHref(locale, "/")} label={dict.header.homeLink} brand={dict.common.brand} tone="dark" />
+          <span>
+            <Logo href={localeHref(locale, "/")} label={dict.header.homeLink} brand={dict.common.brand} />
           </span>
-          <p className="max-w-xs text-sm leading-relaxed text-zinc-400">{dict.footer.about}</p>
+          <p className="max-w-xs font-display text-lg italic leading-snug text-zinc-300">{dict.footer.about}</p>
         </div>
 
         <nav aria-labelledby="footer-catalog">
@@ -111,7 +113,7 @@ export async function SiteFooter({ categories }: { categories: Promise<CategoryN
       </div>
 
       <div className="border-t border-zinc-800">
-        <p className="mx-auto max-w-7xl px-4 py-5 text-xs text-zinc-400">{dict.footer.tagline}</p>
+        <p className="mx-auto max-w-7xl px-4 py-6 text-xs tracking-wide text-zinc-500 sm:px-6">{dict.footer.tagline}</p>
       </div>
     </footer>
   );

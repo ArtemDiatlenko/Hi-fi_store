@@ -84,10 +84,10 @@ export function ProductMaterials({ materials }: { materials: DemoMaterials }) {
   }
 
   return (
-    <section aria-labelledby={`${baseId}-title`} className="flex flex-col gap-5 border-t border-zinc-200 pt-10 dark:border-zinc-800">
+    <section aria-labelledby={`${baseId}-title`} className="flex flex-col gap-6 pt-14">
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 id={`${baseId}-title`} className="text-2xl font-semibold tracking-tight">
+          <h2 id={`${baseId}-title`} className="text-[2rem] leading-tight font-light sm:text-[2.75rem]">
             {t.title}
           </h2>
           <span className="rounded-full border border-amber-500/40 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-400/10 dark:text-amber-200">
@@ -114,7 +114,7 @@ export function ProductMaterials({ materials }: { materials: DemoMaterials }) {
             tabIndex={active === tab ? 0 : -1}
             onClick={() => setActive(tab)}
             onKeyDown={onKeyDown}
-            className={`min-h-11 shrink-0 whitespace-nowrap border-b-2 px-3 text-sm font-medium ${
+            className={`min-h-11 shrink-0 whitespace-nowrap border-b-2 px-3 text-sm font-medium transition-colors duration-300 ${
               active === tab
                 ? "border-amber-500 text-zinc-950 dark:text-white"
                 : "border-transparent text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"

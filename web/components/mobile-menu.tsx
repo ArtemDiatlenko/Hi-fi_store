@@ -54,7 +54,7 @@ export function MobileMenu({ categories }: { categories: Promise<CategoryNode[]>
             aria-hidden="true"
             tabIndex={-1}
             onClick={close}
-            className="absolute inset-0 h-full w-full cursor-default bg-black/50 motion-safe:transition-opacity"
+            className="absolute inset-0 h-full w-full cursor-default bg-black/70 backdrop-blur-sm motion-safe:animate-fade"
           />
           <div
             id="mobile-menu"
@@ -62,11 +62,11 @@ export function MobileMenu({ categories }: { categories: Promise<CategoryNode[]>
             role="dialog"
             aria-modal="true"
             aria-label={dict.header.menu}
-            className="absolute right-0 top-0 flex h-full w-80 max-w-[88vw] flex-col gap-6 overflow-y-auto border-l border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-950"
+            className="absolute right-0 top-0 flex h-full w-80 max-w-[88vw] flex-col gap-6 overflow-y-auto border-l border-zinc-800 bg-zinc-950 p-5 shadow-2xl shadow-black motion-safe:animate-drawer"
           >
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-950 text-amber-400 dark:bg-amber-400 dark:text-zinc-950">
+              <span className="flex items-center gap-2 font-display text-2xl tracking-wide">
+                <span className="inline-flex h-8 w-8 items-center justify-center text-amber-400 drop-shadow-[0_0_10px_rgb(255_177_92/0.6)]">
                   <LogoMark className="h-5 w-5" />
                 </span>
                 {dict.common.brand}
@@ -136,7 +136,7 @@ function MobileCategories({ categories, onNavigate }: { categories: Promise<Cate
 
   return (
     <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
-      <h2 className="mb-2 px-2 text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+      <h2 className="mb-2 px-2 font-body text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
         {dict.header.categoriesMenu}
       </h2>
       <ul className="flex flex-col gap-1">

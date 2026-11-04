@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Cormorant_Garamond, Geist, Geist_Mono, Manrope } from "next/font/google";
 import { htmlLang, type Locale, locales, ogLocale } from "@/lib/i18n/config";
 import { I18nProvider } from "@/lib/i18n/client";
 import { addLocalePrefix } from "@/lib/i18n/routing";
@@ -15,6 +15,19 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin", "cyrillic"],
+});
+
+// Шрифты витрины («Сцена»): антиква для заголовков и гротеск для текста. Подключаются в .stage (globals.css).
+const stageDisplay = Cormorant_Garamond({
+  variable: "--font-stage-display",
+  subsets: ["latin", "cyrillic"],
+  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
+});
+
+const stageBody = Manrope({
+  variable: "--font-stage-body",
   subsets: ["latin", "cyrillic"],
 });
 
@@ -70,7 +83,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
 
   // Шапка и подвал витрины — в app/[lang]/(store)/layout.tsx, у админки своя оболочка (app/[lang]/admin).
   return (
-    <html lang={htmlLang[locale]} className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang={htmlLang[locale]} className={`${geistSans.variable} ${geistMono.variable} ${stageDisplay.variable} ${stageBody.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <I18nProvider locale={locale} dict={dict}>
           <a

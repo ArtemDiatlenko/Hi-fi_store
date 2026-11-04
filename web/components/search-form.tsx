@@ -30,11 +30,11 @@ export function SearchForm({ locale, dict, id, className = "" }: Props) {
         autoComplete="off"
         enterKeyHint="search"
         placeholder={dict.header.searchPlaceholder}
-        className="h-11 w-full rounded-full border border-zinc-300 bg-zinc-50 pl-11 pr-24 text-sm text-zinc-900 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:hover:border-zinc-600 dark:focus:border-zinc-500 dark:focus:bg-zinc-900 [&::-webkit-search-cancel-button]:hidden"
+        className="h-11 w-full rounded-full border border-zinc-300 bg-zinc-50 pl-11 pr-24 text-sm text-zinc-900 placeholder:text-zinc-500 hover:border-zinc-400 focus:border-zinc-500 focus:bg-white dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:hover:border-zinc-600 dark:focus:border-zinc-500 dark:focus:bg-zinc-900 dark:focus:border-amber-400/60 transition-colors [&::-webkit-search-cancel-button]:hidden"
       />
       <button
         type="submit"
-        className="absolute right-1 top-1 h-9 rounded-full bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+        className="absolute right-1 top-1 h-9 rounded-full bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-amber-400 dark:hover:text-zinc-950 transition-colors"
       >
         {dict.header.searchSubmit}
       </button>

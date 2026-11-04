@@ -256,7 +256,7 @@ export function CheckoutForm() {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-start gap-4">
-        <h1 className="text-2xl font-semibold">{dict.checkout.title}</h1>
+        <h1 className="text-[2rem] leading-tight font-light">{dict.checkout.title}</h1>
         <p className="text-zinc-600 dark:text-zinc-400">{dict.checkout.emptyCart}</p>
         <Link href={localeHref(locale, "/catalog")} className="underline">
           {dict.cart.goToCatalog}
@@ -274,7 +274,7 @@ export function CheckoutForm() {
     <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
       <form onSubmit={submit} noValidate aria-labelledby="checkout-title" className="flex flex-col gap-6">
         <div>
-          <h1 id="checkout-title" className="text-2xl font-semibold">
+          <h1 id="checkout-title" className="text-[2rem] leading-tight font-light">
             {dict.checkout.title}
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -420,7 +420,7 @@ export function CheckoutForm() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="min-h-11 w-full rounded-md bg-zinc-900 px-6 py-3 font-medium text-white disabled:opacity-60 sm:w-fit dark:bg-zinc-100 dark:text-zinc-900"
+            className="stage-button w-full sm:w-fit"
           >
             {pending ? dict.checkout.submitting : dict.checkout.submit}
           </button>
@@ -430,7 +430,7 @@ export function CheckoutForm() {
 
       <aside aria-labelledby="checkout-summary-title" className="flex h-fit flex-col gap-4 rounded-xl border border-zinc-200 p-5 dark:border-zinc-800 lg:sticky lg:top-6">
         <div className="flex items-baseline justify-between gap-4">
-          <h2 id="checkout-summary-title" className="text-lg font-medium">
+          <h2 id="checkout-summary-title" className="text-2xl leading-tight font-normal">
             {dict.checkout.summaryTitle}
           </h2>
           <Link href={localeHref(locale, "/cart")} className="text-sm underline">

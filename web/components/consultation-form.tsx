@@ -157,7 +157,7 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
   if (sent !== null) {
     return (
       <div role="status" className="flex flex-col gap-4 rounded-2xl border border-emerald-600/30 bg-emerald-50 p-6 dark:border-emerald-400/30 dark:bg-emerald-400/10">
-        <h2 className="text-xl font-semibold">{tpl(t.sentTitle, { number: sent })}</h2>
+        <h2 className="text-[1.75rem] leading-tight font-normal">{tpl(t.sentTitle, { number: sent })}</h2>
         <p className="text-zinc-700 dark:text-zinc-300">{t.sentText}</p>
         <div className="flex flex-wrap gap-4 text-sm">
           <button type="button" onClick={() => setSent(null)} className="underline">
@@ -352,7 +352,7 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
       <button
         type="submit"
         disabled={pending}
-        className="min-h-12 w-full rounded-full bg-zinc-900 px-6 font-semibold text-white hover:bg-zinc-700 disabled:opacity-60 sm:w-fit dark:bg-amber-400 dark:text-zinc-950 dark:hover:bg-amber-300"
+        className="stage-button w-full sm:w-fit"
       >
         {pending ? t.sending : t.submit}
       </button>
