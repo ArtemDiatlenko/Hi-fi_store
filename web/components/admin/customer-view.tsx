@@ -17,6 +17,7 @@ import { formatDateTime, formatNumber, formatPrice } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
+import { formatPhone } from "@/lib/phone";
 
 const RECENT_ORDERS = 10;
 
@@ -159,7 +160,7 @@ export function CustomerView({ params }: { params: Promise<{ id: string }> }) {
               <dt className="text-zinc-500 dark:text-zinc-400">{t.name}</dt>
               <dd>{data.fullName ?? empty}</dd>
               <dt className="text-zinc-500 dark:text-zinc-400">{t.phone}</dt>
-              <dd>{data.phoneNumber ?? empty}</dd>
+              <dd>{data.phoneNumber ? formatPhone(data.phoneNumber) : empty}</dd>
               <dt className="text-zinc-500 dark:text-zinc-400">{t.roles}</dt>
               <dd>{data.roles.length > 0 ? data.roles.join(", ") : empty}</dd>
               <dt className="text-zinc-500 dark:text-zinc-400">{t.registered}</dt>

@@ -46,6 +46,8 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
         Assert.Contains(id, await ListIdsAsync(admin, $"q=search.{unique}@example"));
         Assert.Contains(id, await ListIdsAsync(admin, $"q={Uri.EscapeDataString($"50 {unique[..3]}-{unique[3..]}")}"));
         Assert.Contains(id, await ListIdsAsync(admin, $"q={Uri.EscapeDataString($"№{number}")}"));
+        // Национальный формат с ведущим нулём находит номер, сохранённый как +38050…
+        Assert.Contains(id, await ListIdsAsync(admin, $"q={Uri.EscapeDataString($"050 {unique}")}"));
         Assert.DoesNotContain(id, await ListIdsAsync(admin, $"q=nobody-{unique}@example.com"));
 
         Assert.Contains(id, await ListIdsAsync(admin, "status=new&pageSize=100&q=" + unique));

@@ -219,9 +219,10 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
                 term.TrimStart('#', '№').Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var parsed)
                 ? parsed
                 : null;
-            // Телефон ищется по цифрам, если строка похожа на телефон: «+380 (67) 123-45», «67123».
-            var digits = new string(term.Where(char.IsAsciiDigit).ToArray());
-            var searchPhone = digits.Length >= 3 && term.All(c => char.IsAsciiDigit(c) || c is ' ' or '+' or '-' or '(' or ')' or '.');
+            // Телефон ищется по цифрам, если строка похожа на телефон: «+380 (67) 123-45», «067 123».
+            // Ведущий ноль национального формата отбрасывается, чтобы «067…» находило «+38067…».
+            var digits = Phones.SearchDigits(term);
+            var searchPhone = digits.Length > 0 && term.All(c => char.IsAsciiDigit(c) || c is ' ' or '+' or '-' or '(' or ')' or '.');
 
             query = query.Where(o =>
                 (number != null && o.Number == number) ||

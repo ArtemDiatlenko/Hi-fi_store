@@ -7,6 +7,7 @@ import { getOrderByToken } from "@/lib/api";
 import { localeHref } from "@/lib/i18n/routing";
 import { getI18n } from "@/lib/i18n/server";
 import { tpl } from "@/lib/i18n/util";
+import { formatPhone } from "@/lib/phone";
 
 // Ссылка с токеном открывает заказ без входа, поэтому страницу не индексируем
 // и не передаём её адрес в Referer при переходах на другие сайты.
@@ -40,7 +41,7 @@ async function OrderConfirmation({ params }: { params: Promise<{ token: string }
     <article className="mx-auto flex max-w-3xl flex-col gap-8">
       <header className="flex flex-col gap-3">
         <h1 className="text-4xl leading-tight font-light">{tpl(dict.order.thanksTitle, { number: order.number })}</h1>
-        <p className="text-zinc-700 dark:text-zinc-300">{tpl(dict.order.managerWillCall, { phone: order.customer.phone })}</p>
+        <p className="text-zinc-700 dark:text-zinc-300">{tpl(dict.order.managerWillCall, { phone: formatPhone(order.customer.phone) })}</p>
         <p className="rounded-md bg-zinc-100 p-3 text-sm text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
           {dict.order.saveLink}
         </p>

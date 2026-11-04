@@ -7,6 +7,7 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import { tpl } from "@/lib/i18n/util";
 import { type OrderDetails, type OrderStatus } from "@/lib/orders";
+import { formatPhone } from "@/lib/phone";
 
 const statusStyles: Record<OrderStatus, string> = {
   New: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200",
@@ -112,7 +113,7 @@ export function OrderDetailsView({ order, locale, dict }: { order: OrderDetails;
             </div>
             <div>
               <dt className="text-zinc-500">{dict.order.phone}</dt>
-              <dd>{customer.phone}</dd>
+              <dd>{formatPhone(customer.phone)}</dd>
             </div>
             <div>
               <dt className="text-zinc-500">{dict.order.email}</dt>
