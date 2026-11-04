@@ -137,10 +137,20 @@ export function AccountView() {
             </span>
           ) : null}
         </dd>
-        <dt className="text-zinc-500">{dict.account.name}</dt>
-        <dd>{me.fullName ?? dict.account.emptyValue}</dd>
-        <dt className="text-zinc-500">{dict.account.roles}</dt>
-        <dd>{me.roles.length > 0 ? me.roles.join(", ") : dict.account.emptyValue}</dd>
+        {/* Имя задать в кабинете пока нельзя: пустую строку «Ім’я: —» не показываем. */}
+        {me.fullName ? (
+          <>
+            <dt className="text-zinc-500">{dict.account.name}</dt>
+            <dd>{me.fullName}</dd>
+          </>
+        ) : null}
+        {/* Роли — служебная информация: покупателю «Customer» ничего не говорит, показываем только администратору. */}
+        {me.roles.includes(ADMIN_ROLE) ? (
+          <>
+            <dt className="text-zinc-500">{dict.account.roles}</dt>
+            <dd>{me.roles.join(", ")}</dd>
+          </>
+        ) : null}
       </dl>
       <Link href={localeHref(locale, "/account/orders")} className="w-fit underline">
         {dict.account.myOrders}

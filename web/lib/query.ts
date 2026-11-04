@@ -38,3 +38,31 @@ export function hrefWith(
 export function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
+
+/**
+ * Исправляет типичные ошибки в цене до запроса к API: «от» больше «до» — меняет местами,
+ * отрицательное или нечисловое значение — убирает. Без этого API отвечает ошибкой валидации,
+ * и вместо каталога покупатель видит сообщение об ошибке.
+ */
+export function normalizePriceRange(params: SearchParams): SearchParams {
+  const parse = (name: "minPrice" | "maxPrice") => {
+    const raw = firstValue(params[name])?.trim();
+    if (!raw) return undefined;
+    const value = Number(raw);
+    return Number.isFinite(value) && value >= 0 ? value : null;
+  };
+  let min = parse("minPrice");
+  let max = parse("maxPrice");
+  if (min === undefined && max === undefined) {
+    return params;
+  }
+  if (typeof min === "number" && typeof max === "number" && min > max) {
+    [min, max] = [max, min];
+  }
+  const result: SearchParams = { ...params };
+  delete result.minPrice;
+  delete result.maxPrice;
+  if (typeof min === "number") result.minPrice = String(min);
+  if (typeof max === "number") result.maxPrice = String(max);
+  return result;
+}
