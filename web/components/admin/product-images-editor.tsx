@@ -21,9 +21,16 @@ interface Row {
   uid: string;
   url: string;
   alt: string;
+  /** Файл ещё загружается в хранилище (POST /api/admin/media/images); адрес появится после загрузки. */
+  uploading?: boolean;
 }
 
 const MAX_IMAGES = 20;
+
+// Те же ограничения, что в API (Media:MaxImageBytes, проверка формата по содержимому). Здесь — чтобы
+// не отправлять заведомо неподходящий файл; окончательно решает сервер.
+const UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const UPLOAD_MAX_MB = 10;
 
 /** Домен абсолютного адреса, которого нет среди доменов витрины (иначе null). */
 function foreignHost(url: string): string | null {
@@ -51,6 +58,10 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
   const alertRef = useRef<HTMLDivElement>(null);
   const afterCommit = useAfterCommit();
   const addRef = useRef<HTMLButtonElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const uploading = rows.some((row) => row.uploading);
   useUnsavedChanges(
     rows.length !== product.images.length ||
       rows.some((row, index) => row.url !== product.images[index].url || row.alt !== (product.images[index].alt ?? "")),
@@ -108,9 +119,66 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
     focusAfterRender([`[data-uid="${uid}"] input`]);
   }
 
+  /**
+   * Загружает файлы в хранилище: каждый файл сразу становится строкой списка, а после загрузки получает адрес.
+   * К товару фото привязываются, как и раньше, кнопкой «Зберегти зображення».
+   */
+  async function uploadFiles(selected: File[]) {
+    if (selected.length === 0) {
+      return;
+    }
+    const problems: string[] = [];
+    const free = Math.max(MAX_IMAGES - rows.length, 0);
+    if (selected.length > free) {
+      problems.push(tpl(t.tooMany, { n: MAX_IMAGES }));
+    }
+
+    const accepted: { file: File; uid: string }[] = [];
+    for (const file of selected.slice(0, free)) {
+      // Пустой type бывает у файлов без расширения — их формат проверит сервер.
+      if (file.type && !UPLOAD_TYPES.includes(file.type)) {
+        problems.push(tpl(t.uploadFailed, { name: file.name, reason: t.unsupported }));
+      } else if (file.size > UPLOAD_MAX_MB * 1024 * 1024) {
+        problems.push(tpl(t.uploadFailed, { name: file.name, reason: tpl(t.tooLarge, { mb: UPLOAD_MAX_MB }) }));
+      } else {
+        nextId.current += 1;
+        accepted.push({ file, uid: `new-${nextId.current}` });
+      }
+    }
+    setUploadErrors(problems);
+    if (accepted.length === 0) {
+      return;
+    }
+
+    setRows((current) => [...current, ...accepted.map(({ uid }) => ({ uid, url: "", alt: "", uploading: true }))]);
+    setAnnouncement(tpl(t.uploadingCount, { n: accepted.length }));
+
+    let done = 0;
+    await Promise.all(
+      accepted.map(async ({ file, uid }) => {
+        const body = new FormData();
+        body.append("file", file);
+        const outcome = await request<{ url: string }>("/api/admin/media/images", { method: "POST", body });
+        if (outcome.ok) {
+          done += 1;
+          setRows((current) => current.map((row) => (row.uid === uid ? { ...row, url: outcome.data.url, uploading: false } : row)));
+          return;
+        }
+        setRows((current) => current.filter((row) => row.uid !== uid));
+        if (outcome.status === 401 || outcome.status === 403) {
+          return;
+        }
+        const view = describeFailure(outcome, locale, dict, (key) => (key === "file" ? "file" : null));
+        const reason = view.fields.file?.[0] ?? view.problem?.messages[0] ?? "";
+        setUploadErrors((current) => [...current, tpl(t.uploadFailed, { name: file.name, reason })]);
+      }),
+    );
+    setAnnouncement(tpl(t.uploadedCount, { n: done }));
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending) {
+    if (pending || uploading) {
       return;
     }
     setPending(true);
@@ -156,7 +224,14 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
           return (
             <li key={row.uid} data-uid={row.uid} className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-3 sm:flex-row dark:border-zinc-800">
               <div className="flex shrink-0 flex-row items-start gap-3 sm:flex-col">
-                <RowPreview url={row.url} alt={row.alt || tpl(t.item, { n })} />
+                {row.uploading ? (
+                  <span className="flex h-24 w-32 shrink-0 flex-col items-center justify-center gap-2 rounded-md bg-zinc-100 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    <span aria-hidden="true" className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-amber-500 dark:border-zinc-600" />
+                    {t.uploading}
+                  </span>
+                ) : (
+                  <RowPreview url={row.url} alt={row.alt || tpl(t.item, { n })} />
+                )}
                 <span className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                   {tpl(t.item, { n })}
                   {index === 0 ? (
@@ -179,6 +254,8 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
                       autoComplete="off"
                       spellCheck={false}
                       maxLength={1000}
+                      readOnly={row.uploading}
+                      placeholder={row.uploading ? t.uploading : undefined}
                       value={row.url}
                       onChange={(event) => updateRow(row.uid, "url", event.target.value)}
                     />
@@ -233,12 +310,79 @@ export function ProductImagesEditor({ product, onSaved }: { product: AdminProduc
         })}
       </ol>
 
+      <div
+        onDragEnter={(event) => {
+          if (event.dataTransfer.types.includes("Files")) {
+            event.preventDefault();
+            setDragging(true);
+          }
+        }}
+        onDragOver={(event) => {
+          if (event.dataTransfer.types.includes("Files")) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+          }
+        }}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setDragging(false);
+          }
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragging(false);
+          void uploadFiles(Array.from(event.dataTransfer.files));
+        }}
+        className={`flex flex-col items-center gap-3 rounded-lg border-2 border-dashed px-4 py-6 text-center text-sm transition-colors ${
+          dragging
+            ? "border-amber-500 bg-amber-50 dark:bg-amber-400/10"
+            : "border-zinc-300 dark:border-zinc-700"
+        }`}
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8 text-zinc-400" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+        </svg>
+        <p className="text-zinc-700 dark:text-zinc-300">{t.dropTitle}</p>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={rows.length >= MAX_IMAGES}
+          className={buttonClass.secondary}
+        >
+          {t.choose}
+        </button>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">{tpl(t.dropHint, { mb: UPLOAD_MAX_MB })}</p>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept={UPLOAD_TYPES.join(",")}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="sr-only"
+          onChange={(event) => {
+            const files = Array.from(event.target.files ?? []);
+            // Сбрасываем, чтобы тот же файл можно было выбрать ещё раз.
+            event.target.value = "";
+            void uploadFiles(files);
+          }}
+        />
+      </div>
+
+      {uploadErrors.length > 0 ? (
+        <ul role="alert" className="flex flex-col gap-1 text-sm text-red-700 dark:text-red-400">
+          {uploadErrors.map((message, index) => (
+            <li key={index}>{message}</li>
+          ))}
+        </ul>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-3">
         <button ref={addRef} type="button" onClick={add} disabled={rows.length >= MAX_IMAGES} className={buttonClass.secondary}>
           {t.add}
         </button>
-        <button type="submit" disabled={pending} className={buttonClass.primary}>
-          {pending ? dict.admin.common.saving : t.save}
+        <button type="submit" disabled={pending || uploading} className={buttonClass.primary}>
+          {pending ? dict.admin.common.saving : uploading ? t.uploading : t.save}
         </button>
       </div>
     </form>

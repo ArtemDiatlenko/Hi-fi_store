@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Загруженные фото в режиме Media:Provider=Disk (папка по умолчанию)
+src/HiFiStore.Api/media/
