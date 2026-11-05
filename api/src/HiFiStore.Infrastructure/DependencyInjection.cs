@@ -6,6 +6,7 @@ using HiFiStore.Infrastructure.Inquiries;
 using HiFiStore.Infrastructure.Media;
 using HiFiStore.Infrastructure.Orders;
 using HiFiStore.Infrastructure.Persistence;
+using HiFiStore.Infrastructure.Translation;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -69,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<OrderNotifier>();
 
         AddMedia(services, configuration);
+        AddTranslation(services, configuration);
 
         return services;
     }
@@ -99,6 +101,30 @@ public static class DependencyInjection
                 break;
             default:
                 throw new InvalidOperationException("Media:Provider должен быть Disk или S3.");
+        }
+    }
+
+    /// <summary>Машинный перевод контента: выключен (None) или Claude — см. <see cref="TranslationOptions"/>.</summary>
+    private static void AddTranslation(IServiceCollection services, IConfiguration configuration)
+    {
+        var translation = configuration.GetSection(TranslationOptions.Section).Get<TranslationOptions>() ?? new TranslationOptions();
+        switch (translation.Provider?.Trim().ToLowerInvariant())
+        {
+            case "claude":
+                if (string.IsNullOrWhiteSpace(translation.Claude.ApiKey))
+                {
+                    throw new InvalidOperationException(
+                        "Translation:Provider=Claude, но ключ не задан. Задайте переменную окружения Translation__Claude__ApiKey.");
+                }
+
+                services.AddSingleton(translation.Claude);
+                services.TryAddSingleton<IMachineTranslator, ClaudeMachineTranslator>();
+                break;
+            case "none" or "" or null:
+                services.TryAddSingleton<IMachineTranslator, DisabledMachineTranslator>();
+                break;
+            default:
+                throw new InvalidOperationException("Translation:Provider должен быть None или Claude.");
         }
     }
 }

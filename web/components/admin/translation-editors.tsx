@@ -3,6 +3,8 @@
 // Английская версия товара и раздела (GET/PUT .../translations/en). Основной текст редактируется в обычных формах,
 // здесь — только перевод; под каждым полем показан украинский оригинал. Пустое название удаляет перевод:
 // тогда английская витрина показывает украинский текст.
+// Если на сервере настроен автоперевод, кнопка «Перекласти автоматично» заполняет поля машинным черновиком
+// (POST .../draft) — сохраняет его администратор, как и ручной перевод.
 
 import { type FormEvent, useRef, useState } from "react";
 import { buttonClass, Field, FormAlert, type FormProblem } from "@/components/admin/ui";
@@ -24,6 +26,14 @@ interface ProductTranslation {
   shortDescription: string | null;
   description: string | null;
   specs: { key: string; specName: string; baseValue: string; value: string | null }[];
+  machineTranslation: boolean;
+}
+
+interface ProductTranslationDraft {
+  name: string;
+  shortDescription: string | null;
+  description: string | null;
+  specs: Record<string, string>;
 }
 
 interface CategoryTranslation {
@@ -32,6 +42,13 @@ interface CategoryTranslation {
   name: string | null;
   description: string | null;
   specs: { id: string; key: string; baseName: string; baseUnit: string | null; name: string | null; unit: string | null }[];
+  machineTranslation: boolean;
+}
+
+interface CategoryTranslationDraft {
+  name: string;
+  description: string | null;
+  specs: Record<string, { name: string | null; unit: string | null }>;
 }
 
 /** Оригинал для подсказки под полем: длинный текст обрезаем. */
@@ -46,10 +63,15 @@ function useTranslationForm() {
   const [problem, setProblem] = useState<FormProblem | null>(null);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [autoPending, setAutoPending] = useState(false);
+  const [autoDone, setAutoDone] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
   const afterCommit = useAfterCommit();
-  return { errors, setErrors, problem, setProblem, pending, setPending, saved, setSaved, formRef, alertRef, afterCommit };
+  return {
+    errors, setErrors, problem, setProblem, pending, setPending, saved, setSaved,
+    autoPending, setAutoPending, autoDone, setAutoDone, formRef, alertRef, afterCommit,
+  };
 }
 
 export function ProductTranslationEditor({ productId, version }: { productId: string; version: string }) {
@@ -76,8 +98,10 @@ function ProductTranslationForm({
   const { locale, dict } = useI18n();
   const t = dict.admin.translations;
   const request = useAdminRequest();
-  const { errors, setErrors, problem, setProblem, pending, setPending, saved, setSaved, formRef, alertRef, afterCommit } =
-    useTranslationForm();
+  const {
+    errors, setErrors, problem, setProblem, pending, setPending, saved, setSaved,
+    autoPending, setAutoPending, autoDone, setAutoDone, formRef, alertRef, afterCommit,
+  } = useTranslationForm();
   const [name, setName] = useState(data.name ?? "");
   const [shortDescription, setShortDescription] = useState(data.shortDescription ?? "");
   const [description, setDescription] = useState(data.description ?? "");
@@ -92,6 +116,7 @@ function ProductTranslationForm({
     setErrors({});
     setProblem(null);
     setSaved(false);
+    setAutoDone(false);
     const outcome = await request<ProductTranslation>(`/api/admin/products/${productId}/translations/${TRANSLATION_LOCALE}`, {
       method: "PUT",
       body: { name, shortDescription, description, specs },
@@ -111,9 +136,37 @@ function ProductTranslationForm({
     afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
+  async function autoTranslate() {
+    if (pending || autoPending) return;
+    const filled = [name, shortDescription, description, ...Object.values(specs)].some((value) => value.trim() !== "");
+    if (filled && !window.confirm(t.autoReplace)) return;
+    setAutoPending(true);
+    setErrors({});
+    setProblem(null);
+    setSaved(false);
+    setAutoDone(false);
+    const outcome = await request<ProductTranslationDraft>(
+      `/api/admin/products/${productId}/translations/${TRANSLATION_LOCALE}/draft`,
+      { method: "POST" },
+    );
+    setAutoPending(false);
+    if (outcome.ok) {
+      setName(outcome.data.name);
+      setShortDescription(outcome.data.shortDescription ?? "");
+      setDescription(outcome.data.description ?? "");
+      setSpecs((current) => ({ ...current, ...outcome.data.specs }));
+      setAutoDone(true);
+      return;
+    }
+    if (outcome.status === 401 || outcome.status === 403) return;
+    setProblem({ ...describeFailure(outcome, locale, dict, () => null).problem, title: t.autoFailed });
+    afterCommit(() => alertRef.current?.focus());
+  }
+
   return (
     <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-4">
       <FormAlert ref={alertRef} problem={problem} />
+      {data.machineTranslation ? <AutoTranslateButton pending={autoPending} disabled={pending} onClick={autoTranslate} /> : null}
       <Field label={t.name} hint={tpl(t.original, { text: original(data.baseName, t.empty) })} error={errors.name}>
         {(control) => <input {...control} lang="en" maxLength={300} value={name} onChange={(event) => setName(event.target.value)} />}
       </Field>
@@ -157,7 +210,7 @@ function ProductTranslationForm({
           ))}
         </fieldset>
       ) : null}
-      <TranslationActions pending={pending} saved={saved} />
+      <TranslationActions pending={pending || autoPending} saved={saved} autoDone={autoDone} />
     </form>
   );
 }
@@ -184,8 +237,10 @@ function CategoryTranslationForm({
   const { locale, dict } = useI18n();
   const t = dict.admin.translations;
   const request = useAdminRequest();
-  const { errors, setErrors, problem, setProblem, pending, setPending, saved, setSaved, formRef, alertRef, afterCommit } =
-    useTranslationForm();
+  const {
+    errors, setErrors, problem, setProblem, pending, setPending, saved, setSaved,
+    autoPending, setAutoPending, autoDone, setAutoDone, formRef, alertRef, afterCommit,
+  } = useTranslationForm();
   const [name, setName] = useState(data.name ?? "");
   const [description, setDescription] = useState(data.description ?? "");
   const [specs, setSpecs] = useState<Record<string, { name: string; unit: string }>>(() =>
@@ -203,6 +258,7 @@ function CategoryTranslationForm({
     setErrors({});
     setProblem(null);
     setSaved(false);
+    setAutoDone(false);
     const outcome = await request<CategoryTranslation>(`/api/admin/categories/${categoryId}/translations/${TRANSLATION_LOCALE}`, {
       method: "PUT",
       body: { name, description, specs },
@@ -222,9 +278,44 @@ function CategoryTranslationForm({
     afterCommit(() => focusFirstInvalid(formRef.current, alertRef.current));
   }
 
+  async function autoTranslate() {
+    if (pending || autoPending) return;
+    const filled = [name, description, ...Object.values(specs).flatMap((spec) => [spec.name, spec.unit])].some(
+      (value) => value.trim() !== "",
+    );
+    if (filled && !window.confirm(t.autoReplace)) return;
+    setAutoPending(true);
+    setErrors({});
+    setProblem(null);
+    setSaved(false);
+    setAutoDone(false);
+    const outcome = await request<CategoryTranslationDraft>(
+      `/api/admin/categories/${categoryId}/translations/${TRANSLATION_LOCALE}/draft`,
+      { method: "POST" },
+    );
+    setAutoPending(false);
+    if (outcome.ok) {
+      setName(outcome.data.name);
+      setDescription(outcome.data.description ?? "");
+      setSpecs((current) => {
+        const next = { ...current };
+        for (const [key, spec] of Object.entries(outcome.data.specs)) {
+          next[key] = { name: spec.name ?? "", unit: spec.unit ?? "" };
+        }
+        return next;
+      });
+      setAutoDone(true);
+      return;
+    }
+    if (outcome.status === 401 || outcome.status === 403) return;
+    setProblem({ ...describeFailure(outcome, locale, dict, () => null).problem, title: t.autoFailed });
+    afterCommit(() => alertRef.current?.focus());
+  }
+
   return (
     <form ref={formRef} onSubmit={submit} noValidate className="flex flex-col gap-4">
       <FormAlert ref={alertRef} problem={problem} />
+      {data.machineTranslation ? <AutoTranslateButton pending={autoPending} disabled={pending} onClick={autoTranslate} /> : null}
       <Field label={t.name} hint={tpl(t.original, { text: original(data.baseName, t.empty) })} error={errors.name}>
         {(control) => <input {...control} lang="en" maxLength={200} value={name} onChange={(event) => setName(event.target.value)} />}
       </Field>
@@ -260,12 +351,27 @@ function CategoryTranslationForm({
           ))}
         </fieldset>
       ) : null}
-      <TranslationActions pending={pending} saved={saved} />
+      <TranslationActions pending={pending || autoPending} saved={saved} autoDone={autoDone} />
     </form>
   );
 }
 
-function TranslationActions({ pending, saved }: { pending: boolean; saved: boolean }) {
+function AutoTranslateButton({ pending, disabled, onClick }: { pending: boolean; disabled: boolean; onClick: () => void }) {
+  const { dict } = useI18n();
+  const t = dict.admin.translations;
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <button type="button" onClick={onClick} disabled={pending || disabled} aria-describedby="auto-translate-hint" className={buttonClass.secondary}>
+        {pending ? t.autoPending : t.auto}
+      </button>
+      <p id="auto-translate-hint" className="text-xs text-zinc-500 dark:text-zinc-400">
+        {t.autoHint}
+      </p>
+    </div>
+  );
+}
+
+function TranslationActions({ pending, saved, autoDone }: { pending: boolean; saved: boolean; autoDone: boolean }) {
   const { dict } = useI18n();
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -273,7 +379,7 @@ function TranslationActions({ pending, saved }: { pending: boolean; saved: boole
         {pending ? dict.admin.common.saving : dict.admin.translations.save}
       </button>
       <p role="status" className="text-sm text-emerald-700 dark:text-emerald-400">
-        {saved ? dict.admin.translations.saved : ""}
+        {saved ? dict.admin.translations.saved : autoDone ? dict.admin.translations.autoDone : ""}
       </p>
     </div>
   );

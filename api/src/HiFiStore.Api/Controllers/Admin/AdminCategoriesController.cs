@@ -88,4 +88,15 @@ public sealed class AdminCategoriesController(IAdminCategoryService categories, 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetTranslation(Guid id, string locale, CategoryTranslationRequest request, CancellationToken ct) =>
         FromResult(await translations.SetCategoryAsync(id, locale, request, ct), Ok);
+
+    /// <summary>
+    /// Машинный перевод основного текста раздела и его характеристик на <c>locale</c>: черновик для формы перевода, ничего не сохраняет.
+    /// 503 — автоперевод не настроен или сервис перевода не ответил.
+    /// </summary>
+    [HttpPost("{id:guid}/translations/{locale}/draft")]
+    [ProducesResponseType<CategoryTranslationDraft>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> DraftTranslation(Guid id, string locale, CancellationToken ct) =>
+        FromResult(await translations.DraftCategoryAsync(id, locale, ct), Ok);
 }

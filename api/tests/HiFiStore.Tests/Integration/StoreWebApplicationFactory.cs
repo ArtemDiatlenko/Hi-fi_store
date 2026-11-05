@@ -1,4 +1,5 @@
 using HiFiStore.Infrastructure.Email;
+using HiFiStore.Infrastructure.Translation;
 using HiFiStore.Infrastructure.Persistence;
 using Microsoft.AspNetCore.TestHost;
 using HiFiStore.Infrastructure.Persistence.Seeding;
@@ -91,7 +92,11 @@ public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>,
         builder.UseSetting("Store:PublicUrl", PublicUrl);
         builder.UseSetting("Store:OwnerEmail", OwnerEmail);
         builder.UseSetting("Media:Disk:Path", MediaRoot);
-        builder.ConfigureTestServices(services => services.AddSingleton<IEmailTransport>(Emails));
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddSingleton<IEmailTransport>(Emails);
+            services.AddSingleton<IMachineTranslator>(Translator);
+        });
     }
 
     public const string PublicUrl = "https://shop.test";
@@ -102,4 +107,7 @@ public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>,
 
     /// <summary>Письма, «отправленные» этим экземпляром API.</summary>
     public CapturedEmails Emails { get; } = new();
+
+    /// <summary>Подменный машинный переводчик: по умолчанию выключен, тесты включают его сами.</summary>
+    public FakeMachineTranslator Translator { get; } = new();
 }

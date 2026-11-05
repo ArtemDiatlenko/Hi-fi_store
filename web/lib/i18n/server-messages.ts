@@ -113,6 +113,27 @@ const ADMIN_EXACT: Record<string, Translations> = {
     en: "Invalid value: check the field type and format.",
   },
   "Некорректное значение.": { uk: "Некоректне значення.", en: "Invalid value." },
+  // Переводы контента и автоперевод (AdminTranslationService, ClaudeMachineTranslator).
+  "Укажите название — без него перевод не сохранится.": {
+    uk: "Вкажіть назву — без неї переклад не збережеться.",
+    en: "Enter a name — the translation can’t be saved without it.",
+  },
+  "Сервис перевода сейчас недоступен. Попробуйте позже или переведите вручную.": {
+    uk: "Сервіс перекладу зараз недоступний. Спробуйте пізніше або перекладіть вручну.",
+    en: "The translation service is unavailable right now. Try again later or translate manually.",
+  },
+  "Сервис перевода отказался переводить этот текст. Переведите его вручную.": {
+    uk: "Сервіс перекладу відмовився перекладати цей текст. Перекладіть його вручну.",
+    en: "The translation service declined this text. Please translate it manually.",
+  },
+  "Текст слишком длинный для автоперевода. Переведите описание частями или вручную.": {
+    uk: "Текст задовгий для автоперекладу. Перекладіть опис частинами або вручну.",
+    en: "The text is too long for automatic translation. Translate the description in parts or manually.",
+  },
+  "Автоперевод не настроен: задайте Translation:Provider и ключ сервиса перевода.": {
+    uk: "Автопереклад не налаштовано: потрібні Translation:Provider і ключ сервісу перекладу.",
+    en: "Automatic translation isn’t configured: set Translation:Provider and the translation service key.",
+  },
   "Передайте тело запроса — JSON-объект.": {
     uk: "Передайте тіло запиту — JSON-об’єкт.",
     en: "Send the request body as a JSON object.",

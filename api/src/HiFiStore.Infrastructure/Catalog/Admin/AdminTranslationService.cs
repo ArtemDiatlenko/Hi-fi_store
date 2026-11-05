@@ -1,5 +1,6 @@
 using HiFiStore.Domain.Catalog;
 using HiFiStore.Infrastructure.Persistence;
+using HiFiStore.Infrastructure.Translation;
 using Microsoft.EntityFrameworkCore;
 
 namespace HiFiStore.Infrastructure.Catalog.Admin;
@@ -7,7 +8,10 @@ namespace HiFiStore.Infrastructure.Catalog.Admin;
 /// <summary>Текстовая характеристика товара: основное значение и его перевод.</summary>
 public sealed record SpecValueTranslationDto(string Key, string SpecName, string BaseValue, string? Value);
 
-/// <summary>Перевод товара: основной текст (для сверки) рядом с переведённым. Пустые поля — перевода нет.</summary>
+/// <summary>
+/// Перевод товара: основной текст (для сверки) рядом с переведённым. Пустые поля — перевода нет.
+/// <paramref name="MachineTranslation"/> — доступен ли автоперевод (черновик через <c>.../draft</c>).
+/// </summary>
 public sealed record ProductTranslationDto(
     string Locale,
     string BaseName,
@@ -16,7 +20,8 @@ public sealed record ProductTranslationDto(
     string? Name,
     string? ShortDescription,
     string? Description,
-    IReadOnlyList<SpecValueTranslationDto> Specs);
+    IReadOnlyList<SpecValueTranslationDto> Specs,
+    bool MachineTranslation);
 
 /// <param name="Specs">Ключ текстовой характеристики → перевод значения; пусто — удалить перевод.</param>
 public sealed record ProductTranslationRequest(
@@ -33,7 +38,8 @@ public sealed record CategoryTranslationDto(
     string? BaseDescription,
     string? Name,
     string? Description,
-    IReadOnlyList<SpecDefinitionTranslationDto> Specs);
+    IReadOnlyList<SpecDefinitionTranslationDto> Specs,
+    bool MachineTranslation);
 
 public sealed record SpecDefinitionTranslationRequest(string? Name, string? Unit);
 
@@ -47,7 +53,20 @@ public sealed record CategoryTranslationRequest(
 /// Переводы контента каталога в админке. Основной язык (<see cref="ContentLocales.Base"/>) редактируется в самих
 /// товарах и разделах, здесь — только переводы. Пустое название удаляет перевод целиком.
 /// </summary>
-public sealed class AdminTranslationService(StoreDbContext db, TimeProvider time)
+/// <summary>Машинный черновик перевода товара: те же поля, что в <see cref="ProductTranslationRequest"/>. Не сохраняется.</summary>
+public sealed record ProductTranslationDraft(
+    string Name,
+    string? ShortDescription,
+    string? Description,
+    IReadOnlyDictionary<string, string> Specs);
+
+/// <summary>Машинный черновик перевода раздела: те же поля, что в <see cref="CategoryTranslationRequest"/>. Не сохраняется.</summary>
+public sealed record CategoryTranslationDraft(
+    string Name,
+    string? Description,
+    IReadOnlyDictionary<string, SpecDefinitionTranslationRequest> Specs);
+
+public sealed class AdminTranslationService(StoreDbContext db, TimeProvider time, IMachineTranslator translator)
 {
     private const int NameMaxLength = 300;
     private const int CategoryNameMaxLength = 200;
@@ -100,7 +119,8 @@ public sealed class AdminTranslationService(StoreDbContext db, TimeProvider time
             product.Translation?.Name,
             product.Translation?.ShortDescription,
             product.Translation?.Description,
-            specs);
+            specs,
+            translator.IsEnabled);
     }
 
     public async Task<AdminResult<ProductTranslationDto>> SetProductAsync(
@@ -245,7 +265,8 @@ public sealed class AdminTranslationService(StoreDbContext db, TimeProvider time
             category.Description,
             category.Translation?.Name,
             category.Translation?.Description,
-            category.Specs);
+            category.Specs,
+            translator.IsEnabled);
     }
 
     public async Task<AdminResult<CategoryTranslationDto>> SetCategoryAsync(
@@ -345,5 +366,98 @@ public sealed class AdminTranslationService(StoreDbContext db, TimeProvider time
 
         await db.SaveChangesAsync(ct);
         return await GetCategoryAsync(categoryId, locale, ct);
+    }
+
+    /// <summary>
+    /// Машинный перевод основного текста товара. Возвращает черновик для формы, ничего не сохраняет:
+    /// администратор проверяет его и сохраняет обычным PUT.
+    /// </summary>
+    public async Task<AdminResult<ProductTranslationDraft>> DraftProductAsync(Guid productId, string locale, CancellationToken ct = default)
+    {
+        var current = await GetProductAsync(productId, locale, ct);
+        if (current.Error is not null)
+        {
+            return current.Error;
+        }
+
+        if (!translator.IsEnabled)
+        {
+            return MachineTranslationOff;
+        }
+
+        var product = current.Value!;
+        var texts = new Dictionary<string, string>(StringComparer.Ordinal) { ["name"] = product.BaseName };
+        AddIfPresent(texts, "shortDescription", product.BaseShortDescription);
+        AddIfPresent(texts, "description", product.BaseDescription);
+        foreach (var spec in product.Specs)
+        {
+            AddIfPresent(texts, $"spec:{spec.Key}", spec.BaseValue);
+        }
+
+        var result = await translator.TranslateAsync(texts, ContentLocales.Base, locale, $"product page of «{product.BaseName}»", ct);
+        if (result.Texts is not { } translated)
+        {
+            return AdminError.Unavailable(result.Error!);
+        }
+
+        return new ProductTranslationDraft(
+            translated["name"],
+            translated.GetValueOrDefault("shortDescription"),
+            translated.GetValueOrDefault("description"),
+            product.Specs
+                .Where(spec => translated.ContainsKey($"spec:{spec.Key}"))
+                .ToDictionary(spec => spec.Key, spec => translated[$"spec:{spec.Key}"], StringComparer.Ordinal));
+    }
+
+    /// <summary>Машинный перевод основного текста раздела и его характеристик. Ничего не сохраняет.</summary>
+    public async Task<AdminResult<CategoryTranslationDraft>> DraftCategoryAsync(Guid categoryId, string locale, CancellationToken ct = default)
+    {
+        var current = await GetCategoryAsync(categoryId, locale, ct);
+        if (current.Error is not null)
+        {
+            return current.Error;
+        }
+
+        if (!translator.IsEnabled)
+        {
+            return MachineTranslationOff;
+        }
+
+        var category = current.Value!;
+        var texts = new Dictionary<string, string>(StringComparer.Ordinal) { ["name"] = category.BaseName };
+        AddIfPresent(texts, "description", category.BaseDescription);
+        foreach (var spec in category.Specs)
+        {
+            AddIfPresent(texts, $"specName:{spec.Key}", spec.BaseName);
+            AddIfPresent(texts, $"specUnit:{spec.Key}", spec.BaseUnit);
+        }
+
+        var result = await translator.TranslateAsync(
+            texts, ContentLocales.Base, locale, $"catalog section «{category.BaseName}» with its specification names and units", ct);
+        if (result.Texts is not { } translated)
+        {
+            return AdminError.Unavailable(result.Error!);
+        }
+
+        return new CategoryTranslationDraft(
+            translated["name"],
+            translated.GetValueOrDefault("description"),
+            category.Specs.ToDictionary(
+                spec => spec.Key,
+                spec => new SpecDefinitionTranslationRequest(
+                    translated.GetValueOrDefault($"specName:{spec.Key}"),
+                    translated.GetValueOrDefault($"specUnit:{spec.Key}")),
+                StringComparer.Ordinal));
+    }
+
+    private static AdminError MachineTranslationOff =>
+        AdminError.Unavailable("Автоперевод не настроен: задайте Translation:Provider и ключ сервиса перевода.");
+
+    private static void AddIfPresent(Dictionary<string, string> texts, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            texts[key] = value.Trim();
+        }
     }
 }

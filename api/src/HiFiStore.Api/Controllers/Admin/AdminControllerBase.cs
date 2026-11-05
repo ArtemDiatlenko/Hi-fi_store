@@ -9,7 +9,7 @@ namespace HiFiStore.Api.Controllers.Admin;
 /// <summary>
 /// Основа административных контроллеров (<c>/api/admin/...</c>): доступ только по bearer-токену Identity
 /// и только с ролью <see cref="Roles.Admin"/>. Без токена — 401, с токеном без роли — 403.
-/// Переводит результаты сервисов в HTTP: 400 (<see cref="ValidationProblemDetails"/>), 404, 409.
+/// Переводит результаты сервисов в HTTP: 400 (<see cref="ValidationProblemDetails"/>), 404, 409, 503.
 /// </summary>
 [ApiController]
 [Authorize(AuthenticationSchemes = AuthSchemes.IdentityBearer, Roles = Roles.Admin)]
@@ -84,6 +84,7 @@ public abstract class AdminControllerBase : ControllerBase, IActionFilter
             }),
         AdminErrorKind.NotFound => Problem(error.Message, statusCode: StatusCodes.Status404NotFound),
         AdminErrorKind.Conflict => Problem(error.Message, statusCode: StatusCodes.Status409Conflict),
+        AdminErrorKind.Unavailable => Problem(error.Message, statusCode: StatusCodes.Status503ServiceUnavailable),
         _ => throw new ArgumentOutOfRangeException(nameof(error), error.Kind, "Неизвестный вид ошибки."),
     };
 }
