@@ -31,6 +31,8 @@ builder.Services
 builder.Services.AddSingleton<EmailOutbox>();
 builder.Services.AddSingleton<IEmailOutbox>(services => services.GetRequiredService<EmailOutbox>());
 builder.Services.AddHostedService<EmailDispatcher>();
+// Язык письма Identity берётся из запроса (?lang=en), см. IdentityEmailSender.
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IEmailSender<ApplicationUser>, IdentityEmailSender>();
 
 builder.Services.AddAuthorization();

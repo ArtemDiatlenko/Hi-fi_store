@@ -58,7 +58,9 @@ public sealed record SpecFacet(
     SpecValueType ValueType,
     decimal? Min,
     decimal? Max,
-    IReadOnlyList<string>? Values);
+    IReadOnlyList<string>? Values,
+    /// <summary>Подписи текстовых значений на языке страницы: значение → перевод. Значение в фильтре не меняется.</summary>
+    IReadOnlyDictionary<string, string>? ValueLabels);
 
 public sealed record CatalogFacets(
     IReadOnlyList<BrandRef> Brands,

@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Identity;
 using HiFiStore.Infrastructure.Orders;
@@ -68,9 +69,9 @@ public sealed class OrdersController(IOrderService orders, UserManager<Applicati
     [HttpGet("by-token/{token}")]
     [ProducesResponseType<OrderDetails>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderDetails>> GetByToken(string token, CancellationToken ct)
+    public async Task<ActionResult<OrderDetails>> GetByToken(string token, [FromQuery] string? lang, CancellationToken ct)
     {
-        var order = await orders.GetByTokenAsync(token, ct);
+        var order = await orders.GetByTokenAsync(token, ContentLocales.Resolve(lang), ct);
         return order is null ? NotFound() : Ok(order);
     }
 

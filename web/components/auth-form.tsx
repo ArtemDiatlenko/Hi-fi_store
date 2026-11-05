@@ -10,6 +10,7 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { localeHref } from "@/lib/i18n/routing";
 import { translateIdentityError } from "@/lib/i18n/server-messages";
 import { tpl } from "@/lib/i18n/util";
+import { authUrl } from "@/lib/auth-locale";
 
 type Mode = "login" | "register";
 
@@ -68,7 +69,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
     try {
       if (mode === "register") {
-        const registered = await fetch("/api/auth/register", {
+        const registered = await fetch(authUrl("/api/auth/register", locale), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(credentials),

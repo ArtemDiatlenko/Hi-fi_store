@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using HiFiStore.Infrastructure.Orders;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +15,7 @@ public sealed class CartController(IOrderService orders) : ControllerBase
     [HttpPost("quote")]
     [ProducesResponseType<CartQuote>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CartQuote>> Quote([FromBody] CartQuoteRequest? request, CancellationToken ct)
+    public async Task<ActionResult<CartQuote>> Quote([FromBody] CartQuoteRequest? request, [FromQuery] string? lang, CancellationToken ct)
     {
         if (request?.Items is null || request.Items.Count == 0)
         {
@@ -28,6 +29,6 @@ public sealed class CartController(IOrderService orders) : ControllerBase
             return ValidationProblem(new ValidationProblemDetails(errors));
         }
 
-        return Ok(await orders.QuoteAsync(lines, ct));
+        return Ok(await orders.QuoteAsync(lines, ContentLocales.Resolve(lang), ct));
     }
 }

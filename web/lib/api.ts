@@ -2,6 +2,8 @@
 // Используется только на сервере (Server Components); браузер ходит через rewrite /api/*.
 
 import { cache } from "react";
+import { defaultLocale } from "@/lib/i18n/config";
+import { getLocale } from "@/lib/i18n/server";
 import type { OrderDetails } from "@/lib/orders";
 
 const API_URL = process.env.API_URL ?? "http://localhost:5166";
@@ -55,6 +57,8 @@ export interface SpecFacet {
   min: number | null;
   max: number | null;
   values: string[] | null;
+  /** Подписи текстовых значений на языке страницы (значение в фильтре остаётся основным). */
+  valueLabels: Record<string, string> | null;
 }
 
 export interface CatalogFacets {
@@ -147,30 +151,43 @@ async function getJson<T>(path: string, query?: URLSearchParams): Promise<T | nu
 }
 
 /**
+ * Параметры запроса с языком контента страницы: на английской витрине API отдаёт переводы
+ * (без перевода — украинский текст). Для украинской параметр не нужен.
+ */
+async function localized(query?: URLSearchParams): Promise<URLSearchParams> {
+  const result = new URLSearchParams(query);
+  const locale = await getLocale();
+  if (locale !== defaultLocale) {
+    result.set("lang", locale);
+  }
+  return result;
+}
+
+/**
  * Дерево разделов. Обёрнуто в React cache: шапка, подвал и страница в одном запросе
  * получают один и тот же промис, к API уходит один запрос.
  */
-export const getCategories = cache((): Promise<CategoryNode[]> =>
-  getJson<CategoryNode[]>("/api/catalog/categories").then((data) => data ?? []),
+export const getCategories = cache(async (): Promise<CategoryNode[]> =>
+  (await getJson<CategoryNode[]>("/api/catalog/categories", await localized())) ?? [],
 );
 
-export function getProducts(query: URLSearchParams): Promise<PagedResult<ProductListItem> | null> {
-  return getJson<PagedResult<ProductListItem>>("/api/catalog/products", query);
+export async function getProducts(query: URLSearchParams): Promise<PagedResult<ProductListItem> | null> {
+  return getJson<PagedResult<ProductListItem>>("/api/catalog/products", await localized(query));
 }
 
-export function getProduct(slug: string): Promise<ProductDetails | null> {
-  return getJson<ProductDetails>(`/api/catalog/products/${encodeURIComponent(slug)}`);
+export async function getProduct(slug: string): Promise<ProductDetails | null> {
+  return getJson<ProductDetails>(`/api/catalog/products/${encodeURIComponent(slug)}`, await localized());
 }
 
 /** Заказ по публичному токену со страницы подтверждения; <c>null</c>, если токен неверный. */
-export function getOrderByToken(token: string): Promise<OrderDetails | null> {
-  return getJson<OrderDetails>(`/api/orders/by-token/${encodeURIComponent(token)}`);
+export async function getOrderByToken(token: string): Promise<OrderDetails | null> {
+  return getJson<OrderDetails>(`/api/orders/by-token/${encodeURIComponent(token)}`, await localized());
 }
 
-export function getFacets(categorySlug?: string): Promise<CatalogFacets | null> {
+export async function getFacets(categorySlug?: string): Promise<CatalogFacets | null> {
   const query = new URLSearchParams();
   if (categorySlug) {
     query.set("category", categorySlug);
   }
-  return getJson<CatalogFacets>("/api/catalog/facets", query);
+  return getJson<CatalogFacets>("/api/catalog/facets", await localized(query));
 }

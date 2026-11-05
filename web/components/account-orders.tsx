@@ -8,7 +8,7 @@ import { authHeaders } from "@/lib/client-api";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
-import type { Locale } from "@/lib/i18n/config";
+import { defaultLocale, type Locale } from "@/lib/i18n/config";
 import { localeHref } from "@/lib/i18n/routing";
 import { pluralWord, tpl } from "@/lib/i18n/util";
 import { type OrderDetails, type OrderSummary } from "@/lib/orders";
@@ -161,7 +161,9 @@ export function AccountOrderList() {
 export function AccountOrder({ params }: { params: Promise<{ id: string }> }) {
   const { locale, dict } = useI18n();
   const { id } = use(params);
-  const state = useAuthorizedJson<OrderDetails>(`/api/account/orders/${encodeURIComponent(id)}`);
+  const state = useAuthorizedJson<OrderDetails>(
+    `/api/account/orders/${encodeURIComponent(id)}${locale === defaultLocale ? "" : `?lang=${locale}`}`,
+  );
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">

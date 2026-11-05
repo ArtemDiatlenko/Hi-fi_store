@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using System.Globalization;
 using HiFiStore.Domain.Orders;
 using HiFiStore.Infrastructure.Catalog;
@@ -8,7 +9,7 @@ namespace HiFiStore.Infrastructure.Orders;
 
 public sealed class OrderService(StoreDbContext db) : IOrderService
 {
-    public async Task<CartQuote> QuoteAsync(IReadOnlyList<CartLine> lines, CancellationToken ct = default)
+    public async Task<CartQuote> QuoteAsync(IReadOnlyList<CartLine> lines, string locale = ContentLocales.Base, CancellationToken ct = default)
     {
         var ids = lines.Select(l => l.ProductId).ToList();
         var products = await db.Products.AsNoTracking()
@@ -17,7 +18,7 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
             {
                 p.Id,
                 p.Sku,
-                p.Name,
+                Name = p.Translations.Where(t => t.Locale == locale).Select(t => t.Name).FirstOrDefault() ?? p.Name,
                 p.Slug,
                 p.Price,
                 p.OldPrice,
@@ -123,6 +124,7 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
             PublicTokenHash = tokenHash,
             Status = OrderStatus.New,
             UserId = userId,
+            Locale = checkout.Locale,
             CustomerName = checkout.FullName,
             CustomerPhone = checkout.Phone,
             CustomerEmail = checkout.Email,
@@ -159,10 +161,11 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
 
-        return new PlaceOrderResult.Placed(new CheckoutResponse(token, ToDetails(order)));
+        // Покупателю (ответ и письмо) — названия на его языке; в заказе остаётся снимок на основном.
+        return new PlaceOrderResult.Placed(new CheckoutResponse(token, await LocalizeItemsAsync(ToDetails(order), checkout.Locale, ct)));
     }
 
-    public async Task<OrderDetails?> GetByTokenAsync(string token, CancellationToken ct = default)
+    public async Task<OrderDetails?> GetByTokenAsync(string token, string locale = ContentLocales.Base, CancellationToken ct = default)
     {
         if (!OrderTokens.IsWellFormed(token))
         {
@@ -171,7 +174,7 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
 
         var hash = OrderTokens.Hash(token);
         var order = await LoadAsync(db.Orders.Where(o => o.PublicTokenHash == hash), ct);
-        return order is null ? null : ToDetails(order);
+        return order is null ? null : await LocalizeItemsAsync(ToDetails(order), locale, ct);
     }
 
     public async Task<PagedResult<OrderSummary>> ListForUserAsync(
@@ -190,10 +193,31 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         return new PagedResult<OrderSummary>(items, page, pageSize, total);
     }
 
-    public async Task<OrderDetails?> GetForUserAsync(Guid userId, Guid orderId, CancellationToken ct = default)
+    public async Task<OrderDetails?> GetForUserAsync(
+        Guid userId, Guid orderId, string locale = ContentLocales.Base, CancellationToken ct = default)
     {
         var order = await LoadAsync(db.Orders.Where(o => o.Id == orderId && o.UserId == userId), ct);
-        return order is null ? null : ToDetails(order);
+        return order is null ? null : await LocalizeItemsAsync(ToDetails(order), locale, ct);
+    }
+
+    /// <summary>
+    /// В заказе хранится снимок названий на основном языке (так их видит менеджер). Покупателю на другом языке
+    /// показываем текущий перевод товара, если он есть.
+    /// </summary>
+    private async Task<OrderDetails> LocalizeItemsAsync(OrderDetails order, string locale, CancellationToken ct)
+    {
+        if (locale == ContentLocales.Base)
+        {
+            return order;
+        }
+
+        var ids = order.Items.Select(i => i.ProductId).ToList();
+        var names = await db.ProductTranslations.AsNoTracking()
+            .Where(t => t.Locale == locale && ids.Contains(t.ProductId))
+            .ToDictionaryAsync(t => t.ProductId, t => t.Name, ct);
+        return names.Count == 0
+            ? order
+            : order with { Items = order.Items.Select(i => names.TryGetValue(i.ProductId, out var name) ? i with { Name = name } : i).ToList() };
     }
 
     public async Task<PagedResult<AdminOrderSummary>> ListForAdminAsync(AdminOrderFilter filter, CancellationToken ct = default)
@@ -378,7 +402,8 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         order.Total,
         order.CreatedAt,
         order.UpdatedAt,
-        order.TrackingNumber);
+        order.TrackingNumber,
+        order.Locale);
 
     private static AdminOrderDetails ToAdminDetails(Order order) => new(
         order.Id,
@@ -395,7 +420,8 @@ public sealed class OrderService(StoreDbContext db) : IOrderService
         order.CreatedAt,
         order.UpdatedAt,
         order.TrackingNumber,
-        order.ManagerNote);
+        order.ManagerNote,
+        order.Locale);
 
     private static OrderCustomerDto ToCustomer(Order order) =>
         new(order.CustomerName, order.CustomerPhone, order.CustomerEmail);

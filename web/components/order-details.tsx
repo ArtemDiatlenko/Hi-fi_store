@@ -32,7 +32,7 @@ export function OrderDetailsView({ order, locale, dict }: { order: OrderDetails;
     <div className="flex flex-col gap-8">
       <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[10rem_1fr]">
         <dt className="text-zinc-500">{dict.order.number}</dt>
-        <dd className="font-medium">№{order.number}</dd>
+        <dd className="font-medium">{locale === "en" ? "#" : "№"}{order.number}</dd>
         <dt className="text-zinc-500">{dict.order.status}</dt>
         <dd>
           <OrderStatusBadge status={order.status} dict={dict} />

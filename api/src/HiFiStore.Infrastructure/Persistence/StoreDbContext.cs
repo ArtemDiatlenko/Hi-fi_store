@@ -27,6 +27,14 @@ public class StoreDbContext(DbContextOptions options)
 
     public DbSet<ProductSpec> ProductSpecs => Set<ProductSpec>();
 
+    public DbSet<ProductTranslation> ProductTranslations => Set<ProductTranslation>();
+
+    public DbSet<CategoryTranslation> CategoryTranslations => Set<CategoryTranslation>();
+
+    public DbSet<SpecDefinitionTranslation> SpecDefinitionTranslations => Set<SpecDefinitionTranslation>();
+
+    public DbSet<ProductSpecTranslation> ProductSpecTranslations => Set<ProductSpecTranslation>();
+
     public DbSet<Order> Orders => Set<Order>();
 
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();

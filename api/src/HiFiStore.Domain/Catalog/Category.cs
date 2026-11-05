@@ -26,5 +26,7 @@ public class Category
     /// </summary>
     public List<SpecDefinition> Specs { get; set; } = [];
 
+    public List<CategoryTranslation> Translations { get; set; } = [];
+
     public int SortOrder { get; set; }
 }

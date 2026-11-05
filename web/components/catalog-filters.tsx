@@ -191,7 +191,7 @@ function SpecFilterField({ spec, query, dict }: { spec: SpecFacet; query: URLSea
         {(spec.values ?? []).map((value) => (
           <label key={value} className="flex min-h-11 items-center gap-2">
             <input type="checkbox" name={`spec.${spec.key}`} value={value} defaultChecked={selected.includes(value)} className="h-4 w-4 accent-zinc-900 dark:accent-amber-400" />
-            {value}
+            {spec.valueLabels?.[value] ?? value}
           </label>
         ))}
       </fieldset>

@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using System.Text.RegularExpressions;
 using HiFiStore.Domain.Orders;
 
@@ -188,7 +189,8 @@ public static partial class CheckoutValidator
             warehouseRef,
             address,
             payment!.Value,
-            comment);
+            comment,
+            ContentLocales.Resolve(request.Locale));
         return true;
     }
 

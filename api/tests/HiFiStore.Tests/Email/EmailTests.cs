@@ -2,6 +2,7 @@ using HiFiStore.Api.Email;
 using HiFiStore.Domain.Orders;
 using HiFiStore.Infrastructure.Email;
 using HiFiStore.Infrastructure.Orders;
+using Microsoft.AspNetCore.Http;
 
 namespace HiFiStore.Tests.Email;
 
@@ -17,7 +18,7 @@ public sealed class EmailTests
     [Fact]
     public void ConfirmLink_PointsToStorefront_AndKeepsIdentityParameters()
     {
-        var sender = new IdentityEmailSender(new NullOutbox(), new StoreLinkOptions { PublicUrl = "https://shop.example/" });
+        var sender = new IdentityEmailSender(new NullOutbox(), new StoreLinkOptions { PublicUrl = "https://shop.example/" }, new HttpContextAccessor());
         // Identity передаёт ссылку HTML-закодированной.
         const string identityLink =
             "http://localhost:5166/api/auth/confirmEmail?userId=42&amp;code=Q2-_Zg&amp;changedEmail=new%40example.com";
@@ -67,6 +68,31 @@ public sealed class EmailTests
         DateTimeOffset.UtcNow,
         TrackingNumber: null,
         ManagerNote: null);
+
+    [Fact]
+    public void ConfirmLink_FromEnglishStorefront_PointsToEnglishPage()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.QueryString = new QueryString("?lang=en");
+        var sender = new IdentityEmailSender(
+            new NullOutbox(), new StoreLinkOptions { PublicUrl = "https://shop.example" }, new HttpContextAccessor { HttpContext = context });
+
+        var link = sender.StorefrontConfirmLink("http://api/api/auth/confirmEmail?userId=42&amp;code=x");
+
+        Assert.Equal("https://shop.example/en/confirm-email?userId=42&code=x", link);
+    }
+
+    [Fact]
+    public void EnglishOrder_GetsEnglishStatusEmail()
+    {
+        var order = Order(OrderStatus.Shipped) with { Locale = "en", TrackingNumber = "20450000000000" };
+
+        var message = EmailTemplates.OrderStatusChanged(order, link: null)!;
+
+        Assert.Equal("Order #100042: shipped — Hi-Fi Store", message.Subject);
+        Assert.Contains("Tracking number: 20450000000000", message.Text);
+        Assert.Contains("Track the parcel", message.Text);
+    }
 
     [Fact]
     public void ShippedEmail_ContainsTrackingNumberAndNovaPoshtaLink()

@@ -45,6 +45,9 @@ public static class StoreDbInitializer
                 // Уже заполненный демо-каталог: заменить старые заглушки placehold.co иллюстрациями.
                 await DemoCatalog.UpgradeLegacyImagesAsync(db, ct);
             }
+
+            // Английский перевод демо-товаров и разделов — и для новой, и для уже заполненной базы.
+            await DemoCatalogEnglish.ApplyAsync(db, ct);
         }
     }
 

@@ -12,6 +12,7 @@ import { translateServerMessage } from "@/lib/i18n/server-messages";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
+import { authUrl } from "@/lib/auth-locale";
 
 interface Me {
   id: string;
@@ -24,13 +25,13 @@ interface Me {
 
 /** Повторная отправка письма подтверждения (стандартный эндпоинт Identity, отвечает 200 всегда). */
 function ResendConfirmation({ email }: { email: string }) {
-  const { dict } = useI18n();
+  const { locale, dict } = useI18n();
   const [state, setState] = useState<"idle" | "pending" | "sent" | "failed">("idle");
 
   async function resend() {
     setState("pending");
     try {
-      const response = await fetch("/api/auth/resendConfirmationEmail", {
+      const response = await fetch(authUrl("/api/auth/resendConfirmationEmail", locale), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

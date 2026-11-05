@@ -107,4 +107,27 @@ public sealed class AccountEmailApiTests(StoreWebApplicationFactory factory) : I
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
+
+    [SkippableFact]
+    public async Task EnglishCheckout_SendsEnglishEmail_WithTranslatedNamesAndEnglishLink()
+    {
+        await factory.PrepareAsync();
+        var product = await CreateProductAsync(factory, stock: 3);
+        var token = await LoginAdminAsync(_client);
+        var translated = await SendAsync(_client, HttpMethod.Put, $"/api/admin/products/{product.Id}/translations/en", token,
+            new { name = "English name" });
+        Assert.Equal(HttpStatusCode.OK, translated.StatusCode);
+        var email = $"en.{Guid.NewGuid():N}@example.com";
+        var body = CheckoutBody((product.Id, 1));
+        body["email"] = email;
+        body["locale"] = "en";
+
+        var placed = await PlaceOrderAsync(_client, body);
+
+        Assert.Equal("English name", placed.GetProperty("order").GetProperty("items")[0].GetProperty("name").GetString());
+        var number = placed.GetProperty("order").GetProperty("number").GetInt64();
+        var letter = await factory.Emails.WaitForAsync(email, $"Order #{number} received");
+        Assert.Contains("English name", letter.Text);
+        Assert.Contains($"{StoreWebApplicationFactory.PublicUrl}/en/orders/", letter.Text);
+    }
 }

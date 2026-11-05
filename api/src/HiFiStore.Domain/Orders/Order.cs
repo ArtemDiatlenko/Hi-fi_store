@@ -49,6 +49,9 @@ public class Order
 
     public string? CustomerComment { get; set; }
 
+    /// <summary>Язык витрины, на которой оформлен заказ (<c>uk</c>, <c>en</c>): на нём уходят письма покупателю.</summary>
+    public string Locale { get; set; } = "uk";
+
     /// <summary>
     /// Номер отправления в службе доставки (ТТН Новой почты). Вносит менеджер при отправке;
     /// покупатель видит его на странице заказа и в письме.

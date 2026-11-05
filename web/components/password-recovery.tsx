@@ -10,6 +10,7 @@ import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { readError } from "@/components/auth-form";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
+import { authUrl } from "@/lib/auth-locale";
 
 const inputClass = "min-h-11 rounded-md border px-3 py-2 dark:bg-zinc-900";
 const submitClass =
@@ -44,7 +45,7 @@ export function ForgotPasswordForm() {
     const email = String(new FormData(event.currentTarget).get("email"));
     try {
       // Identity отвечает 200 и для несуществующего адреса — по ответу нельзя узнать, есть ли аккаунт.
-      const response = await fetch("/api/auth/forgotPassword", {
+      const response = await fetch(authUrl("/api/auth/forgotPassword", locale), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using HiFiStore.Domain.Inquiries;
 
 namespace HiFiStore.Infrastructure.Inquiries;
@@ -5,6 +6,9 @@ namespace HiFiStore.Infrastructure.Inquiries;
 /// <summary>Заявка с витрины. Перечисления — строками (<c>"CustomBuild"</c>, <c>"Telegram"</c>).</summary>
 public sealed record InquiryRequest
 {
+    /// <summary>Язык витрины (<c>uk</c>, <c>en</c>) — для письма-подтверждения.</summary>
+    public string? Locale { get; init; }
+
     public string? Topic { get; init; }
     public string? Name { get; init; }
     public string? Phone { get; init; }
@@ -31,7 +35,8 @@ public sealed record ValidatedInquiry(
     ContactMethod PreferredContact,
     string Message,
     string? Budget,
-    string? ProductSlug);
+    string? ProductSlug,
+    string Locale = ContentLocales.Base);
 
 /// <summary>Ответ витрине: номер, чтобы покупатель мог на него сослаться.</summary>
 public sealed record InquiryCreated(long Number);

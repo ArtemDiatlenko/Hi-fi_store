@@ -45,7 +45,7 @@ public sealed class InquiriesController(IInquiryService inquiries, UserManager<A
         }
 
         var created = await inquiries.CreateAsync(inquiry!, userId, ct);
-        notifier.InquiryReceived(created);
+        notifier.InquiryReceived(created, inquiry!.Locale);
         return StatusCode(StatusCodes.Status201Created, new InquiryCreated(created.Number));
     }
 }
