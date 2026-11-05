@@ -17,6 +17,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
 import type { OrderStatus } from "@/lib/orders";
+import { formatPhone } from "@/lib/phone";
 
 const PAGE_SIZE = 20;
 
@@ -137,7 +138,7 @@ export function OrderList() {
                         <td className="px-4 py-3">
                           <span className="block">{order.customerName}</span>
                           <span className="block text-xs text-zinc-500 dark:text-zinc-400">
-                            {order.customerPhone} · <span className="break-all">{order.customerEmail}</span>
+                            {formatPhone(order.customerPhone)} · <span className="break-all">{order.customerEmail}</span>
                           </span>
                           <span className="block text-xs text-zinc-500 dark:text-zinc-400">{order.isGuest ? t.guest : t.registered}</span>
                         </td>
@@ -165,7 +166,7 @@ export function OrderList() {
                       </span>
                       <span>{order.customerName}</span>
                       <span className="break-all text-xs text-zinc-500 dark:text-zinc-400">
-                        {order.customerPhone} · {order.customerEmail}
+                        {formatPhone(order.customerPhone)} · {order.customerEmail}
                       </span>
                       <span className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                         <time dateTime={order.createdAt}>{formatDateTime(order.createdAt, locale)}</time>

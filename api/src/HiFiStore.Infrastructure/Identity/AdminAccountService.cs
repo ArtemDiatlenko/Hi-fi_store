@@ -18,7 +18,7 @@ public sealed record AdminPromotion(IdentityResult Result, bool RoleAdded, bool 
 /// </summary>
 public sealed class AdminAccountService(StoreDbContext db, UserManager<ApplicationUser> users)
 {
-    public const string DefaultFullName = "Администратор";
+    public const string DefaultFullName = "Адміністратор";
 
     public Task<ApplicationUser?> FindByEmailAsync(string email) => users.FindByEmailAsync(email);
 

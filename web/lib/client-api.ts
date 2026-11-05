@@ -3,6 +3,7 @@
 import { readToken } from "@/lib/auth";
 import type { CartItem } from "@/lib/cart";
 import type { CartQuote, StockShortage } from "@/lib/orders";
+import { defaultLocale, type Locale } from "@/lib/i18n/config";
 
 /** Тело ответа об ошибке: ProblemDetails / ValidationProblemDetails. */
 export interface ProblemBody {
@@ -28,9 +29,10 @@ export function authHeaders(token: string | null = readToken()): Record<string, 
 
 export type QuoteResult = { ok: true; quote: CartQuote } | { ok: false; message: string };
 
-export async function fetchCartQuote(items: CartItem[], signal?: AbortSignal): Promise<QuoteResult> {
+export async function fetchCartQuote(items: CartItem[], locale: Locale, signal?: AbortSignal): Promise<QuoteResult> {
   try {
-    const response = await fetch("/api/cart/quote", {
+    // Названия товаров в корзине — на языке страницы (без перевода — украинские).
+    const response = await fetch(locale === defaultLocale ? "/api/cart/quote" : `/api/cart/quote?lang=${locale}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items }),

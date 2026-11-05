@@ -6,7 +6,8 @@ import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import { tpl } from "@/lib/i18n/util";
-import { type OrderDetails, type OrderStatus } from "@/lib/orders";
+import { novaPoshtaTrackingUrl, type OrderDetails, type OrderStatus } from "@/lib/orders";
+import { formatPhone } from "@/lib/phone";
 
 const statusStyles: Record<OrderStatus, string> = {
   New: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200",
@@ -31,7 +32,7 @@ export function OrderDetailsView({ order, locale, dict }: { order: OrderDetails;
     <div className="flex flex-col gap-8">
       <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[10rem_1fr]">
         <dt className="text-zinc-500">{dict.order.number}</dt>
-        <dd className="font-medium">№{order.number}</dd>
+        <dd className="font-medium">{locale === "en" ? "#" : "№"}{order.number}</dd>
         <dt className="text-zinc-500">{dict.order.status}</dt>
         <dd>
           <OrderStatusBadge status={order.status} dict={dict} />
@@ -98,6 +99,24 @@ export function OrderDetailsView({ order, locale, dict }: { order: OrderDetails;
               <dt className="text-zinc-500">{dict.order.payment}</dt>
               <dd>{dict.payment[order.paymentMethod].label}</dd>
             </div>
+            {order.trackingNumber ? (
+              <div>
+                <dt className="text-zinc-500">{dict.order.trackingNumber}</dt>
+                <dd className="flex flex-wrap items-baseline gap-x-3">
+                  <span className="font-mono tabular-nums">{order.trackingNumber}</span>
+                  {novaPoshtaTrackingUrl(order.trackingNumber) ? (
+                    <a
+                      href={novaPoshtaTrackingUrl(order.trackingNumber)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      {dict.order.trackParcel}
+                    </a>
+                  ) : null}
+                </dd>
+              </div>
+            ) : null}
           </dl>
         </section>
 
@@ -112,7 +131,7 @@ export function OrderDetailsView({ order, locale, dict }: { order: OrderDetails;
             </div>
             <div>
               <dt className="text-zinc-500">{dict.order.phone}</dt>
-              <dd>{customer.phone}</dd>
+              <dd>{formatPhone(customer.phone)}</dd>
             </div>
             <div>
               <dt className="text-zinc-500">{dict.order.email}</dt>

@@ -12,6 +12,7 @@ import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
+import { formatPhone } from "@/lib/phone";
 
 export function InquiryView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -39,7 +40,7 @@ export function InquiryView({ params }: { params: Promise<{ id: string }> }) {
           <Section title={t.contact}>
             <p className="font-semibold break-words">{data.name}</p>
             <p className="text-sm">{dict.consultation.contactLabel}: {dict.consultation.contacts[data.preferredContact]}</p>
-            {data.phone ? <a href={`tel:${data.phone}`} className="break-all underline">{data.phone}</a> : null}
+            {data.phone ? <a href={`tel:${data.phone}`} className="break-all underline">{formatPhone(data.phone)}</a> : null}
             {data.email ? <a href={`mailto:${data.email}`} className="break-all underline">{data.email}</a> : null}
             {data.userId ? <Link href={localeHref(locale, `/admin/customer/${data.userId}`)} className="text-sm underline">{t.customerProfile}</Link> : null}
           </Section>

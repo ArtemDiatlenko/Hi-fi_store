@@ -56,4 +56,8 @@ public sealed class StoreLinkOptions
     public string? OwnerEmail { get; set; }
 
     public string Link(string path) => PublicUrl.TrimEnd('/') + path;
+
+    /// <summary>Ссылка на страницу витрины на языке покупателя: украинская — без префикса, остальные — /{locale}/….</summary>
+    public string Link(string path, string locale) =>
+        locale == HiFiStore.Domain.Catalog.ContentLocales.Base ? Link(path) : Link($"/{locale}{path}");
 }

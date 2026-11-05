@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CleanGetForm } from "@/components/clean-get-form";
 import type { CategoryNode, CatalogFacets, SpecFacet } from "@/lib/api";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { localeHref } from "@/lib/i18n/routing";
@@ -46,7 +47,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
   ];
 
   return (
-    <form method="get" action={catalogPath} className="flex flex-col gap-6 text-sm">
+    <CleanGetForm action={catalogPath} defaults={{ sort: "newest" }} className="flex flex-col gap-6 text-sm">
       <div className="flex flex-col gap-2">
         <label htmlFor="sort" className="font-medium">
           {dict.catalog.sort}
@@ -146,7 +147,7 @@ export async function CatalogFilters({ categories, facets, params }: Props) {
           {dict.catalog.reset}
         </Link>
       </div>
-    </form>
+    </CleanGetForm>
   );
 }
 
@@ -190,7 +191,7 @@ function SpecFilterField({ spec, query, dict }: { spec: SpecFacet; query: URLSea
         {(spec.values ?? []).map((value) => (
           <label key={value} className="flex min-h-11 items-center gap-2">
             <input type="checkbox" name={`spec.${spec.key}`} value={value} defaultChecked={selected.includes(value)} className="h-4 w-4 accent-zinc-900 dark:accent-amber-400" />
-            {value}
+            {spec.valueLabels?.[value] ?? value}
           </label>
         ))}
       </fieldset>

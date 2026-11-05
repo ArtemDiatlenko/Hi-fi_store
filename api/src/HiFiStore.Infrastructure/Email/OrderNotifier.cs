@@ -12,7 +12,7 @@ public sealed class OrderNotifier(IEmailOutbox outbox, StoreLinkOptions links)
     public void OrderPlaced(CheckoutResponse placed)
     {
         var order = placed.Order;
-        outbox.Enqueue(EmailTemplates.OrderPlaced(order, links.Link($"/orders/{placed.Token}")));
+        outbox.Enqueue(EmailTemplates.OrderPlaced(order, links.Link($"/orders/{placed.Token}", order.Locale)));
 
         if (!string.IsNullOrWhiteSpace(links.OwnerEmail))
         {
@@ -21,7 +21,7 @@ public sealed class OrderNotifier(IEmailOutbox outbox, StoreLinkOptions links)
     }
 
     /// <summary>Новая заявка на консультацию: владельцу (если задан Store:OwnerEmail) и подтверждение покупателю, если он оставил email.</summary>
-    public void InquiryReceived(AdminInquiryDetails inquiry)
+    public void InquiryReceived(AdminInquiryDetails inquiry, string locale = "uk")
     {
         if (!string.IsNullOrWhiteSpace(links.OwnerEmail))
         {
@@ -30,13 +30,13 @@ public sealed class OrderNotifier(IEmailOutbox outbox, StoreLinkOptions links)
 
         if (inquiry.Email is not null)
         {
-            outbox.Enqueue(EmailTemplates.InquiryReceived(inquiry));
+            outbox.Enqueue(EmailTemplates.InquiryReceived(inquiry, locale));
         }
     }
 
     public void StatusChanged(AdminOrderDetails order)
     {
-        var link = order.UserId is null ? null : links.Link($"/account/orders/{order.Id}");
+        var link = order.UserId is null ? null : links.Link($"/account/orders/{order.Id}", order.Locale);
         if (EmailTemplates.OrderStatusChanged(order, link) is { } message)
         {
             outbox.Enqueue(message);

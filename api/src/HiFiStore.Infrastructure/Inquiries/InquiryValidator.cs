@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using System.Text.RegularExpressions;
 using HiFiStore.Domain.Inquiries;
 using HiFiStore.Infrastructure.Orders;
@@ -48,7 +49,7 @@ public static partial class InquiryValidator
         var phone = CheckoutValidator.NormalizePhone(request.Phone);
         if (!string.IsNullOrWhiteSpace(request.Phone) && phone is null)
         {
-            CheckoutValidator.AddError(errors, "phone", "Некорректный номер телефона: нужно от 10 до 15 цифр, например +380 67 123 45 67.");
+            CheckoutValidator.AddError(errors, "phone", Phones.InvalidMessage);
         }
 
         var email = Clean(request.Email);
@@ -102,7 +103,7 @@ public static partial class InquiryValidator
             return false;
         }
 
-        inquiry = new ValidatedInquiry(topic, name!, phone, email, contact, message!, budget, slug);
+        inquiry = new ValidatedInquiry(topic, name!, phone, email, contact, message!, budget, slug, ContentLocales.Resolve(request.Locale));
         return true;
     }
 

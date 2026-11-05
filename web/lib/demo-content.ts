@@ -6,6 +6,8 @@
 // запрос к нему, а компонент components/product-materials.tsx останется.
 
 import type { ProductDetails } from "@/lib/api";
+import { AUTHORS_EN, REVIEW_TEXTS_EN, textsEn } from "@/lib/demo-content-en";
+import type { Locale } from "@/lib/i18n/config";
 
 export interface DemoReview {
   author: string;
@@ -27,7 +29,11 @@ export interface DemoMaterials {
   reviews: DemoReview[];
 }
 
-type Kind = "integrated" | "tube" | "bookshelf" | "floor" | "turntable" | "cable";
+export type DemoKind = "integrated" | "tube" | "bookshelf" | "floor" | "turntable" | "cable";
+type Kind = DemoKind;
+
+/** Тексты одного типа товара на одном языке. */
+export type DemoTexts = Omit<DemoMaterials, "video" | "reviews"> & { videoTitle: string; duration: string };
 
 const KIND_BY_CATEGORY: Record<string, Kind> = {
   "integrated-amplifiers": "integrated",
@@ -38,7 +44,7 @@ const KIND_BY_CATEGORY: Record<string, Kind> = {
   interconnects: "cable",
 };
 
-function texts(kind: Kind, name: string): Omit<DemoMaterials, "video" | "reviews"> & { videoTitle: string; duration: string } {
+function texts(kind: Kind, name: string): DemoTexts {
   switch (kind) {
     case "integrated":
       return {
@@ -268,26 +274,27 @@ function seedFrom(slug: string): number {
   return hash;
 }
 
-function demoReviews(kind: Kind, slug: string): DemoReview[] {
+function demoReviews(kind: Kind, slug: string, locale: Locale): DemoReview[] {
   const seed = seedFrom(slug);
-  return REVIEW_TEXTS[kind].map((text, i) => {
-    const [author, city] = AUTHORS[(seed + i * 3) % AUTHORS.length];
+  const authors = locale === "en" ? AUTHORS_EN : AUTHORS;
+  return (locale === "en" ? REVIEW_TEXTS_EN : REVIEW_TEXTS)[kind].map((text, i) => {
+    const [author, city] = authors[(seed + i * 3) % authors.length];
     const daysAgo = 12 + ((seed >> (i * 3)) % 140);
     const date = new Date(Date.UTC(2026, 9, 31) - daysAgo * 86_400_000).toISOString();
     return { author, city, rating: i === 2 && seed % 2 === 0 ? 4 : 5, date, text };
   });
 }
 
-/** Демо-материалы для товара или null, если для его раздела шаблонов нет. */
-export function getDemoMaterials(product: ProductDetails): DemoMaterials | null {
+/** Демо-материалы для товара на языке страницы или null, если для его раздела шаблонов нет. */
+export function getDemoMaterials(product: ProductDetails, locale: Locale): DemoMaterials | null {
   const kind = KIND_BY_CATEGORY[product.category.slug];
   if (!kind) {
     return null;
   }
-  const { videoTitle, duration, ...content } = texts(kind, product.name);
+  const { videoTitle, duration, ...content } = (locale === "en" ? textsEn : texts)(kind, product.name);
   return {
     video: { title: videoTitle, duration, poster: product.images[0]?.url ?? null },
     ...content,
-    reviews: demoReviews(kind, product.slug),
+    reviews: demoReviews(kind, product.slug, locale),
   };
 }

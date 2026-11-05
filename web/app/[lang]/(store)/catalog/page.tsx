@@ -13,7 +13,7 @@ import { categoryPath, findCategoryPath } from "@/lib/categories";
 import { localeHref } from "@/lib/i18n/routing";
 import { getI18n } from "@/lib/i18n/server";
 import { tpl } from "@/lib/i18n/util";
-import { firstValue, type SearchParams, toURLSearchParams } from "@/lib/query";
+import { firstValue, normalizePriceRange, type SearchParams, toURLSearchParams } from "@/lib/query";
 import { localizedAlternates } from "@/lib/seo";
 
 // Параметры, которые не сужают выборку: если кроме них ничего нет, «сбрасывать» нечего.
@@ -52,7 +52,7 @@ export default async function CatalogPage(props: PageProps<"/[lang]/catalog">) {
 
 async function CatalogView({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const { locale, dict } = await getI18n();
-  const params = await searchParams;
+  const params = normalizePriceRange(await searchParams);
   const query = toURLSearchParams(params);
   const categorySlug = firstValue(params.category)?.trim() || undefined;
   const q = query.get("q")?.trim() || undefined;
@@ -72,7 +72,7 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
     result = { categories, facets, products };
   } catch (error) {
     if (error instanceof ApiValidationError) {
-      return <InvalidFilters errors={error.errors} />;
+      return <InvalidFilters resetHref={localeHref(locale, "/catalog")} />;
     }
     throw error;
   }
@@ -161,7 +161,7 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
             </div>
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-x-6 gap-y-12 min-[420px]:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12 xl:grid-cols-3">
             {products.items.map((product) => (
               <li key={product.id} className="stage-reveal">
                 <ProductCard
@@ -169,7 +169,7 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
                   locale={locale}
                   dict={dict}
                   headingLevel={3}
-                  sizes="(min-width: 1280px) 25vw, (min-width: 420px) 50vw, 100vw"
+                  sizes="(min-width: 1280px) 25vw, 50vw"
                   morph
                 />
               </li>
@@ -183,22 +183,17 @@ async function CatalogView({ searchParams }: { searchParams: Promise<SearchParam
   );
 }
 
-// Ошибки валидации фильтров (битый query в адресе) — редкий технический случай: показываем
-// имя параметра и исходное сообщение сервера (маппинг — для заказа и авторизации).
-async function InvalidFilters({ errors }: { errors: Record<string, string[]> }) {
+// Ошибки валидации фильтров: адрес с некорректными параметрами (например, вручную изменённая ссылка).
+// Технические подробности покупателю не нужны — объясняем и предлагаем сбросить фильтры.
+async function InvalidFilters({ resetHref }: { resetHref: string }) {
   const { dict } = await getI18n();
   return (
-    <div className="lg:col-span-2 rounded-xl border border-red-300 bg-red-50 p-6 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-      <p className="mb-2 font-medium">{dict.catalog.invalidTitle}</p>
-      <ul className="list-disc pl-5">
-        {Object.entries(errors).flatMap(([name, messages]) =>
-          messages.map((message) => (
-            <li key={`${name}-${message}`}>
-              <code>{name}</code>: {message}
-            </li>
-          )),
-        )}
-      </ul>
+    <div role="alert" className="lg:col-span-2 flex flex-col items-start gap-4 rounded-xl border border-zinc-800 bg-zinc-950 p-6">
+      <p className="font-medium">{dict.catalog.invalidTitle}</p>
+      <p className="text-sm text-zinc-400">{dict.catalog.invalidText}</p>
+      <Link href={resetHref} className="stage-button">
+        {dict.catalog.resetFilters}
+      </Link>
     </div>
   );
 }

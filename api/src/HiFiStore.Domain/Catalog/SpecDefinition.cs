@@ -24,5 +24,7 @@ public class SpecDefinition
     /// <summary>Показывать ли фильтр по этой характеристике в каталоге.</summary>
     public bool IsFilterable { get; set; }
 
+    public List<SpecDefinitionTranslation> Translations { get; set; } = [];
+
     public int SortOrder { get; set; }
 }

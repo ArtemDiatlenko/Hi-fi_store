@@ -8,7 +8,7 @@ namespace HiFiStore.Api.Controllers.Admin;
 /// (но не в самого себя и не в свой подраздел); раздел с подразделами или товарами удалить нельзя (409).
 /// </summary>
 [Route("api/admin/categories")]
-public sealed class AdminCategoriesController(IAdminCategoryService categories) : AdminControllerBase
+public sealed class AdminCategoriesController(IAdminCategoryService categories, AdminTranslationService translations) : AdminControllerBase
 {
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<AdminCategoryDto>>(StatusCodes.Status200OK)]
@@ -74,4 +74,18 @@ public sealed class AdminCategoriesController(IAdminCategoryService categories) 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSpec(Guid id, Guid specId, CancellationToken ct) =>
         FromResult(await categories.DeleteSpecAsync(id, specId, ct));
+
+    /// <summary>Перевод раздела и его собственных характеристик на язык <c>locale</c>.</summary>
+    [HttpGet("{id:guid}/translations/{locale}")]
+    [ProducesResponseType<CategoryTranslationDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTranslation(Guid id, string locale, CancellationToken ct) =>
+        FromResult(await translations.GetCategoryAsync(id, locale, ct), Ok);
+
+    [HttpPut("{id:guid}/translations/{locale}")]
+    [ProducesResponseType<CategoryTranslationDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetTranslation(Guid id, string locale, CategoryTranslationRequest request, CancellationToken ct) =>
+        FromResult(await translations.SetCategoryAsync(id, locale, request, ct), Ok);
 }

@@ -10,12 +10,18 @@ public class CheckoutValidatorTests
 
     [Theory]
     [InlineData("+380 (67) 123-45-67", "+380671234567")]
-    [InlineData("067 123 45 67", "0671234567")]
     [InlineData("+7.912.345.67.89", "+79123456789")]
-    public void NormalizePhone_StripsSeparators(string raw, string expected) =>
+    [InlineData("+48 512 345 678", "+48512345678")]
+    [InlineData("+1 (212) 555-0123", "+12125550123")]
+    public void NormalizePhone_ReturnsE164(string raw, string expected) =>
         Assert.Equal(expected, CheckoutValidator.NormalizePhone(raw));
 
     [Theory]
+    // Без кода страны номер неоднозначен: страну магазин не угадывает.
+    [InlineData("067 123 45 67")]
+    // Длина не подходит для Украины (на цифру короче и длиннее).
+    [InlineData("+380 67 123 45 6")]
+    [InlineData("+380 67 123 45 678")]
     [InlineData("12345")]
     [InlineData("+380 67 123 45 67 89 01 23")]
     [InlineData("phone")]

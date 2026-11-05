@@ -91,6 +91,28 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.CategoryTranslation", b =>
+                {
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Locale")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("CategoryId", "Locale");
+
+                    b.ToTable("CategoryTranslations");
+                });
+
             modelBuilder.Entity("HiFiStore.Domain.Catalog.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -220,6 +242,54 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                     b.ToTable("ProductSpecs");
                 });
 
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.ProductSpecTranslation", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SpecDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Locale")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("TextValue")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("ProductId", "SpecDefinitionId", "Locale");
+
+                    b.ToTable("ProductSpecTranslations");
+                });
+
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.ProductTranslation", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Locale")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("ProductId", "Locale");
+
+                    b.ToTable("ProductTranslations");
+                });
+
             modelBuilder.Entity("HiFiStore.Domain.Catalog.SpecDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -258,6 +328,29 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("SpecDefinitions");
+                });
+
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.SpecDefinitionTranslation", b =>
+                {
+                    b.Property<Guid>("SpecDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Locale")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("SpecDefinitionId", "Locale");
+
+                    b.ToTable("SpecDefinitionTranslations");
                 });
 
             modelBuilder.Entity("HiFiStore.Domain.Inquiries.Inquiry", b =>
@@ -391,6 +484,17 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasDefaultValue("uk");
+
+                    b.Property<string>("ManagerNote")
+                        .HasMaxLength(3000)
+                        .HasColumnType("character varying(3000)");
+
                     b.Property<long>("Number")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
@@ -410,6 +514,10 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Total")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("TrackingNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -724,6 +832,15 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.CategoryTranslation", b =>
+                {
+                    b.HasOne("HiFiStore.Domain.Catalog.Category", null)
+                        .WithMany("Translations")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HiFiStore.Domain.Catalog.Product", b =>
                 {
                     b.HasOne("HiFiStore.Domain.Catalog.Brand", "Brand")
@@ -771,6 +888,24 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                     b.Navigation("SpecDefinition");
                 });
 
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.ProductSpecTranslation", b =>
+                {
+                    b.HasOne("HiFiStore.Domain.Catalog.ProductSpec", null)
+                        .WithMany("Translations")
+                        .HasForeignKey("ProductId", "SpecDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.ProductTranslation", b =>
+                {
+                    b.HasOne("HiFiStore.Domain.Catalog.Product", null)
+                        .WithMany("Translations")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HiFiStore.Domain.Catalog.SpecDefinition", b =>
                 {
                     b.HasOne("HiFiStore.Domain.Catalog.Category", "Category")
@@ -780,6 +915,15 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.SpecDefinitionTranslation", b =>
+                {
+                    b.HasOne("HiFiStore.Domain.Catalog.SpecDefinition", null)
+                        .WithMany("Translations")
+                        .HasForeignKey("SpecDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HiFiStore.Domain.Inquiries.Inquiry", b =>
@@ -868,6 +1012,8 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Specs");
+
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("HiFiStore.Domain.Catalog.Product", b =>
@@ -875,6 +1021,18 @@ namespace HiFiStore.Infrastructure.Persistence.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Specs");
+
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.ProductSpec", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("HiFiStore.Domain.Catalog.SpecDefinition", b =>
+                {
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("HiFiStore.Domain.Orders.Order", b =>

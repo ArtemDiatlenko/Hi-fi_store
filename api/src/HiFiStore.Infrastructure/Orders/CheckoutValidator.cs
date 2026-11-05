@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using System.Text.RegularExpressions;
 using HiFiStore.Domain.Orders;
 
@@ -21,14 +22,8 @@ public static partial class CheckoutValidator
     private const int MaxRefLength = 64;
     private const int MaxCommentLength = 1000;
 
-    [GeneratedRegex(@"^\+?[0-9]{10,15}$")]
-    private static partial Regex PhonePattern();
-
     [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
     private static partial Regex EmailPattern();
-
-    [GeneratedRegex(@"[\s\-().]")]
-    private static partial Regex PhoneSeparators();
 
     /// <summary>Проверяет строки корзины: непустой список, корректные товары и количество. Дубликаты объединяются.</summary>
     public static List<CartLine> ValidateLines(IReadOnlyList<CartItemRequest>? items, Dictionary<string, string[]> errors)
@@ -116,7 +111,7 @@ public static partial class CheckoutValidator
         }
         else if (phone is null)
         {
-            AddError(errors, "phone", "Некорректный номер телефона: нужно от 10 до 15 цифр, например +380 67 123 45 67.");
+            AddError(errors, "phone", Phones.InvalidMessage);
         }
 
         var email = Clean(request.Email);
@@ -194,13 +189,13 @@ public static partial class CheckoutValidator
             warehouseRef,
             address,
             payment!.Value,
-            comment);
+            comment,
+            ContentLocales.Resolve(request.Locale));
         return true;
     }
 
     /// <summary>
-    /// Убирает пробелы, дефисы, точки и скобки. Возвращает цифры с необязательным «+» в начале
-    /// или <c>null</c>, если номер некорректен.
+    /// Номер в формате E.164 (<c>+380671234567</c>) или <c>null</c>, если номер некорректен (см. <see cref="Phones"/>).
     /// </summary>
     public static string? NormalizePhone(string? raw)
     {
@@ -209,8 +204,7 @@ public static partial class CheckoutValidator
             return null;
         }
 
-        var compact = PhoneSeparators().Replace(raw.Trim(), string.Empty);
-        return PhonePattern().IsMatch(compact) ? compact : null;
+        return Phones.Normalize(raw);
     }
 
     private static void RequireText(

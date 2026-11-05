@@ -122,6 +122,8 @@ export interface AdminOrderSummary {
 export interface AdminOrderDetails extends OrderDetails {
   nextStatuses: OrderStatus[];
   userId: string | null;
+  /** Служебная заметка менеджера (покупатель её не видит). */
+  managerNote: string | null;
 }
 
 export const productConditions: ProductCondition[] = ["New", "Used", "Demo"];

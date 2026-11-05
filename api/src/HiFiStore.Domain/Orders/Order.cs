@@ -23,7 +23,7 @@ public class Order
 
     public required string CustomerName { get; set; }
 
-    /// <summary>Телефон в нормализованном виде: цифры и необязательный «+» в начале.</summary>
+    /// <summary>Телефон в формате E.164 (<c>+380671234567</c>); у старых заказов может быть без кода страны.</summary>
     public required string CustomerPhone { get; set; }
 
     public required string CustomerEmail { get; set; }
@@ -48,6 +48,18 @@ public class Order
     public PaymentMethod PaymentMethod { get; set; }
 
     public string? CustomerComment { get; set; }
+
+    /// <summary>Язык витрины, на которой оформлен заказ (<c>uk</c>, <c>en</c>): на нём уходят письма покупателю.</summary>
+    public string Locale { get; set; } = "uk";
+
+    /// <summary>
+    /// Номер отправления в службе доставки (ТТН Новой почты). Вносит менеджер при отправке;
+    /// покупатель видит его на странице заказа и в письме.
+    /// </summary>
+    public string? TrackingNumber { get; set; }
+
+    /// <summary>Служебная заметка менеджера, покупателю не показывается.</summary>
+    public string? ManagerNote { get; set; }
 
     public List<OrderItem> Items { get; set; } = [];
 

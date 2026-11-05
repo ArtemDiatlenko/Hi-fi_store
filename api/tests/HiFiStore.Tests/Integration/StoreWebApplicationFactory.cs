@@ -90,11 +90,15 @@ public sealed class StoreWebApplicationFactory : WebApplicationFactory<Program>,
         builder.UseSetting("Seed:Admin:Password", AdminPassword);
         builder.UseSetting("Store:PublicUrl", PublicUrl);
         builder.UseSetting("Store:OwnerEmail", OwnerEmail);
+        builder.UseSetting("Media:Disk:Path", MediaRoot);
         builder.ConfigureTestServices(services => services.AddSingleton<IEmailTransport>(Emails));
     }
 
     public const string PublicUrl = "https://shop.test";
     public const string OwnerEmail = "owner@test.local";
+
+    /// <summary>Загруженные в тестах файлы — во временной папке, а не в каталоге API.</summary>
+    public static string MediaRoot { get; } = Path.Combine(Path.GetTempPath(), "hifistore-test-media");
 
     /// <summary>Письма, «отправленные» этим экземпляром API.</summary>
     public CapturedEmails Emails { get; } = new();

@@ -19,6 +19,7 @@ import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
+import { ProductTranslationEditor } from "@/components/admin/translation-editors";
 
 export function ProductCreate() {
   const { locale, dict } = useI18n();
@@ -207,6 +208,11 @@ export function ProductEditor({ params }: { params: Promise<{ id: string }> }) {
 
       <Section title={dict.admin.images.title} description={dict.admin.images.hint}>
         <ProductImagesEditor key={snapshot(data.images)} product={data} onSaved={saved} />
+      </Section>
+
+      <Section title={dict.admin.translations.productTitle} description={dict.admin.translations.productHint}>
+        {/* updatedAt меняется после сохранения характеристик — тогда перечитываем список значений для перевода. */}
+        <ProductTranslationEditor productId={data.id} version={data.updatedAt} />
       </Section>
 
       {confirmElement}

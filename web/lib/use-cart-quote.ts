@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CartItem } from "@/lib/cart";
 import { fetchCartQuote } from "@/lib/client-api";
+import { useI18n } from "@/lib/i18n/client";
 import type { CartQuote } from "@/lib/orders";
 
 interface QuoteState {
@@ -26,13 +27,14 @@ export function useCartQuote(items: CartItem[] | null): CartQuoteView {
   const key = items && items.length > 0 ? JSON.stringify(items) : null;
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<QuoteState | null>(null);
+  const { locale } = useI18n();
 
   useEffect(() => {
     if (key === null) {
       return;
     }
     const controller = new AbortController();
-    fetchCartQuote(JSON.parse(key) as CartItem[], controller.signal)
+    fetchCartQuote(JSON.parse(key) as CartItem[], locale, controller.signal)
       .then((result) => {
         setState(
           result.ok
@@ -44,7 +46,7 @@ export function useCartQuote(items: CartItem[] | null): CartQuoteView {
         // Запрос отменён: корзина изменилась или компонент размонтирован.
       });
     return () => controller.abort();
-  }, [key, attempt]);
+  }, [key, attempt, locale]);
 
   const reload = useCallback(() => setAttempt((value) => value + 1), []);
 

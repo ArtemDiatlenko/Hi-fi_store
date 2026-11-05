@@ -21,6 +21,7 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
                      (HttpMethod.Get, "/api/admin/orders", null),
                      (HttpMethod.Get, $"/api/admin/orders/{id}", null),
                      (HttpMethod.Put, $"/api/admin/orders/{id}/status", new { status = "Confirmed" }),
+                     (HttpMethod.Put, $"/api/admin/orders/{id}/info", new { managerNote = "x" }),
                  })
         {
             Assert.Equal(HttpStatusCode.Unauthorized, (await SendAsync(_client, method, url, token: null, body)).StatusCode);
@@ -46,6 +47,8 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
         Assert.Contains(id, await ListIdsAsync(admin, $"q=search.{unique}@example"));
         Assert.Contains(id, await ListIdsAsync(admin, $"q={Uri.EscapeDataString($"50 {unique[..3]}-{unique[3..]}")}"));
         Assert.Contains(id, await ListIdsAsync(admin, $"q={Uri.EscapeDataString($"№{number}")}"));
+        // Национальный формат с ведущим нулём находит номер, сохранённый как +38050…
+        Assert.Contains(id, await ListIdsAsync(admin, $"q={Uri.EscapeDataString($"050 {unique}")}"));
         Assert.DoesNotContain(id, await ListIdsAsync(admin, $"q=nobody-{unique}@example.com"));
 
         Assert.Contains(id, await ListIdsAsync(admin, "status=new&pageSize=100&q=" + unique));
@@ -148,6 +151,71 @@ public sealed class AdminOrdersApiTests(StoreWebApplicationFactory factory) : IC
         Assert.Single(responses, r => r.StatusCode == HttpStatusCode.OK);
         Assert.Equal(5, responses.Count(r => r.StatusCode == HttpStatusCode.Conflict));
         Assert.Equal(4, await GetStockAsync(factory, product.Id));
+    }
+
+    [SkippableFact]
+    public async Task Shipping_WithTrackingNumber_ShowsItToCustomerAndEmailsIt()
+    {
+        await factory.PrepareAsync();
+        var admin = await LoginAdminAsync(_client);
+        var product = await CreateProductAsync(factory, stock: 5);
+        var email = $"track.{Guid.NewGuid():N}@example.com";
+        var body = CheckoutBody((product.Id, 1));
+        body["email"] = email;
+        var placed = await PlaceOrderAsync(_client, body);
+        var id = placed.GetProperty("order").GetProperty("id").GetGuid();
+        var number = placed.GetProperty("order").GetProperty("number").GetInt64();
+        var token = placed.GetProperty("token").GetString();
+        await ChangeStatusAsync(admin, id, "Confirmed");
+
+        var badTracking = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{id}/status", admin,
+            new { status = "Shipped", trackingNumber = "№ 12" });
+        Assert.Equal(HttpStatusCode.BadRequest, badTracking.StatusCode);
+
+        var shipped = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{id}/status", admin,
+            new { status = "Shipped", trackingNumber = "2045 0000 0000 00" });
+        Assert.Equal(HttpStatusCode.OK, shipped.StatusCode);
+        Assert.Equal("20450000000000", (await shipped.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("trackingNumber").GetString());
+
+        var letter = await factory.Emails.WaitForAsync(email, $"Замовлення №{number}: відправлено");
+        Assert.Contains("20450000000000", letter.Text);
+        Assert.Contains("novaposhta.ua/tracking/?cargo_number=20450000000000", letter.Html);
+
+        var forCustomer = await _client.GetFromJsonAsync<JsonElement>($"/api/orders/by-token/{token}");
+        Assert.Equal("20450000000000", forCustomer.GetProperty("trackingNumber").GetString());
+        Assert.False(forCustomer.TryGetProperty("managerNote", out _));
+    }
+
+    [SkippableFact]
+    public async Task AdminInfo_SavesNoteAndTracking_AndValidates()
+    {
+        await factory.PrepareAsync();
+        var admin = await LoginAdminAsync(_client);
+        var product = await CreateProductAsync(factory, stock: 5);
+        var id = await PlaceOrderIdAsync(product.Id, 1);
+
+        var saved = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{id}/info", admin,
+            new { trackingNumber = " 59001234567890 ", managerNote = "  Передзвонити після 18:00 " });
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        var details = await GetJsonAsync(admin, $"/api/admin/orders/{id}");
+        Assert.Equal("59001234567890", details.GetProperty("trackingNumber").GetString());
+        Assert.Equal("Передзвонити після 18:00", details.GetProperty("managerNote").GetString());
+
+        var cleared = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{id}/info", admin,
+            new { trackingNumber = "", managerNote = "" });
+        var clearedJson = await cleared.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(JsonValueKind.Null, clearedJson.GetProperty("trackingNumber").ValueKind);
+        Assert.Equal(JsonValueKind.Null, clearedJson.GetProperty("managerNote").ValueKind);
+
+        var invalid = await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{id}/info", admin,
+            new { trackingNumber = "ТТН?", managerNote = new string('x', 3001) });
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+        var errors = (await invalid.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("errors");
+        Assert.True(errors.TryGetProperty("trackingNumber", out _));
+        Assert.True(errors.TryGetProperty("managerNote", out _));
+
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await SendAsync(_client, HttpMethod.Put, $"/api/admin/orders/{Guid.NewGuid()}/info", admin, new { })).StatusCode);
     }
 
     private async Task<Guid> PlaceOrderIdAsync(Guid productId, int quantity, params (Guid, int)[] more)

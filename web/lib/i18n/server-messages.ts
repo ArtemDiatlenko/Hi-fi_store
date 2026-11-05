@@ -33,10 +33,6 @@ const EXACT: Record<string, Translations> = {
   "Не указан товар.": { uk: "Товар не вказано.", en: "Product not specified." },
   "Укажите имя и фамилию.": { uk: "Вкажіть ім’я та прізвище.", en: "Enter your full name." },
   "Укажите телефон.": { uk: "Вкажіть телефон.", en: "Enter your phone number." },
-  "Некорректный номер телефона: нужно от 10 до 15 цифр, например +380 67 123 45 67.": {
-    uk: "Некоректний номер телефону: потрібно від 10 до 15 цифр, наприклад +380 67 123 45 67.",
-    en: "Invalid phone number: 10 to 15 digits are required, e.g. +380 67 123 45 67.",
-  },
   "Укажите email.": { uk: "Вкажіть email.", en: "Enter your email." },
   // Заявка на консультацию (InquiryValidator).
   "Выберите тему обращения.": { uk: "Оберіть тему звернення.", en: "Choose a topic." },
@@ -193,12 +189,34 @@ const ADMIN_EXACT: Record<string, Translations> = {
     uk: "Вкажіть адресу та опис зображення.",
     en: "Enter the image URL and description.",
   },
+  "Номер ТТН: от 4 до 40 цифр или латинских букв, например 20450000000000.": {
+    uk: "Номер ТТН: від 4 до 40 цифр або латинських літер, наприклад 20450000000000.",
+    en: "Tracking number: 4 to 40 digits or Latin letters, e.g. 20450000000000.",
+  },
+  "Укажите номер с кодом страны, например +380 67 123 45 67.": {
+    uk: "Вкажіть номер із кодом країни, наприклад +380 67 123 45 67.",
+    en: "Enter the number with the country code, e.g. +380 67 123 45 67.",
+  },
   "Укажите адрес изображения.": { uk: "Вкажіть адресу зображення.", en: "Enter the image URL." },
   "Ожидается адрес http(s) или путь от корня сайта, например /images/amp.png.": {
     uk: "Потрібна адреса http(s) або шлях від кореня сайту, наприклад /images/amp.png.",
     en: "Expected an http(s) URL or a path from the site root, e.g. /images/amp.png.",
   },
   "Ожидается идентификатор (GUID).": { uk: "Потрібен ідентифікатор (GUID).", en: "An identifier (GUID) is expected." },
+  // Загрузка фото (POST /api/admin/media/images).
+  "Выберите файл изображения.": { uk: "Оберіть файл зображення.", en: "Choose an image file." },
+  "Поддерживаются изображения JPEG, PNG и WebP.": {
+    uk: "Підтримуються зображення JPEG, PNG і WebP.",
+    en: "JPEG, PNG and WebP images are supported.",
+  },
+  "Отправьте файл в поле «file» (multipart/form-data).": {
+    uk: "Надішліть файл у полі «file» (multipart/form-data).",
+    en: "Send the file in the “file” field (multipart/form-data).",
+  },
+  "Не удалось прочитать файл. Попробуйте загрузить его ещё раз.": {
+    uk: "Не вдалося прочитати файл. Спробуйте завантажити його ще раз.",
+    en: "Could not read the file. Try uploading it again.",
+  },
   // Заказы.
   "Такой переход статуса невозможен.": {
     uk: "Такий перехід статусу неможливий.",
@@ -227,6 +245,14 @@ const ADMIN_PATTERNS: {
     test: /^Не длиннее (\d+) символов\.$/,
     names: ["n"],
     translations: { uk: "Не довше {n} символів.", en: "No longer than {n} characters." },
+  },
+  {
+    test: /^Файл больше (\d+) МБ\. Уменьшите фото или сохраните его с меньшим качеством\.$/,
+    names: ["n"],
+    translations: {
+      uk: "Файл більший за {n} МБ. Зменште фото або збережіть його з нижчою якістю.",
+      en: "The file is larger than {n} MB. Make the photo smaller or save it at a lower quality.",
+    },
   },
   {
     test: /^Не больше (\d+) изображений\.$/,

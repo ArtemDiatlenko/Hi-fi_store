@@ -19,6 +19,8 @@ import {
   paymentMethods,
 } from "@/lib/orders";
 import { useCartQuote } from "@/lib/use-cart-quote";
+import { PhoneInput } from "@/components/phone-input";
+import { isValidInternationalPhone } from "@/lib/phone";
 
 const FIELDS = ["fullName", "phone", "email", "deliveryMethod", "city", "warehouse", "address", "paymentMethod", "comment"] as const;
 type FieldName = (typeof FIELDS)[number];
@@ -102,7 +104,7 @@ export function CheckoutForm() {
         if (!response.ok) {
           return;
         }
-        const me = (await response.json()) as { email: string | null; fullName: string | null };
+        const me = (await response.json()) as { email: string | null; fullName: string | null; phone: string | null };
         if (!active) {
           return;
         }
@@ -111,6 +113,7 @@ export function CheckoutForm() {
           ...current,
           email: current.email || me.email || "",
           fullName: current.fullName || me.fullName || "",
+          phone: current.phone || me.phone || "",
         }));
       })
       .catch(() => {
@@ -146,6 +149,15 @@ export function CheckoutForm() {
       return;
     }
 
+    // Длину номера для выбранной страны проверяем сразу: так ошибка видна без запроса к серверу.
+    if (values.phone && !isValidInternationalPhone(values.phone)) {
+      const fieldErrors: FieldErrors = { phone: [dict.common.phoneInvalid] };
+      setErrors(fieldErrors);
+      setFormError(null);
+      focusFirstProblem(fieldErrors);
+      return;
+    }
+
     setPending(true);
     setErrors({});
     setFormError(null);
@@ -162,6 +174,8 @@ export function CheckoutForm() {
       address: method === "NovaPoshtaCourier" ? values.address : null,
       paymentMethod: values.paymentMethod,
       comment: values.comment,
+      // Язык витрины: на нём придут письма о заказе.
+      locale,
     };
 
     try {
@@ -322,14 +336,8 @@ export function CheckoutForm() {
             error={errors.fullName}
             onChange={(value) => update("fullName", value)}
           />
-          <TextField
-            field="phone"
+          <PhoneField
             label={dict.checkout.phone}
-            type="tel"
-            required
-            autoComplete="tel"
-            maxLength={32}
-            placeholder={dict.checkout.phonePlaceholder}
             hint={dict.checkout.phoneHint}
             value={values.phone}
             error={errors.phone}
@@ -587,6 +595,55 @@ function TextField({
           {hint}
         </p>
       ) : null}
+    </div>
+  );
+}
+
+/** Телефон с кодом страны: та же разметка подписи, ошибки и подсказки, что у TextField. */
+function PhoneField({
+  label,
+  hint,
+  value,
+  error,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  error?: string[];
+  onChange: (value: string) => void;
+}) {
+  const { locale, dict } = useI18n();
+  const id = inputId("phone");
+  const hintId = `${id}-hint`;
+  const errorId = error?.length ? `${id}-error` : undefined;
+  return (
+    <div className="flex flex-col gap-1 text-sm">
+      <label htmlFor={id} className="font-medium">
+        {label}
+        <span aria-hidden="true" className="text-red-600">
+          {" "}
+          *
+        </span>
+      </label>
+      <PhoneInput
+        id={id}
+        locale={locale}
+        countryLabel={dict.common.phoneCountry}
+        value={value}
+        onChange={onChange}
+        required
+        invalid={!!errorId}
+        describedBy={[errorId, hintId].filter(Boolean).join(" ")}
+      />
+      {errorId ? (
+        <p id={errorId} className="text-sm text-red-700 dark:text-red-400">
+          {error!.join(" ")}
+        </p>
+      ) : null}
+      <p id={hintId} className="text-xs text-zinc-500">
+        {hint}
+      </p>
     </div>
   );
 }

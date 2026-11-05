@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using HiFiStore.Api.Orders;
 using HiFiStore.Infrastructure.Catalog;
 using HiFiStore.Infrastructure.Identity;
@@ -37,14 +38,14 @@ public sealed class AccountOrdersController(IOrderService orders, UserManager<Ap
     [ProducesResponseType<OrderDetails>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderDetails>> Get(Guid id, CancellationToken ct)
+    public async Task<ActionResult<OrderDetails>> Get(Guid id, [FromQuery] string? lang, CancellationToken ct)
     {
         if (CurrentUserId() is not { } userId)
         {
             return Unauthorized();
         }
 
-        var order = await orders.GetForUserAsync(userId, id, ct);
+        var order = await orders.GetForUserAsync(userId, id, ContentLocales.Resolve(lang), ct);
         return order is null ? NotFound() : Ok(order);
     }
 

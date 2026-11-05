@@ -1,3 +1,4 @@
+using HiFiStore.Domain.Catalog;
 using HiFiStore.Domain.Orders;
 
 namespace HiFiStore.Infrastructure.Orders;
@@ -22,6 +23,9 @@ public sealed record CheckoutRequest
     public string? Phone { get; init; }
 
     public string? Email { get; init; }
+
+    /// <summary>Язык витрины (<c>uk</c>, <c>en</c>) — для писем покупателю. Неизвестный — основной.</summary>
+    public string? Locale { get; init; }
 
     /// <summary><c>NovaPoshtaWarehouse</c>, <c>NovaPoshtaCourier</c> или <c>Pickup</c>.</summary>
     public string? DeliveryMethod { get; init; }
@@ -58,7 +62,8 @@ public sealed record ValidatedCheckout(
     string? WarehouseRef,
     string? Address,
     PaymentMethod PaymentMethod,
-    string? Comment);
+    string? Comment,
+    string Locale = ContentLocales.Base);
 
 /// <param name="CustomerId">Только заказы, оформленные после входа этим пользователем.</param>
 public sealed record AdminOrderFilter(OrderStatus? Status, string? Search, int Page, int PageSize, Guid? CustomerId = null);
@@ -116,7 +121,9 @@ public sealed record OrderDetails(
     IReadOnlyList<OrderItemDto> Items,
     decimal Total,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string? TrackingNumber,
+    string Locale = ContentLocales.Base);
 
 /// <summary>Результат оформления. <see cref="Token"/> — ключ к странице подтверждения, показывается один раз.</summary>
 public sealed record CheckoutResponse(string Token, OrderDetails Order);
@@ -150,7 +157,13 @@ public sealed record AdminOrderDetails(
     IReadOnlyList<OrderItemDto> Items,
     decimal Total,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    string? TrackingNumber,
+    string? ManagerNote,
+    string Locale = ContentLocales.Base);
+
+/// <summary>Служебные поля заказа, которые менеджер может поправить в любой момент. Пусто — очистить.</summary>
+public sealed record OrderAdminInfoRequest(string? TrackingNumber, string? ManagerNote);
 
 public sealed record StockShortage(Guid ProductId, string Name, int Requested, int Available);
 
