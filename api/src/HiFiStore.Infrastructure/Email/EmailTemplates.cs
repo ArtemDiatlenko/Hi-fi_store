@@ -53,7 +53,7 @@ public static class EmailTemplates
         to,
         $"Нове замовлення №{order.Number} — {Money(order.Total)}",
         [
-            Paragraph($"Покупець: {order.Customer.FullName}, {order.Customer.Phone}, {order.Customer.Email}"),
+            Paragraph($"Покупець: {order.Customer.FullName}, {Phones.Display(order.Customer.Phone)}, {order.Customer.Email}"),
             Items(order.Items, order.Total),
             Paragraph($"Доставка: {Delivery(order.Delivery)}"),
             Paragraph($"Оплата: {Payment(order.PaymentMethod)}"),
@@ -86,6 +86,12 @@ public static class EmailTemplates
             [
                 Paragraph($"Вітаємо, {order.Customer.FullName}!"),
                 Paragraph($"Ваше замовлення №{order.Number} {text}"),
+                order.Status == OrderStatus.Shipped && order.TrackingNumber is { } tracking
+                    ? Paragraph($"Номер ТТН: {tracking}")
+                    : Block.Empty,
+                order.Status == OrderStatus.Shipped && OrderTracking.NovaPoshtaTrackingUrl(order.TrackingNumber) is { } trackingUrl
+                    ? Button("Відстежити посилку", trackingUrl)
+                    : Block.Empty,
                 link is null ? Block.Empty : Button("Переглянути замовлення", link),
             ]);
     }
@@ -95,7 +101,7 @@ public static class EmailTemplates
         $"Нова заявка №{inquiry.Number}: {Topic(inquiry.Topic).ToLower(Uk)}",
         [
             Paragraph($"Від: {inquiry.Name}"),
-            Paragraph($"Зв’язок: {Contact(inquiry.PreferredContact)} — {string.Join(", ", new[] { inquiry.Phone, inquiry.Email }.Where(v => v is not null))}"),
+            Paragraph($"Зв’язок: {Contact(inquiry.PreferredContact)} — {string.Join(", ", new[] { inquiry.Phone is null ? null : Phones.Display(inquiry.Phone), inquiry.Email }.Where(v => v is not null))}"),
             inquiry.ProductName is { } product ? Paragraph($"Товар: {product}") : Block.Empty,
             inquiry.Budget is { } budget ? Paragraph($"Бюджет: {budget}") : Block.Empty,
             Paragraph(inquiry.Message),

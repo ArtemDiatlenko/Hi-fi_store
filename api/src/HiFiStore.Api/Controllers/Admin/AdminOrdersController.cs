@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HiFiStore.Api.Controllers.Admin;
 
-public sealed record ChangeOrderStatusRequest(string? Status);
+/// <param name="TrackingNumber">ТТН — передаётся при переводе в «Отправлен» (необязателен).</param>
+public sealed record ChangeOrderStatusRequest(string? Status, string? TrackingNumber = null);
 
 /// <summary>
 /// Управление заказами для роли <c>Admin</c>: список с фильтрами, карточка, смена статуса.
@@ -59,7 +60,14 @@ public sealed class AdminOrdersController(IOrderService orders, OrderNotifier no
             return ValidationProblem(new ValidationProblemDetails(errors));
         }
 
-        var result = await orders.ChangeStatusAsync(id, status, ct);
+        var trackingErrors = new Dictionary<string, string[]>();
+        var tracking = status == OrderStatus.Shipped ? OrderTracking.NormalizeTracking(request?.TrackingNumber, trackingErrors) : null;
+        if (trackingErrors.Count > 0)
+        {
+            return ValidationProblem(new ValidationProblemDetails(trackingErrors));
+        }
+
+        var result = await orders.ChangeStatusAsync(id, status, tracking, ct);
         if (result is ChangeStatusResult.Changed changedOrder)
         {
             // Письмо покупателю о новом статусе — в фоне.
@@ -77,5 +85,36 @@ public sealed class AdminOrdersController(IOrderService orders, OrderNotifier no
                         $"«{OrderLabels.Status(notAllowed.Requested)}»."),
             _ => throw new InvalidOperationException($"Неизвестный результат смены статуса: {result}"),
         };
+    }
+
+    /// <summary>
+    /// ТТН и заметка менеджера. Если у отправленного заказа появился или поменялся ТТН, покупатель получит письмо.
+    /// </summary>
+    [HttpPut("{id:guid}/info")]
+    [ProducesResponseType<AdminOrderDetails>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateInfo(Guid id, OrderAdminInfoRequest request, CancellationToken ct)
+    {
+        var errors = new Dictionary<string, string[]>();
+        var tracking = OrderTracking.NormalizeTracking(request.TrackingNumber, errors);
+        var note = OrderTracking.NormalizeNote(request.ManagerNote, errors);
+        if (errors.Count > 0)
+        {
+            return ValidationProblem(new ValidationProblemDetails(errors) { Detail = "Проверьте введённые данные." });
+        }
+
+        var result = await orders.UpdateAdminInfoAsync(id, tracking, note, ct);
+        if (result is null)
+        {
+            return NotFound();
+        }
+
+        if (result.TrackingChanged && result.Order.Status == OrderStatus.Shipped && result.Order.TrackingNumber is not null)
+        {
+            notifier.StatusChanged(result.Order);
+        }
+
+        return Ok(result.Order);
     }
 }

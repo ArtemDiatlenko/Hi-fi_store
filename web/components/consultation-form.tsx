@@ -11,6 +11,8 @@ import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { focusFirstInvalid } from "@/lib/admin/api";
 import { useAfterCommit } from "@/lib/admin/use-after-commit";
 import { readToken } from "@/lib/auth";
+import { PhoneInput } from "@/components/phone-input";
+import { isValidInternationalPhone } from "@/lib/phone";
 import { readProblem } from "@/lib/client-api";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
@@ -58,6 +60,7 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
   const [productRemoved, setProductRemoved] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [failure, setFailure] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -91,9 +94,10 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
     let active = true;
     fetch("/api/account/me", { headers: { Authorization: `Bearer ${token}` } })
       .then((response) => (response.ok ? response.json() : null))
-      .then((me: { email: string | null; fullName: string | null } | null) => {
+      .then((me: { email: string | null; fullName: string | null; phone: string | null } | null) => {
         if (active && me) {
           setName((current) => current || me.fullName || "");
+          setPhone((current) => current || me.phone || "");
           setEmail((current) => current || me.email || "");
         }
       })
@@ -107,6 +111,13 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
     event.preventDefault();
     if (pending) return;
     const form = new FormData(event.currentTarget);
+    // Длину номера для выбранной страны проверяем сразу, без запроса к серверу.
+    if (phone && !isValidInternationalPhone(phone)) {
+      setErrors({ phone: [dict.common.phoneInvalid] });
+      setFailure(null);
+      afterCommit(() => focusFirstInvalid(formRef.current));
+      return;
+    }
     setPending(true);
     setErrors({});
     setFailure(null);
@@ -119,7 +130,7 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
         body: JSON.stringify({
           topic,
           name: form.get("name"),
-          phone: form.get("phone"),
+          phone,
           email: form.get("email"),
           preferredContact: contact,
           budget: form.get("budget"),
@@ -254,23 +265,27 @@ function ConsultationFields({ productParam, topicParam }: { productParam: string
           <p className="text-xs text-zinc-500 dark:text-zinc-400">{needsEmail ? t.contactHintEmail : t.contactHintPhone}</p>
         </fieldset>
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium">
+        {/* Не <label> вокруг поля: внутри два элемента (страна и номер), подпись относится к номеру. */}
+        <div className="flex flex-col gap-1 text-sm">
+          <label htmlFor={`${baseId}-phone`} className="font-medium">
             {t.phone}
             {needsEmail ? <span className="font-normal text-zinc-500"> ({t.optional})</span> : null}
-          </span>
-          <input
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            inputMode="tel"
+          </label>
+          <PhoneInput
+            id={`${baseId}-phone`}
+            locale={locale}
+            countryLabel={dict.common.phoneCountry}
+            value={phone}
+            onChange={(value) => {
+              setPhone(value);
+              setErrors((current) => (current.phone ? { ...current, phone: [] } : current));
+            }}
             required={!needsEmail}
-            aria-invalid={errors.phone?.length ? true : undefined}
-            aria-describedby={describedBy("phone")}
-            className={inputClass(!!errors.phone?.length)}
+            invalid={!!errors.phone?.length}
+            describedBy={describedBy("phone")}
           />
           <FieldError id={`${baseId}-phone-error`} messages={errors.phone} />
-        </label>
+        </div>
 
         <label className="flex flex-col gap-1 text-sm">
           <span className="font-medium">

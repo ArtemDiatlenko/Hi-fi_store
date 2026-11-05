@@ -29,6 +29,8 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.DeliveryWarehouseRef).HasMaxLength(64);
         builder.Property(o => o.DeliveryAddress).HasMaxLength(500);
         builder.Property(o => o.CustomerComment).HasMaxLength(1000);
+        builder.Property(o => o.TrackingNumber).HasMaxLength(40);
+        builder.Property(o => o.ManagerNote).HasMaxLength(3000);
 
         builder.Property(o => o.Total).HasPrecision(12, 2);
 

@@ -12,6 +12,7 @@ import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/client";
 import { localeHref } from "@/lib/i18n/routing";
 import { tpl } from "@/lib/i18n/util";
+import { formatPhone } from "@/lib/phone";
 
 export function InquiryStatusBadge({ status }: { status: InquiryStatus }) {
   const { dict } = useI18n();
@@ -76,7 +77,7 @@ export function InquiryList() {
                     <span className="text-sm font-medium">{dict.consultation.topics[item.topic]}{item.productName ? ` · ${item.productName}` : ""}</span>
                     <span className="break-words text-sm text-zinc-600 dark:text-zinc-300">{item.messagePreview}</span>
                     <span className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      <span className="break-all">{dict.consultation.contacts[item.preferredContact]} · {item.preferredContact === "Email" ? item.email : item.phone}</span>
+                      <span className="break-all">{dict.consultation.contacts[item.preferredContact]} · {item.preferredContact === "Email" ? item.email : item.phone && formatPhone(item.phone)}</span>
                       <time dateTime={item.createdAt}>{formatDateTime(item.createdAt, locale)}</time>
                     </span>
                   </Link>

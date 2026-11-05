@@ -52,6 +52,8 @@ export interface OrderDetails {
   comment: string | null;
   items: OrderItem[];
   total: number;
+  /** Номер отправления (ТТН), когда заказ передан в доставку. */
+  trackingNumber: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -82,3 +84,10 @@ export interface StockShortage {
 export const deliveryMethods: DeliveryMethod[] = ["NovaPoshtaWarehouse", "NovaPoshtaCourier", "Pickup"];
 
 export const paymentMethods: PaymentMethod[] = ["CashOnDelivery", "BankTransfer"];
+
+/** Ссылка на отслеживание Новой почты — только для 14-значной ТТН (как в письме API). */
+export function novaPoshtaTrackingUrl(trackingNumber: string | null): string | null {
+  return trackingNumber && /^\d{14}$/.test(trackingNumber)
+    ? `https://novaposhta.ua/tracking/?cargo_number=${trackingNumber}`
+    : null;
+}

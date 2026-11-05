@@ -71,7 +71,11 @@ public sealed class InquiryService(StoreDbContext db, TimeProvider time) : IInqu
             var term = filter.Search.Trim();
             var pattern = $"%{term.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%";
             long? number = long.TryParse(term.TrimStart('#', '№').Trim(), out var parsed) ? parsed : null;
-            var digits = CheckoutValidator.NormalizePhone(term)?.TrimStart('+');
+            // Как в заказах: «067 123…» и «+380 67…» находят один номер.
+            var phoneDigits = Phones.SearchDigits(term);
+            var digits = phoneDigits.Length > 0 && term.All(c => char.IsAsciiDigit(c) || c is ' ' or '+' or '-' or '(' or ')' or '.')
+                ? phoneDigits
+                : null;
             query = query.Where(i =>
                 (number != null && i.Number == number) ||
                 (digits != null && i.Phone != null && i.Phone.Contains(digits)) ||

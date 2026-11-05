@@ -64,5 +64,29 @@ public sealed class EmailTests
         [],
         1000m,
         DateTimeOffset.UtcNow,
-        DateTimeOffset.UtcNow);
+        DateTimeOffset.UtcNow,
+        TrackingNumber: null,
+        ManagerNote: null);
+
+    [Fact]
+    public void ShippedEmail_ContainsTrackingNumberAndNovaPoshtaLink()
+    {
+        var order = Order(OrderStatus.Shipped) with { TrackingNumber = "20450000000000" };
+
+        var message = EmailTemplates.OrderStatusChanged(order, link: null)!;
+
+        Assert.Contains("20450000000000", message.Text);
+        Assert.Contains("https://novaposhta.ua/tracking/?cargo_number=20450000000000", message.Html);
+    }
+
+    [Fact]
+    public void ShippedEmail_WithoutNovaPoshtaNumber_HasNoTrackingLink()
+    {
+        var order = Order(OrderStatus.Shipped) with { TrackingNumber = "UPS-123456" };
+
+        var message = EmailTemplates.OrderStatusChanged(order, link: null)!;
+
+        Assert.Contains("UPS-123456", message.Text);
+        Assert.DoesNotContain("novaposhta.ua/tracking", message.Html);
+    }
 }
