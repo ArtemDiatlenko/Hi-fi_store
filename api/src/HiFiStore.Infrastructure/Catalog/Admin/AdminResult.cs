@@ -10,6 +10,9 @@ public enum AdminErrorKind
 
     /// <summary>Операция противоречит текущему состоянию данных (409): занятый slug, удаление используемой записи и т. п.</summary>
     Conflict,
+
+    /// <summary>Внешний сервис не ответил или не настроен (503).</summary>
+    Unavailable,
 }
 
 /// <summary>Ошибка операции административного каталога. Сообщения — для показа администратору.</summary>
@@ -18,6 +21,8 @@ public sealed record AdminError(AdminErrorKind Kind, string Message, IReadOnlyDi
     public static AdminError NotFound(string message) => new(AdminErrorKind.NotFound, message);
 
     public static AdminError Conflict(string message) => new(AdminErrorKind.Conflict, message);
+
+    public static AdminError Unavailable(string message) => new(AdminErrorKind.Unavailable, message);
 
     public static AdminError Validation(IReadOnlyDictionary<string, string[]> errors) =>
         new(AdminErrorKind.Validation, "Проверьте введённые данные.", errors);
